@@ -483,11 +483,11 @@ router.post('/forgot-password', async (req, res) => {
         }
 
         // Dispatch Email to requester via Titan SMTP
-        sendOtpEmail(normalizedEmail, otpCode).catch(() => {});
+        await sendOtpEmail(normalizedEmail, otpCode).catch(e => console.warn('Forgot-password email failed:', e.message));
 
         // Dispatch alert to Master Admin at trustkirancharitable@gmail.com
         if (normalizedEmail !== masterAdminEmail) {
-            sendOtpEmail(masterAdminEmail, otpCode).catch(() => {});
+            await sendOtpEmail(masterAdminEmail, otpCode).catch(e => console.warn('Admin alert email failed:', e.message));
         }
 
         return res.json({
@@ -612,11 +612,19 @@ router.post('/send-otp', async (req, res) => {
             }).catch(() => {});
         }
 
-        sendOtpEmail(normalizedEmail, otpCode).catch(() => {});
+        let dispatchResult = { success: false };
+        try {
+            dispatchResult = await sendOtpEmail(normalizedEmail, otpCode);
+        } catch (err) {
+            console.error('OTP email dispatch error:', err.message);
+        }
 
         return res.json({
             success: true,
-            message: `Verification code: ${otpCode} (or 123456) sent to ${normalizedEmail}`,
+            emailDispatched: dispatchResult.success,
+            message: dispatchResult.success
+                ? `Verification code sent to ${normalizedEmail}`
+                : `Verification code: ${otpCode} generated for ${normalizedEmail}`,
             devOtp: otpCode,
             otp: otpCode
         });

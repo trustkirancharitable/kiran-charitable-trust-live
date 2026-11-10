@@ -16,6 +16,7 @@ function numberToWords(amount) {
     return num === 0 ? 'Zero Rupees Only' : 'Rupees ' + convert(num).trim() + ' Only';
 }
 
+const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const { cleanExpiredSentOtpEmails } = require('./emailCleanupService');
@@ -62,15 +63,15 @@ async function dispatchEmail({ to, subject, html, text, attachments = [] }) {
         return { success: true, simulated: true, to };
     }
 
-    // Default ultra-lightweight logo attachment (2.66 KB)
-    const emailAttachments = [
-        {
+    // Default ultra-lightweight logo attachment (2.66 KB) if available on disk
+    const emailAttachments = [...attachments];
+    if (fs.existsSync(EMAIL_LOGO_PATH)) {
+        emailAttachments.unshift({
             filename: 'kct-logo.jpg',
             path: EMAIL_LOGO_PATH,
             cid: 'kctlogo'
-        },
-        ...attachments
-    ];
+        });
+    }
 
     try {
         const info = await mailer.sendMail({
@@ -92,10 +93,12 @@ async function dispatchEmail({ to, subject, html, text, attachments = [] }) {
 
 // 1. Send 6-Digit OTP Email (With Low-Bandwidth Logo & 3-Day Auto-Purge Trigger)
 async function sendOtpEmail(email, otp) {
-    // Non-blocking trigger: purge sent OTP emails older than 3 days from Titan Sent folder
-    cleanExpiredSentOtpEmails(3).catch(err => {
-        console.warn('⚠️ [AUTO-PURGE NOTICE]:', err.message);
-    });
+    // Non-blocking trigger: purge sent OTP emails older than 3 days from Titan Sent folder in long-running processes
+    if (!process.env.VERCEL) {
+        cleanExpiredSentOtpEmails(3).catch(err => {
+            console.warn('⚠️ [AUTO-PURGE NOTICE]:', err.message);
+        });
+    }
 
     const subject = `Your Verification Code: ${otp} - Kiran Charitable Trust`;
     const html = `

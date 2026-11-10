@@ -404,11 +404,14 @@ router.post('/dev-action/test-email', async (req, res) => {
     try {
         const targetEmail = req.body.email || process.env.EMAIL_USER || 'trustkirancharitable@gmail.com';
         const testOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        await sendOtpEmail(targetEmail, testOtp);
+        const dispatchResult = await sendOtpEmail(targetEmail, testOtp);
 
         return res.json({
-            success: true,
-            message: `Diagnostic test email dispatched to ${targetEmail}`,
+            success: !!dispatchResult.success,
+            dispatchResult,
+            message: dispatchResult.success
+                ? `Diagnostic test email dispatched to ${targetEmail}`
+                : `SMTP dispatch notice: ${dispatchResult.error || 'Check server logs'}`,
             code: testOtp
         });
     } catch (err) {
