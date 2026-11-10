@@ -156,6 +156,15 @@ app.use('/api/payment', require('./routes/donations'));
 app.use('/api/contact', require('./routes/contact'));
 
 // Root & Health check endpoints
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Kiran Charitable Trust API Live Service',
+        status: 'online',
+        timestamp: new Date()
+    });
+});
+
 app.get('/api/health', (req, res) => {
     res.json({
         success: true,
