@@ -1,0 +1,781 @@
+/* ==========================================================================
+   PORTAL MONTHLY DONOR — AUTOPAY MANDATE WIZARD & DESIGN SYSTEM
+   Pixel-Perfect Implementation matching media_1794156654763_d2a2c5ce.png
+   ========================================================================== */
+
+.autopay-wizard-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 5rem;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
+}
+
+/* ── Top Hero Banner ── */
+.autopay-hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.autopay-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  border-radius: 50px;
+  padding: 6px 16px;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 1rem;
+}
+
+.autopay-headline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #0b132b;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  margin: 0 0 0.75rem;
+}
+
+.autopay-headline span {
+  color: #0052cc;
+}
+
+.autopay-subheadline {
+  font-size: 1.05rem;
+  color: #475569;
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Stepper Bar (4 Steps) ── */
+.autopay-stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 860px;
+  margin: 0 auto 3rem;
+  padding: 0 1rem;
+}
+
+.autopay-step-node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+}
+
+.autopay-step-node:hover {
+  background: rgba(0, 82, 204, 0.04);
+}
+
+.autopay-step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* Completed Step */
+.autopay-step-node.completed .autopay-step-circle {
+  background: #0052cc;
+  color: #ffffff;
+}
+
+.autopay-step-node.completed .autopay-step-label {
+  color: #0052cc;
+  font-weight: 700;
+}
+
+/* Active Step */
+.autopay-step-node.active {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 6px 18px 6px 8px;
+}
+
+.autopay-step-node.active .autopay-step-circle {
+  background: #0052cc;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 82, 204, 0.3);
+}
+
+.autopay-step-node.active .autopay-step-label {
+  color: #0052cc;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+/* Inactive Step */
+.autopay-step-node.inactive .autopay-step-circle {
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  color: #64748b;
+}
+
+.autopay-step-node.inactive .autopay-step-label {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.autopay-step-connector {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 8px;
+  min-width: 40px;
+  max-width: 90px;
+}
+
+.autopay-step-connector.completed {
+  background: #0052cc;
+}
+
+/* ── 2-Column Grid Layout ── */
+.autopay-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .autopay-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Main Form Card ── */
+.autopay-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 2.25rem;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+}
+
+.autopay-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 1.8rem;
+}
+
+.autopay-header-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #bfdbfe;
+  color: #0052cc;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.autopay-header-texts h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0b132b;
+  margin: 0 0 4px;
+}
+
+.autopay-header-texts p {
+  font-size: 0.92rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Selected Contribution Summary Box ── */
+.autopay-selected-summary-card {
+  background: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 1.1rem 1.4rem;
+  margin-bottom: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.autopay-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.autopay-summary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.autopay-summary-icon.calendar {
+  background: #dbeafe;
+  color: #0052cc;
+}
+
+.autopay-summary-icon.purpose {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.autopay-summary-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.autopay-summary-lbl {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.autopay-summary-val-amount {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0052cc;
+  line-height: 1.2;
+}
+
+.autopay-summary-val-amount span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0052cc;
+}
+
+.autopay-summary-val-purpose {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0b132b;
+  line-height: 1.2;
+}
+
+/* ── Inputs with Icons ── */
+.autopay-input-group {
+  margin-bottom: 1.35rem;
+}
+
+.autopay-input-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 7px;
+}
+
+.autopay-input-label span.req {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.autopay-input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.autopay-field-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 15px;
+  color: #94a3b8;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.autopay-text-field {
+  width: 100%;
+  padding: 11px 14px 11px 42px !important;
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.autopay-text-field:focus {
+  border-color: #0052cc;
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.12);
+}
+
+.autopay-text-field::placeholder {
+  color: #94a3b8;
+}
+
+/* 2-Column Row for Email & Mobile */
+.autopay-two-col-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .autopay-two-col-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Anonymous Checkbox */
+.autopay-anon-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 1rem 0 1.5rem;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: #475569;
+}
+
+.autopay-anon-row input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  cursor: pointer;
+  accent-color: #0052cc;
+}
+
+.autopay-info-bubble {
+  color: #0052cc;
+  font-size: 13px;
+}
+
+/* ── Mandate Authorization Consent Box ── */
+.autopay-mandate-consent-box {
+  background: #f0f7ff;
+  border: 1.5px solid #93c5fd;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.autopay-consent-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.autopay-consent-checkbox {
+  width: 19px;
+  height: 19px;
+  margin-top: 2px;
+  accent-color: #0052cc;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.autopay-consent-text {
+  font-size: 13px;
+  color: #1e293b;
+  line-height: 1.55;
+}
+
+.autopay-consent-text strong {
+  color: #0052cc;
+}
+
+.autopay-terms-link {
+  color: #0052cc;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.autopay-terms-link:hover {
+  color: #003080;
+}
+
+/* ── Bottom Actions Row ── */
+.autopay-action-btn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.8rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.autopay-btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 50px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.autopay-btn-back:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.autopay-btn-continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 50px;
+  border: none;
+  background: #0052cc;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 82, 204, 0.3);
+  transition: all 0.2s ease;
+}
+
+.autopay-btn-continue:hover {
+  background: #003cb3;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 82, 204, 0.4);
+}
+
+.autopay-btn-continue:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ── Right Sidebar Cards ── */
+.autopay-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Card 1: Deep Blue */
+.autopay-sidebar-blue-card {
+  background: #0052cc;
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 1.6rem;
+  box-shadow: 0 10px 25px rgba(0, 82, 204, 0.25);
+}
+
+.autopay-blue-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 0.6rem;
+}
+
+.autopay-blue-card-text {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  margin: 0;
+  color: #e0f2fe;
+}
+
+/* Card 2: Protections White Card */
+.autopay-sidebar-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+}
+
+.autopay-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0b132b;
+  margin: 0 0 1rem;
+}
+
+.autopay-card-title-row.shield {
+  color: #0052cc;
+}
+
+.autopay-protection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.autopay-protection-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.autopay-protection-item .check {
+  color: #16a34a;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.autopay-protection-item strong {
+  color: #0f172a;
+}
+
+/* Card 3: Direct Bank Transfer Gold/Cream Note */
+.autopay-sidebar-note-gold {
+  background: #fef9ee;
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  padding: 1.4rem;
+}
+
+.autopay-gold-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #9a3412;
+  margin: 0 0 0.5rem;
+}
+
+.autopay-gold-text {
+  font-size: 0.82rem;
+  color: #7c2d12;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* Card 4: WhatsApp Green Assistance Card */
+.autopay-sidebar-whatsapp {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.autopay-whatsapp-icon {
+  font-size: 26px;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.autopay-whatsapp-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.autopay-whatsapp-help-text {
+  font-size: 0.82rem;
+  color: #166534;
+  margin-bottom: 3px;
+}
+
+.autopay-whatsapp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #15803d;
+  font-weight: 800;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.autopay-whatsapp-link:hover {
+  color: #166534;
+  text-decoration: underline;
+}
+
+/* Step 1 & Step 2 Card Grids inside Wizard */
+.autopay-pillar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+@media (max-width: 600px) {
+  .autopay-pillar-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.autopay-pillar-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.autopay-pillar-card:hover {
+  border-color: #93c5fd;
+  transform: translateY(-2px);
+}
+
+.autopay-pillar-card.selected {
+  background: #eff6ff;
+  border-color: #0052cc;
+  box-shadow: 0 4px 16px rgba(0, 82, 204, 0.15);
+}
+
+.autopay-pillar-badge {
+  position: absolute;
+  top: -10px;
+  right: 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.autopay-pillar-emoji {
+  font-size: 1.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.autopay-pillar-price {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #0052cc;
+}
+
+.autopay-pillar-price span {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.autopay-pillar-title {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: #0f172a;
+  margin-top: 0.2rem;
+}
+
+.autopay-pillar-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 0.3rem;
+  line-height: 1.45;
+}
+
+/* Method Cards */
+.autopay-channel-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 0.75rem;
+}
+
+.autopay-channel-card:hover {
+  border-color: #93c5fd;
+}
+
+.autopay-channel-card.selected {
+  background: #eff6ff;
+  border-color: #0052cc;
+  box-shadow: 0 4px 14px rgba(0, 82, 204, 0.1);
+}
+
+.autopay-channel-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.autopay-channel-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.autopay-channel-desc {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.autopay-channel-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.3rem 0.65rem;
+  border-radius: 50px;
+  flex-shrink: 0;
+}
+
+.autopay-channel-tag.active {
+  background: #0052cc;
+  color: #ffffff;
+}
+
+.autopay-channel-tag.inactive {
+  background: #f1f5f9;
+  color: #475569;
+}

@@ -1,17 +1,35 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  FaCalendarDay, 
+  FaCalendarWeek, 
+  FaCalendarAlt, 
+  FaChartBar, 
+  FaRupeeSign, 
+  FaUsers, 
+  FaShieldAlt, 
+  FaUniversity, 
+  FaHandsHelping, 
+  FaUserPlus, 
+  FaChartLine,
+  FaCheckCircle,
+  FaHeart
+} from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
 import './Portal.css';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function formatINR(n) {
   if (!n && n !== 0) return '₹0';
+  if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`;
   if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;
   if (n >= 1000) return `₹${(n / 1000).toFixed(1)}K`;
   return `₹${Number(n).toLocaleString('en-IN')}`;
 }
 
 export default function PortalStats() {
+  const { isAuthenticated } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,20 +47,26 @@ export default function PortalStats() {
     loadStats();
   }, []);
 
+  const totalRev = stats?.totalRevenue || 485000;
+  const monthlyAvg = Math.round(totalRev / 12);
+  const dailyAvg = Math.round(totalRev / 365);
+  const monthlyTgt = stats?.monthlyCommitment || 42500;
+  const annualGoal = 500000;
+
   const statCards = [
-    { icon: '📅', label: 'Daily Donors', value: stats?.velocity?.todayDonors || stats?.todayRegistrations || 14, type: 'count', stripe: 'var(--pt-primary)' },
-    { icon: '🗓️', label: 'Weekly Donors', value: (stats?.velocity?.todayDonors || 14) * 7, type: 'count', stripe: '#2563EB' },
-    { icon: '📆', label: 'Monthly Donors', value: stats?.totalDonationsCount || 210, type: 'count', stripe: '#D97706' },
-    { icon: '📊', label: 'Yearly Reach', value: (stats?.totalDonationsCount || 210) * 12, type: 'count', stripe: '#16A34A' },
-    { icon: '💰', label: 'Overall Raised', value: stats?.totalRevenue || 485000, type: 'amount', stripe: 'var(--pt-primary-dark)' },
-    { icon: '👥', label: 'Total Community Donors', value: stats?.totalDonationsCount || 210, type: 'count', stripe: '#7C3AED' },
+    { icon: <FaCalendarDay />, label: 'Daily Donors', value: stats?.velocity?.todayDonors || stats?.todayRegistrations || 14, type: 'count', stripe: 'var(--pt-primary)' },
+    { icon: <FaCalendarWeek />, label: 'Weekly Donors', value: (stats?.velocity?.todayDonors || 14) * 7, type: 'count', stripe: '#2563EB' },
+    { icon: <FaCalendarAlt />, label: 'Monthly Donors', value: stats?.totalDonationsCount || 210, type: 'count', stripe: '#D97706' },
+    { icon: <FaChartBar />, label: 'Yearly Reach', value: (stats?.totalDonationsCount || 210) * 12, type: 'count', stripe: '#16A34A' },
+    { icon: <FaRupeeSign />, label: 'Overall Raised', value: totalRev, type: 'amount', stripe: 'var(--pt-primary-dark)' },
+    { icon: <FaUsers />, label: 'Total Community Donors', value: stats?.totalDonationsCount || 210, type: 'count', stripe: '#7C3AED' },
   ];
 
   const tracks = [
-    { label: 'Daily Average', value: (stats?.totalRevenue || 485000) / 365, max: (stats?.totalRevenue || 485000) },
-    { label: 'Monthly Average', value: (stats?.totalRevenue || 485000) / 12, max: (stats?.totalRevenue || 485000) },
-    { label: 'Monthly Target', value: stats?.monthlyCommitment || 42500, max: (stats?.totalRevenue || 485000) },
-    { label: 'Overall Funds Raised', value: stats?.totalRevenue || 485000, max: (stats?.totalRevenue || 485000), isGold: true },
+    { label: 'Daily Average', value: dailyAvg, max: Math.max(dailyAvg, Math.round(monthlyTgt / 30)) },
+    { label: 'Monthly Average', value: monthlyAvg, max: Math.max(monthlyAvg, monthlyTgt) },
+    { label: 'Monthly Target', value: monthlyTgt, max: 50000 },
+    { label: 'Overall Funds Raised', value: totalRev, max: annualGoal, isGold: true },
   ];
 
   return (
@@ -51,7 +75,7 @@ export default function PortalStats() {
       <section className="pt-page-banner">
         <span className="pt-page-tag">✦ Live Transparency</span>
         <h1 className="pt-page-heading">
-          Donor & Impact <span>Dashboard</span>
+          Donor &amp; Impact <span>Dashboard</span>
         </h1>
         <p className="pt-page-sub">
           Real-time donor velocity metrics tracking daily, weekly, monthly, yearly, and overall reach across Andhra Pradesh.
@@ -63,44 +87,53 @@ export default function PortalStats() {
         {/* 6 Stat Cards */}
         <div className="pt-stats-grid">
           {statCards.map((c, idx) => (
-            <div key={idx} className="pt-stat-card">
-              <div className="pt-stat-card-top" style={{ background: c.stripe }} />
-              <span className="pt-stat-icon">{c.icon}</span>
-              <span className="pt-stat-num">
+            <div key={idx} className="pt-stat-card" style={{ '--card-stripe': c.stripe }}>
+              <div className="pt-stat-icon">{c.icon}</div>
+              <span className="pt-stat-val">
                 {c.type === 'amount' ? formatINR(c.value) : Number(c.value).toLocaleString('en-IN')}
               </span>
               <span className="pt-stat-label">{c.label}</span>
-              <div className="pt-stat-live">✓ Live Metric</div>
+              <div className="pt-stat-live">
+                <FaCheckCircle style={{ fontSize: '0.75rem', marginRight: 4, display: 'inline-block' }} /> Live Metric
+              </div>
             </div>
           ))}
         </div>
 
         {/* Contribution Overview & Targets */}
         <div className="pt-progress-card">
-          <h3>💹 Contribution Velocity & Financial Goals</h3>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <FaChartLine style={{ color: '#059669' }} /> Contribution Velocity &amp; Financial Goals
+          </h3>
           <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.92rem', marginBottom: '2rem' }}>
-            Tracking recurring patron contributions against targeted social welfare program expenses.
+            Tracking recurring member contributions against targeted social welfare program expenses.
           </p>
 
-          {tracks.map((t, idx) => (
-            <div key={idx} className="pt-track-row">
-              <div className="pt-track-title">{t.label}</div>
-              <div className="pt-track-bg">
-                <div
-                  className={`pt-track-fill ${t.isGold ? 'gold' : ''}`}
-                  style={{ width: `${Math.min(100, (t.value / t.max) * 100)}%` }}
-                />
+          {tracks.map((t, idx) => {
+            const pct = Math.min(100, Math.round((t.value / t.max) * 100));
+            return (
+              <div key={idx} className="pt-track-row">
+                <div className="pt-track-title">{t.label}</div>
+                <div className="pt-track-bg">
+                  <div
+                    className={`pt-track-fill ${t.isGold ? 'gold' : ''}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="pt-track-amt" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>{formatINR(t.value)}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>({pct}%)</span>
+                </div>
               </div>
-              <div className="pt-track-amt">{formatINR(t.value)}</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Summary Details */}
         <div style={{ marginTop: '3rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
           <div style={{ background: '#F8FAFC', padding: '1.8rem', borderRadius: 16, border: '1.5px solid var(--pt-border)' }}>
-            <h4 style={{ color: 'var(--pt-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-              🛡️ 100% Tax Deductible
+            <h4 style={{ color: 'var(--pt-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FaShieldAlt style={{ color: '#059669' }} /> 100% Tax Deductible
             </h4>
             <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.88rem', lineHeight: 1.6 }}>
               All donations made through Kiran Charitable Trust qualify for 80G deductions under Section 80G(5)(vi) of the Income Tax Act, 1961.
@@ -108,8 +141,8 @@ export default function PortalStats() {
           </div>
 
           <div style={{ background: '#F8FAFC', padding: '1.8rem', borderRadius: 16, border: '1.5px solid var(--pt-border)' }}>
-            <h4 style={{ color: 'var(--pt-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-              🏛️ Regd. No. 462/2004
+            <h4 style={{ color: 'var(--pt-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FaUniversity style={{ color: '#2563EB' }} /> Regd. No. 462/2004
             </h4>
             <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.88rem', lineHeight: 1.6 }}>
               Registered non-profit society operating with audited accounts and regular regulatory filings for over 20 years.
@@ -117,8 +150,8 @@ export default function PortalStats() {
           </div>
 
           <div style={{ background: '#F8FAFC', padding: '1.8rem', borderRadius: 16, border: '1.5px solid var(--pt-border)' }}>
-            <h4 style={{ color: 'var(--pt-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-              🤝 Grassroots Impact
+            <h4 style={{ color: 'var(--pt-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FaHandsHelping style={{ color: '#D97706' }} /> Grassroots Impact
             </h4>
             <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.88rem', lineHeight: 1.6 }}>
               Serving Mandepudi, Nemalikallu, Amaravathi, and rural villages across Palnadu, Guntur, and Krishna districts.
@@ -128,9 +161,28 @@ export default function PortalStats() {
 
         {/* Action Button */}
         <div style={{ textAlign: 'center', marginTop: '3.5rem' }}>
-          <Link to="/portal/join" className="pt-btn-cta" style={{ textDecoration: 'none', padding: '0.9rem 2.2rem', fontSize: '1rem' }}>
-            🏛️ Join as a Monthly Trust Member
-          </Link>
+          {isAuthenticated ? (
+            <div style={{ display: 'inline-flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Link to="/portal/profile?tab=payments&action=contribute#contribute" className="pt-btn-cta" style={{ textDecoration: 'none', padding: '0.9rem 2.2rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #059669, #10B981)' }}>
+                <FaHeart /> Make a Contribution to Ongoing Drives
+              </Link>
+              <Link to="/portal/members" className="pt-btn-cta" style={{ textDecoration: 'none', padding: '0.9rem 2rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8, background: '#1E3A8A' }}>
+                <FaUsers /> View Trust Members Directory
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: 'inline-flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Link to="/trust-members" className="pt-btn-cta" style={{ textDecoration: 'none', padding: '0.9rem 2rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8, background: '#1E3A8A' }}>
+                <FaUsers /> View Trust Members
+              </Link>
+              <Link to="/donate" className="pt-btn-cta" style={{ textDecoration: 'none', padding: '0.9rem 2rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #059669, #10B981)' }}>
+                <FaHeart /> Support Our Mission
+              </Link>
+              <Link to="/portal/login" className="pt-btn-cta" style={{ textDecoration: 'none', padding: '0.9rem 2rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8, background: '#0F172A' }}>
+                Member Sign In
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

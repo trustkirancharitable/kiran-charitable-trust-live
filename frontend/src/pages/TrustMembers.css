@@ -1,0 +1,650 @@
+/* TrustMembers.css - Pixel-Perfect Matching of Kiran Trust Board of Trustees & Trust Members */
+
+.tm-template-container {
+    max-width: 1280px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    padding: 105px 24px 80px; /* Clears fixed navbar */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ========================================================
+   1. TOP ENCLOSURE: BOARD OF TRUSTEES
+   ======================================================== */
+.tm-board-enclosure {
+    background: #f8fafd;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 24px 22px 28px;
+    margin-bottom: 34px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.tm-board-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+.tm-gold-divider {
+    flex: 1;
+    height: 2px;
+    background: #eab308; /* Bright gold line */
+}
+
+.tm-board-pill {
+    background: #092347; /* Deep Navy */
+    color: #ffffff;
+    padding: 7px 34px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    margin: 0 18px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(9, 35, 71, 0.15);
+}
+
+/* 5 Cards Grid */
+.tm-board-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    align-items: stretch;
+}
+
+.tm-trustee-card {
+    background: #ffffff;
+    border: 1.5px solid #fed7aa; /* Soft warm gold border */
+    border-radius: 14px;
+    padding: 18px 10px 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tm-trustee-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Featured Chairperson Card */
+.tm-card-chairperson {
+    background: #fffdf2; /* Soft gold-ivory tint */
+    border: 2px solid #eab308; /* Rich prominent gold */
+    box-shadow: 0 4px 16px rgba(234, 179, 8, 0.18);
+    transform: scale(1.02);
+}
+
+.tm-card-chairperson:hover {
+    transform: scale(1.02) translateY(-2px);
+}
+
+/* Circular Avatar with Laurel Wreath */
+.tm-wreath-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.tm-trustee-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.tm-wreath-chair .tm-trustee-avatar {
+    width: 62px;
+    height: 62px;
+    background: #fef3c7;
+    color: #b45309;
+    font-size: 28px;
+}
+
+.tm-laurel-branch {
+    color: #d97706; /* Golden laurel branches */
+    font-size: 16px;
+    opacity: 0.85;
+}
+
+.tm-laurel-branch.left {
+    transform: scaleX(-1) rotate(10deg);
+}
+
+.tm-laurel-branch.right {
+    transform: rotate(10deg);
+}
+
+.tm-wreath-chair .tm-laurel-branch {
+    color: #eab308;
+    font-size: 19px;
+    opacity: 1;
+}
+
+/* Ribbon Title Badges */
+.tm-ribbon-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 6px;
+    border-radius: 4px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.tm-ribbon-navy {
+    background: #092347;
+    color: #ffffff;
+    border: 1.5px solid #eab308;
+}
+
+.tm-ribbon-gold {
+    background: #b45309; /* Warm golden-brown ribbon */
+    color: #ffffff;
+    border: 1.5px solid #fde68a;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 5px 18px;
+}
+
+/* Names */
+.tm-trustee-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 2px;
+    line-height: 1.3;
+}
+
+.tm-name-chair {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+/* ========================================================
+   2. BOTTOM SECTION: ALL TRUST MEMBERS
+   ======================================================== */
+.tm-all-members-section {
+    margin-top: 20px;
+}
+
+.tm-members-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.tm-members-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.tm-users-header-icon {
+    font-size: 26px;
+    color: #d97706; /* Warm gold/amber icon */
+}
+
+.tm-members-title-group h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #092347;
+    margin: 0;
+    letter-spacing: -0.2px;
+}
+
+/* Controls */
+.tm-controls-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.tm-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 240px;
+    flex: 1 1 240px;
+    max-width: 340px;
+}
+
+.tm-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #64748b;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.tm-search-box input,
+.tm-search-box .tm-search-input,
+input.tm-search-input {
+    width: 100%;
+    padding: 10px 34px 10px 42px !important;
+    font-size: 13.5px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    outline: none;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.tm-search-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.tm-clear-search-btn {
+    position: absolute;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.tm-dropdown-wrapper select {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.tm-dropdown-wrapper select:focus {
+    border-color: #2563eb;
+}
+
+/* Responsive Grid with minmax */
+.tm-members-grid-4col {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tm-member-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+}
+
+.tm-member-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Avatar with Gold Ring Border */
+.tm-member-avatar-gold-ring {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #eab308; /* Gold ring border */
+    background: #f1f5f9;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.tm-member-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tm-member-name {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tm-member-role {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12.5px;
+    color: #475569;
+    margin-top: 2px;
+}
+
+.tm-role-icon {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.tm-member-divider {
+    border-top: 1px solid #f1f5f9;
+    margin: 6px 0;
+}
+
+.tm-member-location {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11.5px;
+    color: #64748b;
+}
+
+.tm-pin-icon {
+    font-size: 10px;
+    color: #64748b;
+}
+
+.tm-loading-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 36px 16px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+/* Pagination Bar */
+.tm-pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.tm-pag-info {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.tm-pag-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tm-pag-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tm-pag-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tm-pag-current {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #0f172a;
+    padding: 0 6px;
+}
+
+/* ========================================================
+   JOIN AS MEMBER CALL TO ACTIONS (TOP & BOTTOM)
+   ======================================================== */
+.tm-top-join-banner {
+    background: linear-gradient(135deg, #092347 0%, #1e3a8a 100%);
+    border-radius: 18px;
+    padding: 28px 32px;
+    margin-bottom: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    box-shadow: 0 4px 18px rgba(9, 35, 71, 0.15);
+    color: #ffffff;
+}
+
+.tm-top-join-left {
+    max-width: 780px;
+}
+
+.tm-top-join-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #fde68a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.tm-top-join-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.tm-top-join-desc {
+    font-size: 13.5px;
+    color: #cbd5e1;
+    margin: 0;
+    line-height: 1.55;
+}
+
+.tm-banner-join-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 26px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-size: 14.5px;
+    font-weight: 800;
+    border-radius: 50px;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transition: all 0.2s ease;
+    border: 1.5px solid #34d399;
+}
+
+.tm-banner-join-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+
+.tm-quick-join-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1.5px solid #86efac;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.tm-quick-join-btn:hover {
+    background: #15803d;
+    color: #ffffff;
+    border-color: #15803d;
+}
+
+/* Bottom Join Card */
+.tm-bottom-join-card {
+    margin-top: 36px;
+    background: #ffffff;
+    border: 2px dashed #bfdbfe;
+    border-radius: 16px;
+    padding: 24px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.tm-bottom-join-text h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.tm-bottom-join-text p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.tm-bottom-join-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #092347;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.tm-bottom-join-btn:hover {
+    background: #1e3a8a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(9, 35, 71, 0.2);
+}
+
+/* ========================================================
+   RESPONSIVE QUERIES
+   ======================================================== */
+@media (max-width: 1200px) {
+    .tm-board-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .tm-members-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tm-controls-group {
+        justify-content: stretch;
+    }
+    .tm-search-box {
+        max-width: none;
+        flex: 1 1 100%;
+    }
+    .tm-top-join-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .tm-bottom-join-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .tm-board-grid {
+        grid-template-columns: 1fr;
+    }
+    .tm-members-grid-4col {
+        grid-template-columns: 1fr;
+    }
+    .tm-controls-group {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tm-dropdown-wrapper {
+        width: 100%;
+    }
+    .tm-dropdown-wrapper select {
+        width: 100%;
+    }
+    .tm-quick-join-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .tm-search-box {
+        width: 100%;
+    }
+    .tm-search-input {
+        width: 100%;
+    }
+}

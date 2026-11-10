@@ -35,3 +35,5 @@ backend/config/
 trust-portal-standalone/
 
 backend/uploads/
+scratch/
+site_screenshots/

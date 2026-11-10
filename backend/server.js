@@ -1,4 +1,12 @@
 const path = require('path');
+
+// Global Safety Interceptors to ensure 100% server uptime
+process.on('uncaughtException', (err) => {
+    console.error('⚠️ Uncaught Exception intercepted:', err.message);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('⚠️ Unhandled Rejection intercepted:', reason?.message || reason);
+});
 try {
     require('dotenv').config({ path: path.join(__dirname, '.env') });
     require('dotenv').config();
@@ -45,9 +53,15 @@ mongoose.set('bufferCommands', false);
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/kiran-charitable-trust';
 
 let isConnecting = false;
-const connectDB = async () => {
+let lastDbAttempt = 0;
+const DB_RETRY_INTERVAL_MS = 60000; // 60s cooldown between reconnect attempts to prevent request latency
+
+const connectDB = async (force = false) => {
     if (mongoose.connection.readyState >= 1) return;
     if (isConnecting) return;
+    if (!force && (Date.now() - lastDbAttempt < DB_RETRY_INTERVAL_MS)) return;
+
+    lastDbAttempt = Date.now();
     try {
         isConnecting = true;
         await mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 2000 });
@@ -59,11 +73,14 @@ const connectDB = async () => {
     }
 };
 
+// Initial connection attempt on boot
+connectDB(true).catch(() => {});
+
 // Database auto-connection middleware for serverless invocations
 app.use(async (req, res, next) => {
     try {
         if (mongoose.connection.readyState < 1) {
-            await connectDB();
+            connectDB().catch(() => {});
         }
     } catch (err) {
         console.error('⚠️ DB connection middleware notice:', err.message);
@@ -171,12 +188,19 @@ app.use((err, req, res, next) => {
     });
 });
 
+const { startAutoCleanupCron } = require('./services/emailCleanupService');
+const { start30DayReminderScheduler } = require('./services/schedulerService');
+
 // Standalone Server Execution for local testing
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;
     connectDB().finally(() => {
         app.listen(PORT, () => {
             console.log(`🚀 High-Security Server running on http://localhost:${PORT}`);
+            // Start automated purge of expired sent OTP emails (older than 3 days) from Titan mailbox
+            startAutoCleanupCron(24);
+            // Start automated 30-day recurring sustaining pledge reminder scheduler
+            start30DayReminderScheduler(1);
         });
     });
 }

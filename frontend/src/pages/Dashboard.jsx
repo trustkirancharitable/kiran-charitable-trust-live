@@ -90,7 +90,7 @@ export default function Dashboard() {
                 <div className="dash-header-card">
                     <div className="dash-user-meta">
                         {user.avatar ? (
-                            <img src={user.avatar} alt={user.name} className="dash-avatar" />
+                            <img src={user.avatar} alt={user.name} className="dash-avatar" referrerPolicy="no-referrer" onError={(e) => { e.target.style.display = 'none'; }} />
                         ) : (
                             <div className="dash-avatar">
                                 {user.name ? user.name[0].toUpperCase() : 'U'}
@@ -144,7 +144,7 @@ export default function Dashboard() {
                                 <div className="dash-sub-box">
                                     <div className="dash-sub-row">
                                         <span style={{ color: '#64748b' }}>Subscription Plan:</span>
-                                        <strong style={{ color: '#1e3a8a' }}>{memberData.subscriptionTier || 'Patron'}</strong>
+                                        <strong style={{ color: '#1e3a8a' }}>{memberData.subscriptionTier || 'Member'}</strong>
                                     </div>
                                     <div className="dash-sub-row">
                                         <span style={{ color: '#64748b' }}>Monthly Pledge Amount:</span>
@@ -250,6 +250,8 @@ export default function Dashboard() {
                                             src={user.avatar || volunteerData?.profilePhoto || memberData?.profilePhoto}
                                             alt={user.name}
                                             className="digital-id-photo"
+                                            referrerPolicy="no-referrer"
+                                            onError={(e) => { e.target.style.display = 'none'; }}
                                         />
                                     ) : (
                                         <div className="digital-id-photo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'white' }}>

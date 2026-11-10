@@ -51,7 +51,7 @@ const trustMemberSchema = new mongoose.Schema({
     donationAmount: {
         type: Number,
         required: true,
-        min: 100
+        min: 1
     },
     paymentSchedule: {
         type: String,
@@ -98,6 +98,19 @@ const trustMemberSchema = new mongoose.Schema({
     },
     lastReminderDate: {
         type: Date
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false,
+        index: true
+    },
+    deletedAt: {
+        type: Date,
+        default: null
+    },
+    scheduledPermanentDeleteAt: {
+        type: Date,
+        default: null
     },
     createdAt: {
         type: Date,

@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 let createClient = null;
 try {
     const sb = require('@supabase/supabase-js');
@@ -26,14 +29,45 @@ function getSupabase() {
     return supabaseClient;
 }
 
-// In-Memory store for development and resilient fallback
-const memoryStore = {
-    profiles: [],
-    volunteers: [],
-    trust_members: [],
-    monthly_schedules: [],
-    payments: []
-};
+// Local file store for resilient offline persistence across restarts
+const STORE_FILE = path.join(__dirname, '..', 'data', 'local_store.json');
+
+function loadMemoryStore() {
+    try {
+        if (fs.existsSync(STORE_FILE)) {
+            const raw = fs.readFileSync(STORE_FILE, 'utf8');
+            const parsed = JSON.parse(raw);
+            return {
+                profiles: parsed.profiles || [],
+                volunteers: parsed.volunteers || [],
+                trust_members: parsed.trust_members || [],
+                monthly_schedules: parsed.monthly_schedules || [],
+                payments: parsed.payments || []
+            };
+        }
+    } catch (e) {
+        console.warn('Local store file read warning:', e.message);
+    }
+    return {
+        profiles: [],
+        volunteers: [],
+        trust_members: [],
+        monthly_schedules: [],
+        payments: []
+    };
+}
+
+const memoryStore = loadMemoryStore();
+
+function persistMemoryStore() {
+    try {
+        const dir = path.dirname(STORE_FILE);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(STORE_FILE, JSON.stringify(memoryStore, null, 2), 'utf8');
+    } catch (e) {
+        console.warn('Local store file write warning:', e.message);
+    }
+}
 
 // 1. Save or Update User Profile in Supabase
 async function syncProfile(user) {
@@ -46,6 +80,9 @@ async function syncProfile(user) {
         avatar_url: user.avatar || '',
         auth_provider: user.authProvider || 'email_otp',
         address: user.address || '',
+        ...(user.password ? { password: user.password } : {}),
+        ...(user.memberId ? { memberId: user.memberId } : {}),
+        status: user.status || 'active',
         updated_at: new Date().toISOString()
     };
 
@@ -62,6 +99,7 @@ async function syncProfile(user) {
     const idx = memoryStore.profiles.findIndex(p => p.email === payload.email);
     if (idx >= 0) memoryStore.profiles[idx] = { ...memoryStore.profiles[idx], ...payload };
     else memoryStore.profiles.push(payload);
+    persistMemoryStore();
     return payload;
 }
 
@@ -97,6 +135,7 @@ async function syncVolunteer(volunteer) {
     const idx = memoryStore.volunteers.findIndex(v => v.email === payload.email);
     if (idx >= 0) memoryStore.volunteers[idx] = { ...memoryStore.volunteers[idx], ...payload };
     else memoryStore.volunteers.push(payload);
+    persistMemoryStore();
     return payload;
 }
 
@@ -136,6 +175,7 @@ async function syncTrustMember(member) {
     const idx = memoryStore.trust_members.findIndex(m => m.email === payload.email);
     if (idx >= 0) memoryStore.trust_members[idx] = { ...memoryStore.trust_members[idx], ...payload };
     else memoryStore.trust_members.push(payload);
+    persistMemoryStore();
     return payload;
 }
 
@@ -171,6 +211,7 @@ async function syncPayment(payment) {
     const idx = memoryStore.payments.findIndex(p => p.receipt_number === payload.receipt_number);
     if (idx >= 0) memoryStore.payments[idx] = { ...memoryStore.payments[idx], ...payload };
     else memoryStore.payments.push(payload);
+    persistMemoryStore();
     return payload;
 }
 
@@ -200,6 +241,7 @@ async function syncMonthlySchedule(schedule) {
     }
 
     memoryStore.monthly_schedules.push(payload);
+    persistMemoryStore();
     return payload;
 }
 
@@ -315,5 +357,6 @@ module.exports = {
     syncPayment,
     syncMonthlySchedule,
     getSupabaseSchemaSQL,
-    memoryStore
+    memoryStore,
+    persistMemoryStore
 };

@@ -27,17 +27,18 @@ function getTierPillClass(tier = '') {
 
 function getTierLabel(tier = '') {
   const t = tier.toLowerCase();
-  if (t.includes('diamond') || t.includes('custom')) return '💎 Diamond Patron';
-  if (t.includes('gold')) return '🥇 Gold Patron';
-  if (t.includes('silver')) return '🥈 Silver Patron';
-  return '🥉 Starter Patron';
+  if (t.includes('diamond') || t.includes('custom')) return '💎 Diamond Member';
+  if (t.includes('gold')) return '🥇 Gold Member';
+  if (t.includes('silver')) return '🥈 Silver Member';
+  return '🥉 Starter Member';
 }
 
 const TIERS = [
-  { id: 'starter', icon: '🥉', iconCls: 'bronze', label: 'Starter Patron', price: 500, desc: 'Official digital ID card, certificate & newsletter' },
-  { id: 'silver',  icon: '🥈', iconCls: 'silver',  label: 'Silver Patron',  price: 1000, desc: 'Silver privileges, quarterly impact reports & wall feature', featured: false },
-  { id: 'gold',    icon: '🥇', iconCls: 'gold',    label: 'Gold Patron',    price: 2500, desc: 'All Silver perks + annual summit invitation', featured: true },
-  { id: 'diamond', icon: '💎', iconCls: 'diamond', label: 'Diamond Patron', price: 5000, desc: 'VIP Council invitation + direct program governance' },
+  { id: 'trial',   icon: '⚡', iconCls: 'bronze', label: '1-Rupee Test Member', price: 1,    desc: 'Instant 1-Rupee membership verification and official activation' },
+  { id: 'starter', icon: '🥉', iconCls: 'bronze', label: 'Starter Member', price: 500, desc: 'Official digital ID card, certificate & newsletter' },
+  { id: 'silver',  icon: '🥈', iconCls: 'silver',  label: 'Silver Member',  price: 1000, desc: 'Silver privileges, quarterly impact reports & wall feature', featured: false },
+  { id: 'gold',    icon: '🥇', iconCls: 'gold',    label: 'Gold Member',    price: 2500, desc: 'All Silver perks + annual summit invitation', featured: true },
+  { id: 'diamond', icon: '💎', iconCls: 'diamond', label: 'Diamond Member', price: 5000, desc: 'VIP Council invitation + direct program governance' },
 ];
 
 // ═══════════════════════════════════════════════════════════════════
@@ -128,6 +129,9 @@ function RegisterModal({ onClose, initialTier }) {
 
   function submitProfile(e) {
     e.preventDefault();
+    if (!form.profilePhoto) {
+      return setError('Profile photo is mandatory. Please upload a clear photo.');
+    }
     const cleanAadhar = form.aadharNumber.replace(/\D/g, '');
     if (!form.name.trim()) return setError('Full name is required.');
     if (!form.phone || form.phone.replace(/\D/g, '').length < 10) return setError('Enter a valid 10-digit mobile number.');
@@ -293,14 +297,14 @@ function RegisterModal({ onClose, initialTier }) {
         {step === 2 && (
           <form onSubmit={submitProfile}>
             <div className="tm-fg">
-              <label className="tm-fl">Profile Picture <span className="hint">(Optional)</span></label>
-              <div className="tm-photo-box" onClick={() => fileRef.current?.click()}>
+              <label className="tm-fl">Profile Picture <span className="star" style={{ color: '#ef4444' }}>* (Mandatory)</span></label>
+              <div className="tm-photo-box" onClick={() => fileRef.current?.click()} style={{ border: form.profilePhoto ? '2px solid #10b981' : '1.5px dashed #ef4444' }}>
                 <div className="tm-photo-circle">
                   {form.photoPreview ? <img src={form.photoPreview} alt="Preview" /> : '📷'}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--tm-secondary)' }}>
-                    {form.photoPreview ? 'Photo selected ✓' : 'Click to upload your photo'}
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: form.photoPreview ? '#059669' : 'var(--tm-secondary)' }}>
+                    {form.photoPreview ? 'Profile photo selected ✓' : 'Click to upload your photo * (Required)'}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--tm-text-light)' }}>
                     Displayed on your digital ID card & Member Directory
@@ -796,7 +800,7 @@ export default function TrustMembership() {
             <span className="brand-accent">Kiran Charitable Trust</span>
           </h1>
           <p className="tm-hero-subtitle">
-            Join our dedicated family of patrons. As a registered Trust Member, your monthly
+            Join our dedicated family of members. As a registered Trust Member, your monthly
             commitment directly fuels education, healthcare, nutrition, and emergency relief across Andhra Pradesh.
           </p>
 
@@ -851,7 +855,7 @@ export default function TrustMembership() {
               </li>
               <li>
                 <span className="tm-benefit-icon">✓</span>
-                <span>Name and Patron Tier featured on the Trust Member Wall</span>
+                <span>Name and Member Tier featured on the Trust Member Wall</span>
               </li>
               <li>
                 <span className="tm-benefit-icon">✓</span>
@@ -894,7 +898,7 @@ export default function TrustMembership() {
       <section className="tm-section-alt" ref={membersRef} id="members">
         <div className="tm-section">
           <div className="tm-section-header">
-            <span className="tm-section-label">✦ Active Patrons</span>
+            <span className="tm-section-label">✦ Active Members</span>
             <h2 className="tm-section-title">
               Our <span>Trust Members</span>
             </h2>
@@ -953,7 +957,7 @@ export default function TrustMembership() {
         <div style={{ marginTop: '0.8rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
           <Link to="/">Home</Link>
           <Link to="/about">About Us</Link>
-          <Link to="/volunteers">Volunteers</Link>
+          <Link to="/portal/donors">Top Donors</Link>
           <Link to="/donate">Donate</Link>
           <Link to="/privacy-policy">Privacy Policy</Link>
           <Link to="/terms-conditions">Terms & Conditions</Link>

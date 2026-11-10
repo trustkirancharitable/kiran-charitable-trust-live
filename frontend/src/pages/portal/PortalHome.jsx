@@ -43,7 +43,7 @@ export default function PortalHome() {
         <div className="pt-quick-stats">
           <div className="pt-quick-stat">
             <span className="pt-quick-val">480<span>+</span></span>
-            <span className="pt-quick-label">Active Patrons</span>
+            <span className="pt-quick-label">Active Members</span>
           </div>
           <div className="pt-quick-stat">
             <span className="pt-quick-val">₹4.85<span>L</span></span>
@@ -65,7 +65,7 @@ export default function PortalHome() {
             Dedicated Portal Hub
           </h2>
           <p style={{ color: 'var(--pt-text-gray)', fontSize: '1.05rem', maxWidth: 620, margin: '0.5rem auto 0' }}>
-            Select an area below to manage your patron standing, browse certified members, view rankings, or monitor live philanthropy velocity.
+            Select an area below to manage your membership standing, browse certified members, view rankings, or monitor live philanthropy velocity.
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export default function PortalHome() {
               <h3 className="pt-card-title">Become a Member</h3>
               <p className="pt-card-desc">
                 Register as an official Trust Member with Aadhaar and optional PAN details.
-                Select your patron tier (from ₹500/mo) and activate with direct contribution online.
+                Select your membership tier (from ₹500/mo) and activate with direct contribution online.
               </p>
             </div>
             <span className="pt-card-action">Register & Join Now →</span>
@@ -90,7 +90,7 @@ export default function PortalHome() {
               <h3 className="pt-card-title">Trust Members</h3>
               <p className="pt-card-desc">
                 Browse the complete public directory of certified Trust Members with official Member IDs,
-                patron tiers, joined dates, and profile photos.
+                membership tiers, joined dates, and profile photos.
               </p>
             </div>
             <span className="pt-card-action">Explore Member Grid →</span>
@@ -109,17 +109,17 @@ export default function PortalHome() {
             <span className="pt-card-action">View Top Donors →</span>
           </Link>
 
-          {/* Card 4: Monthly Donor Subscription */}
+          {/* Card 4: Monthly Contribution */}
           <Link to="/portal/monthly-donor" className="pt-overview-card">
             <div>
               <div className="pt-card-icon">💖</div>
-              <h3 className="pt-card-title">Monthly Giving Society</h3>
+              <h3 className="pt-card-title">Monthly Contribution</h3>
               <p className="pt-card-desc">
                 Subscribe directly to monthly child nutrition, elder healthcare, or rural education pillars.
                 Direct online contribution with no login required.
               </p>
             </div>
-            <span className="pt-card-action">Subscribe Monthly →</span>
+            <span className="pt-card-action">Contribute Monthly →</span>
           </Link>
 
           {/* Card 5: Impact Stats Dashboard */}

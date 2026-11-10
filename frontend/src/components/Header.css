@@ -57,7 +57,7 @@
     color: #86EFAC;
 }
 
-/* ═══ CLEAN & SWEET NAVBAR — Bigger Prominent Logo ═══ */
+/* ═══ CLEAN & SWEET NAVBAR — Bigger Prominent Logo & Text ═══ */
 .header {
     position: fixed;
     top: 0;
@@ -79,16 +79,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 24px;
-    gap: 20px;
+    padding: 8px 20px;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
     transition: var(--transition);
 }
 
 .header.scrolled .header-inner {
-    padding: 6px 24px;
+    padding: 6px 18px;
 }
 
-/* Logo — Bigger & Prominent */
+/* Logo — Big & Prominent */
 .logo {
     display: flex;
     align-items: center;
@@ -101,24 +104,24 @@
 
 .logo-img-wrap {
     background-color: #ffffff;
-    padding: 2px 4px;
+    padding: 3px 5px;
     margin: 0;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    height: 92px;
-    width: 120px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    height: 88px;
+    width: 122px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+    border: 1.5px solid rgba(0, 0, 0, 0.05);
     transition: var(--transition);
     overflow: hidden;
 }
 
 .header.scrolled .logo-img-wrap {
-    height: 70px;
-    width: 90px;
+    height: 68px;
+    width: 96px;
     padding: 2px 3px;
     margin: 0;
 }
@@ -130,21 +133,23 @@
     transform: scale(1.04);
 }
 
-/* Nav Desktop */
+/* Nav Desktop — Large, Bold, Prominent Navigation Text */
 .nav-desktop {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
+    flex-shrink: 0;
 }
 
 .nav-link {
-    padding: 8px 15px;
+    padding: 8px 13px;
     border-radius: 50px;
-    font-size: 14.5px;
-    font-weight: 600;
-    color: var(--text-dark);
+    font-size: 17px;
+    font-weight: 800;
+    color: #0F172A;
     transition: var(--transition);
     white-space: nowrap;
+    letter-spacing: -0.01em;
 }
 
 .nav-link:hover {
@@ -153,18 +158,165 @@
 }
 
 .nav-link.active {
-    color: var(--primary) !important;
+    color: #0F52BA !important;
     background: #EFF6FF !important;
-    font-weight: 700;
+    font-weight: 800;
     box-shadow: none !important;
+}
+
+/* ═══ TRUST MEMBERSHIP DROPDOWN (Matching Blueprint Spec) ═══ */
+.nav-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.nav-dropdown-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1E293B;
+    transition: var(--transition);
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.nav-dropdown:hover .nav-dropdown-btn,
+.nav-dropdown-btn.active {
+    color: #0F52BA;
+    background: #EFF6FF;
+}
+
+.nav-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 260px;
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    z-index: 1050;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(6px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown.open .nav-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.nav-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #334155;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-dropdown-item svg {
+    color: #2563EB;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.nav-dropdown-item:hover {
+    background: #EFF6FF;
+    color: #0F52BA;
+}
+
+.nav-dropdown-item.active {
+    background: #EFF6FF;
+    color: #0F52BA;
+    font-weight: 700;
+}
+
+/* Header Actions Container */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+/* Join as Member Button in Header */
+.btn-join-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 50px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #15803d;
+    background: #f0fdf4;
+    border: 1.5px solid #bbf7d0;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-join-nav:hover {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.15);
+}
+
+/* Sign In / Top Donors Button in Header */
+.btn-signin-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0F52BA;
+    background: #EFF6FF;
+    border: 2px solid #BFDBFE;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-signin-nav:hover {
+    background: #DBEAFE;
+    color: #1E40AF;
+    border-color: #93C5FD;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 82, 186, 0.15);
 }
 
 /* Donate Button */
 .donate-btn {
-    padding: 10px 22px;
-    font-size: 14px;
+    padding: 11px 22px;
+    font-size: 16.5px;
+    font-weight: 800;
     white-space: nowrap;
     flex-shrink: 0;
+    border-radius: 50px;
 }
 
 /* Mobile Toggle */
@@ -172,11 +324,10 @@
     display: none;
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 26px;
     color: var(--text-dark);
     cursor: pointer;
     padding: 6px;
-    border-radius: 6px;
 }
 
 /* Mobile Nav */
@@ -196,9 +347,9 @@
 }
 
 .mobile-nav-link {
-    padding: 12px 0;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 14px 0;
+    font-size: 18.5px;
+    font-weight: 800;
     color: var(--text-dark);
     border-bottom: 1px solid var(--border);
 }
@@ -211,10 +362,39 @@
 .mobile-donate-btn {
     margin-top: 14px;
     justify-content: center;
+    font-size: 17px;
+    font-weight: 800;
+    padding: 12px 20px;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
+/* Responsive Breakpoints */
+@media (max-width: 1420px) {
+    .header-inner {
+        padding: 8px 16px;
+        gap: 10px;
+    }
+
+    .nav-desktop {
+        gap: 2px;
+    }
+
+    .nav-link {
+        padding: 7px 11px;
+        font-size: 15.5px;
+    }
+
+    .btn-signin-nav {
+        padding: 9px 15px;
+        font-size: 15px;
+    }
+
+    .donate-btn {
+        padding: 10px 18px;
+        font-size: 15.5px;
+    }
+}
+
+@media (max-width: 1220px) {
     .nav-desktop {
         display: none;
     }

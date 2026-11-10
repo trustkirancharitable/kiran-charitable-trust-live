@@ -33,8 +33,7 @@ export default function Contact() {
 
     return (
         <div className="contact-page">
-            <ToastContainer />
-            <div className="page-banner">
+                        <div className="page-banner">
                 <div className="banner-circles" />
                 <div className="container">
                     <h1>Contact Us</h1>

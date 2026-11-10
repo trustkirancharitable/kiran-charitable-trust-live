@@ -417,11 +417,12 @@
     width: 100%;
     max-width: 440px;
     aspect-ratio: 3/4;
-    max-height: 500px;
     border-radius: var(--radius-lg);
+    position: relative;
     overflow: hidden;
-    border: 4px solid var(--primary-light);
     box-shadow: var(--shadow-lg);
+    border: none;
+    background: transparent;
 }
 
 .chairman-img-real {
@@ -429,11 +430,31 @@
     height: 100%;
     object-fit: cover;
     object-position: center 10%;
-    transition: var(--transition);
+    display: block;
+    transform: scale(1.03);
+    transition: transform 0.5s ease;
 }
 
 .chairman-img-card:hover .chairman-img-real {
-    transform: scale(1.03);
+    transform: scale(1.07);
+}
+
+.chairman-img-badge {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: #0f52ba;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    box-shadow: 0 4px 16px rgba(15, 82, 186, 0.4);
+    animation: pulse 2s infinite;
+    z-index: 2;
 }
 
 .chairman-content-col {

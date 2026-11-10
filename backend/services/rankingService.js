@@ -3,17 +3,6 @@ const Donation = require('../models/Donation');
 const TrustMember = require('../models/TrustMember');
 const { memoryStore } = require('./supabaseService');
 
-// Seed/baseline heroes to ensure the trust wall is always rich and dignified
-const SEED_TOP_DONORS = [
-    { name: 'Dr. K. Srinivas Rao', photo: '', totalDonated: 50000, count: 5, category: 'Chief Patron' },
-    { name: 'Smt. Lakshmi Devi', photo: '', totalDonated: 25000, count: 3, category: 'Honorary Trustee' },
-    { name: 'Palnadu Farmers Aid Group', photo: '', totalDonated: 15000, count: 2, category: 'Community Donor' },
-    { name: 'Aparna Varma', photo: '', totalDonated: 12000, count: 2, category: 'Senior Care Supporter' },
-    { name: 'V. Rajesh Kumar', photo: '', totalDonated: 10000, count: 4, category: 'Monthly Patron' },
-    { name: 'K. Ramesh Babu', photo: '', totalDonated: 7500, count: 2, category: 'Education Pillar' },
-    { name: 'N. Venkatesh', photo: '', totalDonated: 5000, count: 1, category: 'Youth Volunteer Patron' }
-];
-
 // In-memory cache for ultra-fast leaderboard retrieval
 let cachedLeaderboard = {
     lastUpdated: null,
@@ -46,28 +35,58 @@ async function autoRankDonors() {
         if (mongoose.connection.readyState >= 1) {
             try {
                 const donations = await Donation.find({ status: 'completed' })
-                    .select('fullName email phone amount profilePhoto isAnonymous createdAt')
+                    .select('fullName email phone amount profilePhoto isAnonymous createdAt address city state purpose receiptNumber')
                     .lean();
 
                 donations.forEach(d => {
                     const key = (d.email || d.phone || d.fullName || 'anon').toLowerCase().trim();
-                    const name = d.isAnonymous ? 'Anonymous Well-Wisher' : (d.fullName || 'Valued Contributor');
-                    const photo = d.profilePhoto || '';
+                    const name = (d.isAnonymous || d.is_anonymous) ? 'Anonymous Well-Wisher' : (d.fullName || d.full_name || 'Valued Contributor');
+                    const photo = d.profilePhoto || d.profile_photo || '';
                     const amt = Number(d.amount) || 0;
+                    const city = d.city || (d.address ? d.address.split(',')[0].trim() : 'Guntur');
+                    const state = d.state || 'Andhra Pradesh';
+                    const purpose = d.purpose || 'General Trust Welfare';
+                    const createdAt = d.createdAt || new Date();
 
                     // All-Time
                     if (!donorMap.has(key)) {
-                        donorMap.set(key, { name, photo, totalDonated: 0, count: 0, isAnonymous: d.isAnonymous });
+                        donorMap.set(key, { 
+                            name, 
+                            email: d.email || '',
+                            phone: d.phone || d.mobile || '',
+                            photo, 
+                            city,
+                            state,
+                            purpose,
+                            lastDonatedAt: createdAt,
+                            totalDonated: 0, 
+                            count: 0, 
+                            isAnonymous: !!d.isAnonymous 
+                        });
                     }
                     const record = donorMap.get(key);
                     record.totalDonated += amt;
                     record.count += 1;
                     if (photo && !record.photo) record.photo = photo;
+                    if (new Date(createdAt) > new Date(record.lastDonatedAt)) {
+                        record.lastDonatedAt = createdAt;
+                        if (purpose) record.purpose = purpose;
+                    }
 
                     // Monthly
                     if (new Date(d.createdAt) >= startOfMonth) {
                         if (!monthlyDonorMap.has(key)) {
-                            monthlyDonorMap.set(key, { name, photo, totalDonated: 0, count: 0, isAnonymous: d.isAnonymous });
+                            monthlyDonorMap.set(key, { 
+                                name, 
+                                photo, 
+                                city,
+                                state,
+                                purpose,
+                                lastDonatedAt: createdAt,
+                                totalDonated: 0, 
+                                count: 0, 
+                                isAnonymous: !!d.isAnonymous 
+                            });
                         }
                         const mRec = monthlyDonorMap.get(key);
                         mRec.totalDonated += amt;
@@ -77,7 +96,7 @@ async function autoRankDonors() {
 
                 // Ingest active Trust Members
                 const members = await TrustMember.find({ approvalStatus: 'active' })
-                    .select('name email phone totalDonated donationAmount profilePhoto')
+                    .select('name email phone totalDonated donationAmount profilePhoto address city state subscriptionTier createdAt')
                     .lean();
 
                 members.forEach(m => {
@@ -85,7 +104,18 @@ async function autoRankDonors() {
                     const amt = Number(m.totalDonated) || Number(m.donationAmount) || 0;
                     if (amt > 0) {
                         if (!donorMap.has(key)) {
-                            donorMap.set(key, { name: m.name, photo: m.profilePhoto || '', totalDonated: 0, count: 0 });
+                            donorMap.set(key, { 
+                                name: m.name, 
+                                email: m.email || '',
+                                phone: m.phone || '',
+                                photo: m.profilePhoto || '', 
+                                city: m.city || 'Guntur',
+                                state: m.state || 'Andhra Pradesh',
+                                purpose: 'Trust Membership',
+                                lastDonatedAt: m.createdAt || new Date(),
+                                totalDonated: 0, 
+                                count: 0 
+                            });
                         }
                         const record = donorMap.get(key);
                         record.totalDonated += amt;
@@ -102,75 +132,162 @@ async function autoRankDonors() {
         if (memoryStore && Array.isArray(memoryStore.payments)) {
             memoryStore.payments.forEach(p => {
                 if (p.status === 'completed') {
-                    const key = (p.email || p.full_name || 'anon').toLowerCase().trim();
-                    const name = p.is_anonymous ? 'Anonymous Well-Wisher' : p.full_name;
+                    const key = (p.email || p.fullName || p.full_name || 'anon').toLowerCase().trim();
+                    const name = (p.isAnonymous || p.is_anonymous) ? 'Anonymous Well-Wisher' : (p.fullName || p.full_name || 'Valued Contributor');
                     const amt = Number(p.amount) || 0;
+                    const photo = p.profilePhoto || p.profile_photo || '';
+                    const city = p.city || (p.address ? p.address.split(',')[0].trim() : 'Guntur');
+                    const state = p.state || 'Andhra Pradesh';
+                    const purpose = p.purpose || 'General Donation';
+                    const createdAt = p.createdAt || new Date().toISOString();
 
                     if (!donorMap.has(key)) {
-                        donorMap.set(key, { name, photo: p.profile_photo || '', totalDonated: 0, count: 0 });
+                        donorMap.set(key, { 
+                            name, 
+                            email: p.email || '',
+                            phone: p.mobile || p.phone || '',
+                            photo, 
+                            city,
+                            state,
+                            purpose,
+                            lastDonatedAt: createdAt,
+                            totalDonated: 0, 
+                            count: 0 
+                        });
                     }
                     const r = donorMap.get(key);
                     r.totalDonated += amt;
                     r.count += 1;
+                    if (photo && !r.photo) r.photo = photo;
+                    if (new Date(createdAt) > new Date(r.lastDonatedAt)) {
+                        r.lastDonatedAt = createdAt;
+                        if (purpose) r.purpose = purpose;
+                    }
+
+                    // Monthly
+                    if (new Date(createdAt) >= startOfMonth) {
+                        if (!monthlyDonorMap.has(key)) {
+                            monthlyDonorMap.set(key, { 
+                                name, 
+                                photo, 
+                                city,
+                                state,
+                                purpose,
+                                lastDonatedAt: createdAt,
+                                totalDonated: 0, 
+                                count: 0 
+                            });
+                        }
+                        const mRec = monthlyDonorMap.get(key);
+                        mRec.totalDonated += amt;
+                        mRec.count += 1;
+                    }
                 }
             });
         }
 
-        // 3. Fallback: If donorMap is sparse, integrate the baseline trusted heroes
-        SEED_TOP_DONORS.forEach(hero => {
-            const key = hero.name.toLowerCase().trim();
-            if (!donorMap.has(key)) {
-                donorMap.set(key, { ...hero });
-            }
-            if (!monthlyDonorMap.has(key)) {
-                monthlyDonorMap.set(key, {
-                    name: hero.name,
-                    photo: hero.photo,
-                    totalDonated: Math.round(hero.totalDonated * 0.25),
-                    count: 1
-                });
-            }
-        });
+        // 3. Helper to determine Giving Society Tier
+        const getTierDetails = (amount, rank) => {
+            if (rank === 1) return { tierName: 'Chief Benefactor', tierBadge: 'Gold Champion', level: 1 };
+            if (rank === 2) return { tierName: 'Platinum Benefactor', tierBadge: 'Silver Champion', level: 2 };
+            if (rank === 3) return { tierName: 'Gold Pillar', tierBadge: 'Bronze Benefactor', level: 3 };
+            if (amount >= 25000) return { tierName: 'Pillar Member', tierBadge: 'Pillar Member', level: 4 };
+            if (amount >= 10000) return { tierName: 'Honorary Guardian', tierBadge: 'Honorary Guardian', level: 5 };
+            if (amount >= 5000) return { tierName: 'Sustaining Champion', tierBadge: 'Sustaining Champion', level: 6 };
+            if (amount >= 1000) return { tierName: 'Community Benefactor', tierBadge: 'Community Benefactor', level: 7 };
+            return { tierName: 'Grassroots Supporter', tierBadge: 'Grassroots Supporter', level: 8 };
+        };
 
-        // 4. Sort and assign automated rankings
-        const allTimeSorted = Array.from(donorMap.values())
-            .sort((a, b) => b.totalDonated - a.totalDonated)
-            .slice(0, 10)
-            .map((donor, idx) => ({
-                rank: idx + 1,
+        // 4. Sort and assign automated rankings across all donors
+        const allDonorsArray = Array.from(donorMap.values())
+            .sort((a, b) => b.totalDonated - a.totalDonated);
+
+        const totalAmountDonated = allDonorsArray.reduce((sum, d) => sum + (d.totalDonated || 0), 0);
+        const topDonorAmount = allDonorsArray[0]?.totalDonated || 0;
+
+        const allRanked = allDonorsArray.map((donor, idx) => {
+            const rank = idx + 1;
+            const { tierName, tierBadge, level } = getTierDetails(donor.totalDonated, rank);
+            const percentageOfTop = topDonorAmount > 0 ? Math.round((donor.totalDonated / topDonorAmount) * 100) : 0;
+
+            return {
+                rank,
                 name: donor.name,
-                photo: donor.photo,
+                email: donor.email || '',
+                city: donor.city || 'Guntur',
+                state: donor.state || 'Andhra Pradesh',
+                purpose: donor.purpose || 'General Philanthropy',
+                lastDonatedAt: donor.lastDonatedAt || new Date().toISOString(),
+                photo: donor.photo || '',
                 amount: donor.totalDonated,
                 totalDonated: donor.totalDonated,
-                count: donor.count,
-                tierBadge: idx === 0 ? '👑 Gold Champion' : idx === 1 ? '🥈 Silver Patron' : idx === 2 ? '🥉 Bronze Benefactor' : '⭐ Distinguished Patron',
-                podiumSpot: idx < 3 ? idx + 1 : null
-            }));
+                count: donor.count || 1,
+                tierName,
+                tierBadge,
+                tierLevel: level,
+                percentageOfTop,
+                podiumSpot: rank <= 3 ? rank : null
+            };
+        });
+
+        // Top 10 High-Honor Donors
+        const allTimeTop = allRanked.slice(0, 10);
+        // All Other Ranked Donors (Ranks 11+)
+        const honorsList = allRanked.slice(10);
+
+        // Group donors by Tier
+        const tiers = {
+            pillars: allRanked.filter(d => d.totalDonated >= 25000),
+            guardians: allRanked.filter(d => d.totalDonated >= 10000 && d.totalDonated < 25000),
+            champions: allRanked.filter(d => d.totalDonated >= 5000 && d.totalDonated < 10000),
+            benefactors: allRanked.filter(d => d.totalDonated >= 1000 && d.totalDonated < 5000),
+            grassroots: allRanked.filter(d => d.totalDonated < 1000)
+        };
 
         const monthlySorted = Array.from(monthlyDonorMap.values())
             .sort((a, b) => b.totalDonated - a.totalDonated)
-            .slice(0, 10)
-            .map((donor, idx) => ({
-                rank: idx + 1,
-                name: donor.name,
-                photo: donor.photo,
-                amount: donor.totalDonated,
-                totalDonated: donor.totalDonated,
-                count: donor.count,
-                tierBadge: idx === 0 ? '👑 Monthly Leader' : idx === 1 ? '🥈 Runner-Up' : idx === 2 ? '🥉 Monthly Honor' : '⭐ Monthly Contributor',
-                podiumSpot: idx < 3 ? idx + 1 : null
-            }));
+            .map((donor, idx) => {
+                const rank = idx + 1;
+                const { tierName, tierBadge } = getTierDetails(donor.totalDonated, rank);
+                return {
+                    rank,
+                    name: donor.name,
+                    city: donor.city || 'Guntur',
+                    state: donor.state || 'Andhra Pradesh',
+                    purpose: donor.purpose || 'Monthly Giving',
+                    lastDonatedAt: donor.lastDonatedAt || new Date().toISOString(),
+                    photo: donor.photo || '',
+                    amount: donor.totalDonated,
+                    totalDonated: donor.totalDonated,
+                    count: donor.count || 1,
+                    tierName,
+                    tierBadge: rank === 1 ? 'Monthly Leader' : rank === 2 ? 'Monthly Runner-Up' : rank === 3 ? 'Monthly Honor' : 'Monthly Contributor',
+                    podiumSpot: rank <= 3 ? rank : null
+                };
+            });
 
         // 5. Update cached leaderboard
         cachedLeaderboard = {
             lastUpdated: new Date().toISOString(),
             month: currentMonthName,
-            allTimeTop: allTimeSorted,
-            monthlyTop: monthlySorted,
+            allTimeTop,
+            honorsList,
+            allDonors: allRanked,
+            monthlyTop: monthlySorted.slice(0, 10),
+            monthlyAll: monthlySorted,
+            tiers: {
+                pillarsCount: tiers.pillars.length,
+                guardiansCount: tiers.guardians.length,
+                championsCount: tiers.champions.length,
+                benefactorsCount: tiers.benefactors.length,
+                grassrootsCount: tiers.grassroots.length
+            },
             stats: {
                 totalDonationsEvaluated: donorMap.size,
-                totalDonorsRanked: allTimeSorted.length,
-                topDonorAmount: allTimeSorted[0]?.totalDonated || 0
+                totalDonorsRanked: allRanked.length,
+                totalAmountDonated,
+                topDonorAmount,
+                averageDonation: allRanked.length > 0 ? Math.round(totalAmountDonated / allRanked.length) : 0
             }
         };
 

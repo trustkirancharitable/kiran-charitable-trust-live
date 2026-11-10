@@ -48,6 +48,7 @@ export default function Footer() {
                             <li><Link to="/activities">Our Activities</Link></li>
                             <li><Link to="/gallery">Gallery</Link></li>
                                                         <li><Link to="/donate">Donate</Link></li>
+                            <li><Link to="/donors">Top Donors &amp; Honor Roll</Link></li>
                             <li><Link to="/contact">Contact Us</Link></li>
                         </ul>
                     </div>

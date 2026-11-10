@@ -1,4 +1,4 @@
-/* Founder Desk Page */
+﻿/* Founder Desk Page */
 .founder-section {
     background: var(--bg-light);
 }
@@ -31,11 +31,12 @@
     object-fit: cover;
     object-position: center 10%;
     display: block;
+    transform: scale(1.03);
     transition: transform 0.5s ease;
 }
 
 .founder-photo-container:hover .founder-photo {
-    transform: scale(1.03);
+    transform: scale(1.07);
 }
 
 .founder-img-badge {
@@ -44,14 +45,14 @@
     right: 20px;
     width: 54px;
     height: 54px;
-    border-radius: 8px;
-    background: var(--gradient);
+    border-radius: 12px;
+    background: #0f52ba;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 22px;
-    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5);
+    font-size: 20px;
+    box-shadow: 0 4px 16px rgba(15, 82, 186, 0.4);
     animation: pulse 2s infinite;
     z-index: 2;
 }

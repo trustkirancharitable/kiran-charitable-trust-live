@@ -3,6 +3,7 @@ import './App.css'
 import { AuthProvider } from './context/AuthContext'
 import AuthModal from './components/AuthModal'
 import Header from './components/Header'
+import HeaderOnly from './pages/HeaderOnly'
 import Footer from './components/Footer'
 import WhatsAppFloat from './components/WhatsAppFloat'
 import Home from './pages/Home'
@@ -27,6 +28,8 @@ import PortalProfile from './pages/portal/PortalProfile'
 import Dashboard from './pages/Dashboard'
 import Admin from './pages/Admin'
 import Donate from './pages/Donate'
+import TrustMembers from './pages/TrustMembers'
+import DonorsLeaderboard from './pages/DonorsLeaderboard'
 import Contact from './pages/Contact'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsConditions from './pages/TermsConditions'
@@ -62,9 +65,14 @@ function App() {
         <ScrollToTop />
         <SEOManager />
         <Routes>
-          {/* ── Standalone Trust Portal System (Separate Layout & Pages) ── */}
+          {/* ── Standalone Enterprise Administration Portal (Separate Layout) ── */}
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/*" element={<Admin />} />
+
+          {/* ── Standalone Trust Member & Donor Portal (Completely Separate Layout) ── */}
           <Route path="/portal" element={<PortalLayout />}>
-            <Route index element={<PortalHome />} />
+            <Route index element={<PortalProfile />} />
+            <Route path="overview" element={<PortalHome />} />
             <Route path="join" element={<PortalJoin />} />
             <Route path="become-a-member" element={<PortalJoin />} />
             <Route path="members" element={<PortalMembers />} />
@@ -72,7 +80,9 @@ function App() {
             <Route path="donors" element={<PortalDonors />} />
             <Route path="top-donors" element={<PortalDonors />} />
             <Route path="stats" element={<PortalStats />} />
-            <Route path="dashboard" element={<PortalStats />} />
+            <Route path="impact" element={<PortalStats />} />
+            <Route path="dashboard" element={<PortalProfile />} />
+            <Route path="profile" element={<PortalProfile />} />
             <Route path="monthly-donor" element={<PortalMonthlyDonor />} />
             <Route path="subscribe" element={<PortalMonthlyDonor />} />
             <Route path="login" element={<PortalLogin />} />
@@ -80,27 +90,10 @@ function App() {
             <Route path="signup" element={<PortalSignup />} />
             <Route path="register" element={<PortalSignup />} />
             <Route path="forgot-password" element={<PortalForgotPassword />} />
-            <Route path="profile" element={<PortalProfile />} />
-            <Route path="account" element={<PortalProfile />} />
           </Route>
+          <Route path="/portal/*" element={<Navigate to="/portal/profile" replace />} />
 
-          {/* Direct aliases for /members routes */}
-          <Route path="/members" element={<PortalLayout />}>
-            <Route index element={<PortalMembers />} />
-            <Route path="join" element={<PortalJoin />} />
-            <Route path="donors" element={<PortalDonors />} />
-            <Route path="stats" element={<PortalStats />} />
-            <Route path="monthly-donor" element={<PortalMonthlyDonor />} />
-          </Route>
-
-          <Route path="/monthly-donor" element={<PortalLayout />}>
-            <Route index element={<PortalMonthlyDonor />} />
-          </Route>
-          <Route path="/subscribe" element={<PortalLayout />}>
-            <Route index element={<PortalMonthlyDonor />} />
-          </Route>
-
-          {/* ── Main site pages (WITH header/footer) ── */}
+          {/* ── Main Website System: 100% Unified (Same Header, Same Footer, Same Website) ── */}
           <Route path="/*" element={
             <MainLayout>
               <Routes>
@@ -110,27 +103,39 @@ function App() {
                 <Route path="/activities" element={<Activities />} />
                 <Route path="/gallery" element={<Gallery />} />
 
-                {/* Volunteer Registration & Careers */}
+                {/* Volunteer Registration & Careers (Public Website) */}
                 <Route path="/volunteers" element={<Volunteers />} />
                 <Route path="/register/volunteer" element={<Volunteers />} />
                 <Route path="/careers" element={<Volunteers />} />
 
-                {/* Trust Member Registration & Subscription */}
+                {/* Public Trust Members & Public Membership Pages */}
+                <Route path="/trust-members" element={<TrustMembers />} />
+                <Route path="/members" element={<TrustMembers />} />
+                <Route path="/trust-membership" element={<TrustMembership />} />
                 <Route path="/register/trust-member" element={<TrustMemberRegister />} />
-                <Route path="/trust-membership" element={<TrustMemberRegister />} />
+                <Route path="/monthly-donor" element={<TrustMembership />} />
+                <Route path="/subscribe" element={<TrustMembership />} />
 
-                {/* Member & Volunteer Portal */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/profile" element={<Dashboard />} />
+                {/* User Dashboard & Profile redirects into Member Portal */}
+                <Route path="/dashboard" element={<Navigate to="/portal/profile" replace />} />
+                <Route path="/profile" element={<Navigate to="/portal/profile" replace />} />
+                <Route path="/account" element={<Navigate to="/portal/profile" replace />} />
 
-                {/* High-Capacity Admin & Velocity Analytics */}
-                <Route path="/admin" element={<Admin />} />
-
-                {/* Donations & Payment Gateway */}
+                {/* Public Donations & Public Leaderboard */}
                 <Route path="/donate" element={<Donate />} />
+                <Route path="/support" element={<Donate />} />
+                <Route path="/donors" element={<DonorsLeaderboard />} />
+                <Route path="/donors-leaderboard" element={<DonorsLeaderboard />} />
+                <Route path="/leaderboard" element={<DonorsLeaderboard />} />
+                <Route path="/top-donors" element={<DonorsLeaderboard />} />
                 <Route path="/contact" element={<Contact />} />
+
+                {/* Legal & Compliance Policies (Google OAuth & Public Verification) */}
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms-conditions" element={<TermsConditions />} />
+                <Route path="/terms-of-service" element={<TermsConditions />} />
+                <Route path="/terms" element={<TermsConditions />} />
 
                 {/* Cause pages */}
                 <Route path="/causes/education" element={<CauseEducation />} />

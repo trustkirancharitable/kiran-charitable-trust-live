@@ -1,6 +1,6 @@
 /* ============================================================
    KIRAN CHARITABLE TRUST — ULTRA-PREMIUM TRUST PORTAL
-   Dedicated Design System for Members, Patrons & Benefactors
+   Dedicated Design System for Members & Benefactors
    Brand Colors:
    - Royal Sapphire Blue: #0F52BA / #003B95
    - Deep Slate Navy: #0B132B / #0F172A
@@ -1020,7 +1020,7 @@
   margin-bottom: 0.95rem;
 }
 
-/* Patron Tier Pill Badges */
+/* Member Tier Pill Badges */
 .pt-pill,
 .pt-member-pill {
   display: inline-flex;
@@ -2157,3 +2157,382 @@
         display: none !important;
     }
 }
+
+/* Authentic Interactive reCAPTCHA Box for Portal Join & Login */
+.dp-recaptcha-box {
+    background: #f9f9f9;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.08);
+    width: 302px;
+    max-width: 100%;
+    height: 74px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 14px 0;
+    user-select: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.dp-recaptcha-box:hover {
+    border-color: #b2b2b2;
+}
+
+.dp-recaptcha-box.spinning {
+    cursor: wait;
+}
+
+.dp-recaptcha-box.verified {
+    border-color: #10b981;
+    background: #f0fdf4;
+    cursor: default;
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+}
+
+.dp-recaptcha-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dp-recaptcha-checkbox-wrapper {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dp-recaptcha-square {
+    width: 24px;
+    height: 24px;
+    background: #ffffff;
+    border: 2px solid #c1c1c1;
+    border-radius: 2px;
+    transition: border-color 0.2s ease;
+}
+
+.dp-recaptcha-box:hover .dp-recaptcha-square {
+    border-color: #94a3b8;
+}
+
+.dp-recaptcha-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #1a73e8;
+    border-right-color: #1a73e8;
+    border-radius: 50%;
+    box-sizing: border-box;
+    animation: dpRecaptchaSpin 0.75s linear infinite;
+}
+
+@keyframes dpRecaptchaSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.dp-recaptcha-checkmark {
+    display: block;
+    animation: dpRecaptchaCheckPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes dpRecaptchaCheckPop {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.dp-recaptcha-text {
+    font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #222222;
+}
+
+.dp-recaptcha-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.dp-recaptcha-logo {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.dp-recaptcha-brand-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #555555;
+    margin-top: 2px;
+    line-height: 1;
+}
+
+.dp-recaptcha-links {
+    font-size: 8px;
+    color: #555555;
+    margin-top: 2px;
+    line-height: 1;
+}
+
+.dp-recaptcha-links a {
+    color: #555555;
+    text-decoration: none;
+}
+
+/* ============================================================
+   MEMBER PORTAL APP SHELL & SIDEBAR NAVIGATION SYSTEM
+   ============================================================ */
+.portal-app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background-color: #f8fafd;
+}
+
+.portal-sidebar {
+  width: 260px;
+  background: #07152d;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 100vh;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.portal-sidebar.collapsed {
+  width: 76px;
+}
+
+.portal-sidebar-top {
+  padding-top: 18px;
+}
+
+.portal-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 18px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 14px;
+}
+
+.portal-sidebar-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.portal-sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.portal-brand-main {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.portal-brand-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.portal-sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 10px;
+}
+
+.portal-sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.portal-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.portal-sidebar-item.active {
+  background: linear-gradient(135deg, #1e40af, #2563eb);
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.portal-sidebar-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal-sidebar-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.portal-sidebar-bottom {
+  padding: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.portal-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.portal-sidebar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  border: 1.5px solid #3b82f6;
+  flex-shrink: 0;
+}
+
+.portal-sidebar-user-info {
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.portal-sidebar-user-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.portal-sidebar-user-role {
+  font-size: 11px;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.portal-main-wrapper {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #f8fafd;
+}
+
+.portal-topbar {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  flex-shrink: 0;
+  z-index: 90;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.portal-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal-topbar-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.portal-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal-content-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.portal-fixed-footer {
+  flex-shrink: 0;
+  background: #0b132b;
+  color: #94a3b8;
+  padding: 14px 24px;
+  border-top: 1px solid #1e293b;
+  font-size: 12px;
+  z-index: 90;
+}
+
+@media (max-width: 900px) {
+  .portal-sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+  }
+  .portal-sidebar.mobile-open {
+    left: 0;
+  }
+}
+

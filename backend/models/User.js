@@ -46,6 +46,17 @@ const userSchema = new mongoose.Schema({
         type: String, 
         default: '' 
     },
+    aadharNumber: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    panNumber: {
+        type: String,
+        trim: true,
+        uppercase: true,
+        default: ''
+    },
     resetPasswordOtp: {
         type: String,
         default: null
@@ -57,6 +68,27 @@ const userSchema = new mongoose.Schema({
     isVerified: { 
         type: Boolean, 
         default: true 
+    },
+    status: {
+        type: String,
+        enum: ['active', 'suspended', 'deleted'],
+        default: 'active'
+    },
+    suspensionReason: {
+        type: String,
+        default: ''
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: {
+        type: Date,
+        default: null
+    },
+    scheduledPermanentDeleteAt: {
+        type: Date,
+        default: null
     },
     lastLoginAt: { 
         type: Date, 

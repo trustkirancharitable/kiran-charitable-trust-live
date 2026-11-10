@@ -57,6 +57,9 @@ export default function About() {
                         <div className="chairman-img-col">
                             <div className="chairman-img-card">
                                 <img src={ChairmanImg} alt="Pallepogu Kiranbabu - Founder & Chairman" className="chairman-img-real" />
+                                <div className="chairman-img-badge">
+                                    <FaHeart />
+                                </div>
                             </div>
                         </div>
                         <div className="chairman-content-col">
@@ -352,8 +355,8 @@ export default function About() {
                         <Link to="/donate" className="btn btn-primary" style={{ background: 'white', color: 'var(--primary)' }}>
                             <FaHeart /> Donate Now
                         </Link>
-                        <Link to="/volunteers" className="btn btn-secondary">
-                            <FaUsers /> Become Volunteer
+                        <Link to="/portal/join" className="btn btn-secondary">
+                            <FaUsers /> Join as Member
                         </Link>
                     </div>
                 </div>

@@ -60,7 +60,7 @@ export default function LeaderboardSection() {
                         className={`lb-tab-btn ${tab === 'alltime' ? 'active' : ''}`}
                         onClick={() => setTab('alltime')}
                     >
-                        <FaAward style={{ color: '#3b82f6' }} /> All-Time Patrons
+                        <FaAward style={{ color: '#3b82f6' }} /> All-Time Contributors
                     </button>
                     <button
                         className={`lb-tab-btn ${tab === 'members' ? 'active' : ''}`}
@@ -99,7 +99,7 @@ export default function LeaderboardSection() {
 
                                 <div className="lb-info">
                                     <h4>{donor.name}</h4>
-                                    <p>{donor.tag || (tab === 'monthly' ? 'Monthly Contributor' : 'Patron')}</p>
+                                    <p>{donor.tag || (tab === 'monthly' ? 'Monthly Contributor' : 'Valued Member')}</p>
                                     <div className="lb-amount">
                                         ₹{Number(donor.totalDonated).toLocaleString('en-IN')}
                                     </div>
@@ -125,13 +125,7 @@ export default function LeaderboardSection() {
                         >
                             <FaUserCheck /> Enroll as Trust Member
                         </Link>
-                        <Link
-                            to="/volunteers"
-                            className="btn"
-                            style={{ background: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, padding: '12px 24px' }}
-                        >
-                            <FaUsers /> Become Volunteer (₹2,500)
-                        </Link>
+                        
                     </div>
                 </div>
             </div>

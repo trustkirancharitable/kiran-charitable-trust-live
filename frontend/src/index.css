@@ -207,7 +207,7 @@ label,
   letter-spacing: 0.2px;
 }
 
-input[type="text"],
+input[type="text"]:not([class*="search"]):not([class*="tm-search"]):not([class*="dl-search"]):not([class*="admin-search"]):not([class*="admin-topbar-search"]),
 input[type="email"],
 input[type="tel"],
 input[type="number"],
@@ -226,6 +226,49 @@ textarea,
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
   transition: var(--transition);
   box-sizing: border-box;
+}
+
+/* Universal Search Bar & Search Input Fix - Prevents icon overlap across all pages */
+.tm-search-box,
+.dl-search-box,
+.admin-search-box,
+.admin-search-wrapper,
+.admin-topbar-search {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.tm-search-box .tm-search-icon,
+.dl-search-box .dl-search-icon,
+.admin-search-box .admin-search-icon,
+.admin-search-wrapper .admin-search-icon,
+.admin-topbar-search .admin-topbar-search-icon {
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  font-size: 14px !important;
+  pointer-events: none !important;
+  z-index: 5 !important;
+}
+
+.tm-search-box input,
+.tm-search-box .tm-search-input,
+.dl-search-box input,
+.dl-search-box .dl-search-input,
+.admin-search-box input,
+.admin-search-box .admin-search-input,
+.admin-search-wrapper input,
+.admin-search-wrapper .admin-search-input,
+.admin-topbar-search input,
+.admin-topbar-search .admin-topbar-search-input,
+input.tm-search-input,
+input.dl-search-input,
+input.admin-search-input,
+input.admin-topbar-search-input {
+  padding-left: 42px !important;
+  box-sizing: border-box !important;
 }
 
 select {

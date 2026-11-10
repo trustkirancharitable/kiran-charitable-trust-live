@@ -1,0 +1,297 @@
+/* ═══════════════════════════════════════════════════════════════
+   PORTAL HEADER — EXACT MATCH TO INSTITUTIONAL SPECIFICATION
+   Brand Style: Kiran Charitable Trust Portal
+   ═══════════════════════════════════════════════════════════════ */
+
+.portal-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E2E8F0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+}
+
+.portal-header-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+/* Brand Area: Logo + Trust Portal Badge */
+.portal-brand-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.portal-logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.portal-logo-card {
+    height: 56px;
+    width: 74px;
+    background: #FFFFFF;
+    border-radius: 8px;
+    padding: 2px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.portal-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Trust Portal Badge */
+.portal-trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #EFF6FF;
+    border: 1.5px solid #BFDBFE;
+    color: #1D4ED8;
+    padding: 7px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.portal-badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2563EB;
+    display: inline-block;
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.5);
+}
+
+/* Center Pill Nav Bar — Bigger & Prominent */
+.portal-nav-bar {
+    display: flex;
+    align-items: center;
+    background: #F1F5F9;
+    padding: 5px 8px;
+    border-radius: 50px;
+    gap: 4px;
+}
+
+.portal-nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #334155;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.portal-nav-item:hover {
+    color: #0F172A;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.portal-nav-item.active {
+    background: #0F52BA;
+    color: #FFFFFF !important;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(15, 82, 186, 0.25);
+}
+
+.portal-nav-item.active svg {
+    color: #FFFFFF !important;
+}
+
+/* Right Actions */
+.portal-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.portal-main-site-link {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #475569;
+    text-decoration: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    transition: color 0.2s;
+}
+
+.portal-main-site-link:hover {
+    color: #0F172A;
+}
+
+/* User Pill Badge */
+.portal-user-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #EFF6FF;
+    border: 1.5px solid #BFDBFE;
+    padding: 5px 14px 5px 6px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1E293B;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.portal-user-pill:hover {
+    background: #DBEAFE;
+}
+
+.portal-user-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #0F52BA;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    overflow: hidden;
+}
+
+.portal-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Sign Out Button */
+.portal-signout-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #CBD5E1;
+    color: #1E293B;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.portal-signout-btn:hover {
+    background: #F8FAFC;
+    border-color: #94A3B8;
+}
+
+/* Sign In / Register if not logged in */
+.portal-auth-btn {
+    border: 1.5px solid #CBD5E1;
+    background: #FFFFFF;
+    color: #1E293B;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.portal-auth-btn:hover {
+    background: #F8FAFC;
+}
+
+.portal-join-btn {
+    background: #0F52BA;
+    border: 1.5px solid #0F52BA;
+    color: #FFFFFF;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.portal-join-btn:hover {
+    background: #003B95;
+}
+
+/* Mobile Toggle */
+.portal-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #1E293B;
+    cursor: pointer;
+    padding: 6px;
+}
+
+/* Mobile Drawer */
+.portal-mobile-menu {
+    display: none;
+    flex-direction: column;
+    background: #FFFFFF;
+    border-top: 1px solid #E2E8F0;
+    padding: 14px 20px 24px;
+    gap: 10px;
+}
+
+.portal-mobile-menu.open {
+    display: flex;
+}
+
+.portal-mobile-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 15.5px;
+    font-weight: 700;
+    color: #334155;
+    text-decoration: none;
+}
+
+.portal-mobile-item.active {
+    background: #0F52BA;
+    color: #FFFFFF;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .portal-nav-bar {
+        display: none;
+    }
+    .portal-menu-toggle {
+        display: block;
+    }
+}

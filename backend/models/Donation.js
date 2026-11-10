@@ -28,7 +28,7 @@ const donationSchema = new mongoose.Schema({
     },
     donorCategory: {
         type: String,
-        enum: ['general', 'volunteer_membership', 'trust_member_monthly'],
+        enum: ['general', 'volunteer_membership', 'trust_member_monthly', 'trust_member_contribution', 'monthly_donor_subscription'],
         default: 'general',
         index: true
     },
@@ -36,6 +36,16 @@ const donationSchema = new mongoose.Schema({
         type: String,
         sparse: true,
         index: true
+    },
+    userId: {
+        type: String,
+        sparse: true,
+        index: true
+    },
+    panNumber: {
+        type: String,
+        trim: true,
+        default: ''
     },
     profilePhoto: {
         type: String,

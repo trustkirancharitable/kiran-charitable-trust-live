@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Donation = require('../models/Donation');
 const TrustMember = require('../models/TrustMember');
 const { autoRankDonors, getCachedLeaderboard } = require('../services/rankingService');
+const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
 // GET /api/donors/ticker — Lightweight endpoint for real-time scrolling marquee
 router.get('/ticker', async (req, res) => {
@@ -12,29 +13,24 @@ router.get('/ticker', async (req, res) => {
         const tickerItems = (leaderboard.allTimeTop || []).map(d => ({
             name: d.name,
             photo: d.photo || '',
-            tag: d.tierBadge || 'Valued Patron',
+            tag: d.tierBadge || 'Valued Member',
             amount: d.totalDonated,
             highlight: d.rank <= 3
         }));
 
         return res.json({
             success: true,
-            ticker: tickerItems.length > 0 ? tickerItems : [
-                { name: 'Dr. K. Srinivas Rao', photo: '', tag: 'Chief Patron', amount: 50000, highlight: true },
-                { name: 'Smt. Lakshmi Devi', photo: '', tag: 'Honorary Trustee', amount: 25000, highlight: true }
-            ]
+            ticker: tickerItems
         });
     } catch (err) {
         return res.json({
             success: true,
-            ticker: [
-                { name: 'Dr. K. Srinivas Rao', photo: '', tag: 'Chief Patron', amount: 50000, highlight: true }
-            ]
+            ticker: []
         });
     }
 });
 
-// GET /api/donors/leaderboard — Auto-Ranked Leaderboard (Monthly & All-Time)
+// GET /api/donors/leaderboard — Comprehensive Auto-Ranked Leaderboard & Full Directory
 router.get('/leaderboard', async (req, res) => {
     try {
         const leaderboard = getCachedLeaderboard();
@@ -52,13 +48,35 @@ router.get('/leaderboard', async (req, res) => {
             console.warn('Leaderboard trust member read notice:', dbErr.message);
         }
 
+        // Optional search and filter query processing
+        let honors = leaderboard.honorsList || [];
+        const { search, tier, period } = req.query;
+
+        if (search) {
+            const q = search.toLowerCase().trim();
+            honors = honors.filter(d => 
+                (d.name && d.name.toLowerCase().includes(q)) ||
+                (d.city && d.city.toLowerCase().includes(q)) ||
+                (d.purpose && d.purpose.toLowerCase().includes(q)) ||
+                (d.tierName && d.tierName.toLowerCase().includes(q))
+            );
+        }
+
+        if (tier && tier !== 'all') {
+            honors = honors.filter(d => d.tierName && d.tierName.toLowerCase().replace(/\s+/g, '') === tier.toLowerCase().replace(/\s+/g, ''));
+        }
+
         return res.json({
             success: true,
             month: leaderboard.month,
             lastUpdated: leaderboard.lastUpdated,
-            allTimeTop: leaderboard.allTimeTop,
-            monthlyTop: leaderboard.monthlyTop,
-            stats: leaderboard.stats,
+            allTimeTop: leaderboard.allTimeTop || [],
+            honorsList: honors,
+            allDonors: leaderboard.allDonors || [],
+            monthlyTop: leaderboard.monthlyTop || [],
+            monthlyAll: leaderboard.monthlyAll || [],
+            tiers: leaderboard.tiers || {},
+            stats: leaderboard.stats || {},
             trustMembers: trustMembersWall
         });
     } catch (err) {
@@ -66,8 +84,8 @@ router.get('/leaderboard', async (req, res) => {
     }
 });
 
-// POST /api/donors/recalculate-rankings — Manual / Webhook trigger to re-compute rankings
-router.post('/recalculate-rankings', async (req, res) => {
+// POST /api/donors/recalculate-rankings — Protected Administrator trigger to re-compute rankings
+router.post('/recalculate-rankings', requireAuth, requireAdmin, async (req, res) => {
     try {
         const updated = await autoRankDonors();
         return res.json({

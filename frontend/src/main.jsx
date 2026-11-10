@@ -12,12 +12,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
     <ToastContainer
       position="top-right"
-      autoClose={4000}
+      autoClose={3500}
       hideProgressBar={false}
       newestOnTop
       closeOnClick
       pauseOnHover
       theme="colored"
+      limit={1}
     />
   </React.StrictMode>,
 )

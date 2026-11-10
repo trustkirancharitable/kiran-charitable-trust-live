@@ -14,7 +14,17 @@ export function AuthProvider({ children }) {
         }
     });
 
-    const [token, setToken] = useState(() => localStorage.getItem('kct_token') || null);
+    const [token, setToken] = useState(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const urlToken = params.get('auth_token') || params.get('token');
+            if (urlToken) {
+                localStorage.setItem('kct_token', urlToken);
+                return urlToken;
+            }
+        } catch (e) {}
+        return localStorage.getItem('kct_token') || null;
+    });
     const [isLoading, setIsLoading] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authModalTab, setAuthModalTab] = useState('login'); // 'login' | 'signup' | 'otp' | 'forgot'
@@ -23,6 +33,9 @@ export function AuthProvider({ children }) {
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             localStorage.setItem('kct_token', token);
+            if (!user) {
+                refreshUser();
+            }
         } else {
             delete axios.defaults.headers.common['Authorization'];
             localStorage.removeItem('kct_token');
@@ -218,12 +231,51 @@ export function AuthProvider({ children }) {
         }
     };
 
-    const logout = () => {
+    const logout = (openLoginAfter = false) => {
         setUser(null);
         setToken(null);
         localStorage.removeItem('kct_user');
         localStorage.removeItem('kct_token');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
+        if (openLoginAfter) {
+            setAuthModalTab('login');
+            setIsAuthModalOpen(true);
+        }
     };
+
+    useEffect(() => {
+        const interceptor = axios.interceptors.response.use(
+            response => response,
+            error => {
+                const isTrashLogout = error.response?.status === 403 && (error.response?.data?.isLoggedOut || error.response?.data?.isDeleted);
+                const isUnauthorized = error.response?.status === 401 && token && !error.config?.url?.includes('/auth/login');
+
+                // If account was moved to trash or unauthorized, terminate active session immediately
+                if (isTrashLogout || isUnauthorized) {
+                    setUser(null);
+                    setToken(null);
+                    localStorage.removeItem('kct_user');
+                    localStorage.removeItem('kct_token');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    delete axios.defaults.headers.common['Authorization'];
+
+                    if (window.location.pathname.startsWith('/portal') && !window.location.pathname.includes('/portal/login')) {
+                        window.location.href = '/portal/login?reason=' + (isTrashLogout ? 'account_trashed' : 'session_expired');
+                    } else if (!window.location.pathname.startsWith('/admin')) {
+                        setAuthModalTab('login');
+                        setIsAuthModalOpen(true);
+                    }
+                }
+                return Promise.reject(error);
+            }
+        );
+        return () => {
+            axios.interceptors.response.eject(interceptor);
+        };
+    }, [token]);
 
     const refreshUser = async () => {
         if (!token) return;

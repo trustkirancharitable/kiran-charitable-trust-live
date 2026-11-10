@@ -16,7 +16,7 @@ export default function NotFound() {
                 <div className="notfound-links">
                     <Link to="/" className="btn btn-primary"><FaHome /> Go to Home</Link>
                     <Link to="/donate" className="btn btn-outline"><FaHeart /> Make a Donation</Link>
-                    <Link to="/volunteers" className="btn btn-outline"><FaUsers /> Volunteer</Link>
+                    <Link to="/portal/members" className="btn btn-outline"><FaUsers /> Trust Members</Link>
                     <Link to="/contact" className="btn btn-outline"><FaPhone /> Contact Us</Link>
                 </div>
             </div>
