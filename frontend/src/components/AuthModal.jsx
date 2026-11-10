@@ -42,7 +42,7 @@ export default function AuthModal() {
     useEffect(() => {
         if (authModalTab === 'signup' && isAuthModalOpen) {
             closeAuthModal();
-            navigate('/portal/join');
+            navigate('/login?tab=register');
             return;
         }
         setAuthMode('login');
@@ -270,7 +270,7 @@ export default function AuthModal() {
 
                     <button
                         type="button"
-                        onClick={() => { closeAuthModal(); navigate('/portal/join'); }}
+                        onClick={() => { closeAuthModal(); navigate('/login?tab=register'); }}
                         style={{
                             padding: '9px 12px',
                             border: 'none',
@@ -309,7 +309,7 @@ export default function AuthModal() {
                         </div>
                         <button
                             type="button"
-                            onClick={() => { closeAuthModal(); navigate('/portal/join'); }}
+                            onClick={() => { closeAuthModal(); navigate('/login?tab=register'); }}
                             style={{
                                 background: '#dc2626',
                                 color: '#ffffff',
@@ -502,7 +502,7 @@ export default function AuthModal() {
                             Want to become an official Trust Member?{' '}
                             <button
                                 type="button"
-                                onClick={() => { closeAuthModal(); navigate('/portal/join'); }}
+                                onClick={() => { closeAuthModal(); navigate('/login?tab=register'); }}
                                 style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 800, cursor: 'pointer', padding: 0 }}
                             >
                                 Register &amp; Join here →

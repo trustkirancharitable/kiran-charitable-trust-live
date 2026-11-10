@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { FaXTwitter } from 'react-icons/fa6'
 import {
     FaHeart, FaFacebook, FaInstagram, FaLinkedin,
@@ -50,7 +50,7 @@ export default function Footer() {
                                                         <li><Link to="/donate">Donate</Link></li>
                             <li><Link to="/donors">Top Donors &amp; Honor Roll</Link></li>
                             <li><a href="/portal/login" target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', fontWeight: 600 }}>Member Portal Login ↗</a></li>
-                            <li><a href="/portal/join" target="_blank" rel="noopener noreferrer" style={{ color: '#4ade80', fontWeight: 600 }}>Join as Member (Registration) ↗</a></li>
+                            <li><a href="/login?tab=register" target="_blank" rel="noopener noreferrer" style={{ color: '#4ade80', fontWeight: 600 }}>Join as Member ↗</a></li>
                             <li><Link to="/contact">Contact Us</Link></li>
                         </ul>
                     </div>
@@ -66,6 +66,7 @@ export default function Footer() {
                         </ul>
                         <h4 style={{ marginTop: '24px' }}>Legal Info</h4>
                         <ul className="footer-legal-list">
+                            <li>Trust Deed No: 462/2004</li>
                             <li>PAN: AAGTK5575Q</li>
                             <li>12A URN: AAGTK5575QE20261</li>
                             <li>80G URN: AAGTK5575QF20261</li>

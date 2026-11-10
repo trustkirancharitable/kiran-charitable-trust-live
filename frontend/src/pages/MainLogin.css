@@ -1,0 +1,744 @@
+/* ============================================================
+   Kiran Charitable Trust — Main Website Login & Registration Page
+   ============================================================ */
+
+.main-login-page {
+    background: #f8fafc;
+    min-height: calc(100vh - 80px);
+    padding-top: 120px;
+    padding-bottom: 60px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ═══ HERO SECTION ═══ */
+.main-login-hero {
+    background: linear-gradient(135deg, #0b2545 0%, #134074 50%, #1d4ed8 100%);
+    color: #ffffff;
+    padding: 44px 20px 38px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(11, 37, 69, 0.15);
+}
+
+.main-login-hero-badges {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.badge-gov,
+.badge-tax,
+.badge-sec {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+}
+
+.badge-gov {
+    background: rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.badge-tax {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.badge-sec {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.main-login-title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0 0 10px;
+    color: #ffffff;
+}
+
+.main-login-subtitle {
+    font-size: 14.5px;
+    max-width: 680px;
+    margin: 0 auto;
+    color: #cbd5e1;
+    line-height: 1.6;
+}
+
+/* ═══ LAYOUT CONTAINER ═══ */
+.main-login-container {
+    max-width: 1100px;
+    margin: -22px auto 0;
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.main-login-wrapper {
+    display: grid;
+    grid-template-columns: 1.25fr 0.85fr;
+    gap: 28px;
+    align-items: flex-start;
+}
+
+/* ═══ CARD STYLING ═══ */
+.main-login-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+}
+
+/* Mode Switcher Tabs */
+.main-login-tabs {
+    display: flex;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    border: 1px solid #e2e8f0;
+}
+
+.main-login-tab-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border: none;
+    background: transparent;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #64748b;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.main-login-tab-btn:hover {
+    color: #0f172a;
+}
+
+.main-login-tab-btn.active {
+    background: #ffffff;
+    color: #0F52BA;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Alerts */
+.alert-box {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1.5;
+}
+
+.alert-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.alert-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+/* Portal Launched Box */
+.portal-launched-box {
+    background: #eff6ff;
+    border: 1.5px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.btn-open-portal {
+    background: #0F52BA;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.btn-open-portal:hover {
+    background: #0d4399;
+}
+
+/* Login Method Toggle (Email OTP vs Password) */
+.login-method-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.method-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.method-btn.active {
+    background: #eff6ff;
+    color: #0F52BA;
+    border-color: #bfdbfe;
+    font-weight: 700;
+}
+
+/* ═══ FORM INPUT FIELDS & LABELS ═══ */
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+    width: 100%;
+}
+
+.field-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.main-input {
+    width: 100% !important;
+    height: 46px !important;
+    box-sizing: border-box !important;
+    padding: 10px 14px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    font-size: 14.5px !important;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    transition: all 0.2s ease !important;
+    outline: none !important;
+    display: block !important;
+    font-family: inherit !important;
+}
+
+.main-input:focus {
+    border-color: #0F52BA !important;
+    box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.12) !important;
+}
+
+.main-input::placeholder {
+    color: #94a3b8 !important;
+    font-size: 14px !important;
+}
+
+.password-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-wrap .main-input {
+    padding-right: 44px !important;
+}
+
+.btn-toggle-eye {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: color 0.15s ease;
+}
+
+.btn-toggle-eye:hover {
+    color: #334155;
+}
+
+/* ═══ INTERACTIVE RECAPTCHA BOX (Pixel-Perfect Google v2 Look) ═══ */
+.dp-recaptcha-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 304px;
+    height: 78px;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    background: #f9f9f9;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    margin: 14px 0 18px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+}
+
+.dp-recaptcha-box:hover {
+    border-color: #b5b5b5;
+    background: #f5f5f5;
+}
+
+.dp-recaptcha-box.verified {
+    border-color: #cbd5e1;
+    background: #fbfbfa;
+}
+
+.dp-recaptcha-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dp-recaptcha-checkbox-wrapper {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dp-recaptcha-square {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #c1c1c1;
+    border-radius: 3px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.dp-recaptcha-box:hover .dp-recaptcha-square {
+    border-color: #a6a6a6;
+}
+
+.dp-recaptcha-spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #1a73e8;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: rc-spin 0.8s linear infinite;
+}
+
+@keyframes rc-spin {
+    to { transform: rotate(360deg); }
+}
+
+.dp-recaptcha-checkmark {
+    animation: rc-pop 0.3s ease;
+}
+
+@keyframes rc-pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.dp-recaptcha-text {
+    font-size: 14px;
+    font-family: Roboto, -apple-system, sans-serif;
+    color: #282727;
+    font-weight: 500;
+}
+
+.dp-recaptcha-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: Roboto, -apple-system, sans-serif;
+}
+
+.dp-recaptcha-logo {
+    width: 32px;
+    height: 32px;
+}
+
+.dp-recaptcha-brand-title {
+    font-size: 10px;
+    color: #555555;
+    font-weight: 500;
+    margin-top: 1px;
+}
+
+.dp-recaptcha-links {
+    font-size: 8px;
+    color: #555555;
+    margin-top: 1px;
+}
+
+.dp-recaptcha-links a {
+    color: #555555;
+    text-decoration: none;
+}
+
+.dp-recaptcha-links a:hover {
+    text-decoration: underline;
+}
+
+/* ═══ SUBMIT BUTTON ═══ */
+.btn-main-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 46px;
+    padding: 0 20px;
+    background: #0F52BA;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(15, 82, 186, 0.25);
+    box-sizing: border-box;
+}
+
+.btn-main-submit:hover:not(:disabled) {
+    background: #0c4194;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(15, 82, 186, 0.32);
+}
+
+.btn-main-submit:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* ═══ DIVIDER ROW ═══ */
+.divider-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 22px 0 16px;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.divider-row span {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* ═══ GOOGLE SIGN IN / UP BUTTON ═══ */
+.btn-google-sign {
+    width: 100%;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 20px;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+}
+
+.btn-google-sign:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn-google-sign svg {
+    flex-shrink: 0;
+}
+
+/* ═══ OTP INPUT DIGITS ═══ */
+.otp-digit-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.otp-digit-box {
+    width: 46px;
+    height: 52px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0F52BA;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.otp-digit-box:focus {
+    outline: none;
+    border-color: #0F52BA;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.15);
+}
+
+.resend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 16px;
+}
+
+.btn-resend {
+    background: none;
+    border: none;
+    color: #0F52BA;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+}
+
+.btn-resend:hover {
+    text-decoration: underline;
+}
+
+.countdown-timer {
+    font-weight: 700;
+    color: #0F52BA;
+}
+
+.btn-change-email {
+    background: none;
+    border: none;
+    color: #0F52BA;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+/* ═══ RIGHT COLUMN: PRIVILEGES & COMPLIANCE ═══ */
+.main-login-info-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 26px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.info-card-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Clean Perks List with NO Bullets */
+.info-perks-list {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+}
+
+.info-perks-list li {
+    list-style: none !important;
+    list-style-type: none !important;
+    display: flex !important;
+    gap: 12px !important;
+    align-items: flex-start !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.info-perks-list li::before,
+.info-perks-list li::marker {
+    display: none !important;
+    content: "" !important;
+}
+
+.perk-check-icon {
+    color: #10b981;
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.info-perks-list strong {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+
+.info-perks-list p {
+    margin: 0;
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* Compliance Mini Card */
+.compliance-mini-card {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.compliance-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.comp-icon {
+    font-size: 20px;
+    color: #0F52BA;
+    flex-shrink: 0;
+}
+
+.comp-title {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+}
+
+.comp-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.compliance-help {
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.5;
+    border-top: 1px dashed #cbd5e1;
+    padding-top: 12px;
+    margin-top: 4px;
+}
+
+.compliance-help a {
+    color: #0F52BA;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.compliance-help a:hover {
+    text-decoration: underline;
+}
+
+/* ═══ RESPONSIVE BREAKPOINTS ═══ */
+@media (max-width: 900px) {
+    .main-login-page {
+        padding-top: 145px !important;
+    }
+    .main-login-wrapper {
+        grid-template-columns: 1fr;
+    }
+    .main-login-hero {
+        padding: 34px 16px 28px;
+    }
+    .main-login-title {
+        font-size: 24px;
+    }
+    .main-login-card {
+        padding: 22px 18px;
+    }
+}
+
+@media (max-width: 640px) {
+    .main-login-page {
+        padding-top: 150px !important;
+    }
+    .dp-recaptcha-box {
+        width: 100%;
+    }
+    .main-login-container {
+        padding: 0 14px;
+    }
+}

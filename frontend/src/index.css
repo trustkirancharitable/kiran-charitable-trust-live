@@ -31,6 +31,9 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 body {
@@ -39,6 +42,15 @@ body {
   background: var(--bg-white);
   line-height: 1.6;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 
 h1,
@@ -327,6 +339,12 @@ textarea {
   padding: 125px 0 50px;
   text-align: center;
   border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .page-banner {
+    padding: 155px 16px 36px !important;
+  }
 }
 
 .page-banner h1 {

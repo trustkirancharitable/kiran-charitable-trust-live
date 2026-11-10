@@ -186,6 +186,7 @@
     flex-shrink: 0;
 }
 
+.dp-ribbon-icon.amber { color: #d97706; }
 .dp-ribbon-icon.blue { color: #2563eb; }
 .dp-ribbon-icon.teal { color: #0d9488; }
 .dp-ribbon-icon.purple { color: #7c3aed; }
@@ -217,6 +218,12 @@
     grid-template-columns: 1fr 1.35fr;
     gap: 24px;
     align-items: start;
+}
+
+.dp-left-col,
+.dp-right-col {
+    min-width: 0;
+    max-width: 100%;
 }
 
 /* White Card Base */
@@ -345,8 +352,9 @@
     color: #ffffff;
     border: none;
     border-radius: 6px;
-    padding: 6px 14px;
-    font-size: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: 36px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
@@ -418,9 +426,10 @@
 .dp-table-copy-btn {
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    padding: 3px 8px;
-    font-size: 11px;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 32px;
     font-weight: 600;
     color: #334155;
     cursor: pointer;
@@ -728,28 +737,46 @@
 
 .dp-custom-amount-input-wrap {
     position: relative;
-    margin-top: 10px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
 }
 
 .dp-input-rupee {
     position: absolute;
-    left: 12px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    font-weight: 800;
-    color: #64748b;
-    font-size: 15px;
+    color: #1e40af;
+    font-size: 16px;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.dp-custom-input {
-    width: 100%;
-    padding: 9px 12px 9px 28px;
-    font-size: 14px;
-    font-weight: 700;
-    border: 1.5px solid #2563eb;
-    border-radius: 8px;
-    outline: none;
-    box-sizing: border-box;
+.dp-custom-input,
+input.dp-custom-input,
+input[type="number"].dp-custom-input {
+    width: 100% !important;
+    padding: 12px 14px 12px 42px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    border: 2px solid #2563eb !important;
+    border-radius: 10px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
+.dp-custom-input::placeholder {
+    color: #94a3b8 !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
 }
 
 /* Inputs & Selects */
@@ -787,8 +814,71 @@
     margin-top: 4px;
 }
 
-/* Your Details Section */
+
+/* ════════════════════════════════════════════════════════════
+   SEPARATE DISTINCT SECTION CARDS INSIDE FORM
+   ════════════════════════════════════════════════════════════ */
+.dp-form-section-card {
+    border-radius: 14px;
+    padding: 18px 18px 14px;
+    margin-bottom: 20px;
+    transition: all 0.2s ease;
+}
+
+/* Section 1: Contribution & Amount — Soft Ice-Blue Tint */
+.dp-section-contribution {
+    background: #f0f7ff; /* Soft sky/ice blue tint */
+    border: 1.5px solid #bfdbfe; /* Subtle sky blue border */
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.04);
+}
+
+/* Section 2: Donor Details — Soft Crisp Slate/Pearl Tint */
 .dp-details-section {
+    background: #f8fafc; /* Crisp clean slate tint */
+    border: 1.5px solid #e2e8f0; /* Crisp subtle border */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* Section Headers with Icon Badges */
+.dp-section-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.06);
+}
+
+.dp-section-badge-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.dp-section-badge-icon.blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.dp-section-badge-icon.purple {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.dp-section-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #092347;
+    letter-spacing: -0.2px;
+}
+
+/* Your Details Section */
+.dp-details-section-old {
     border-top: 1px solid #f1f5f9;
     padding-top: 16px;
     margin-top: 8px;
@@ -994,6 +1084,33 @@
 .dp-submit-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+/* Inline Monthly Contribution Button Directly Below Pay Button */
+.dp-monthly-btn-inline {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1.5px solid #93c5fd;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.dp-monthly-btn-inline:hover {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #1e40af;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.15);
 }
 
 /* Footer Badges */
@@ -1521,7 +1638,8 @@
    ======================================================== */
 @media (max-width: 1024px) {
     .dp-main-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+        width: 100%;
     }
     .dp-hero-image-col {
         display: none;
@@ -1538,21 +1656,104 @@
 }
 
 @media (max-width: 640px) {
+
+    .dp-form-body {
+        padding: 16px 12px !important;
+    }
+    .dp-form-section-card {
+        padding: 14px 12px 10px !important;
+        margin-bottom: 16px !important;
+        border-radius: 12px !important;
+    }
+    .dp-section-header {
+        margin-bottom: 12px !important;
+        padding-bottom: 8px !important;
+    }
+    .dp-section-title {
+        font-size: 13px !important;
+    }
+
+    .dp-page-container {
+        padding-top: 150px !important;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .dp-hero-banner {
+        padding: 24px 14px 18px;
+    }
     .dp-hero-headline {
-        font-size: 26px;
+        font-size: 24px;
+        line-height: 1.25;
+    }
+    .dp-hero-subtext {
+        font-size: 13.5px;
+    }
+    .dp-main-container {
+        padding: 0 12px;
     }
     .dp-amounts-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .dp-amount-btn {
+        padding: 10px 6px;
+        font-size: 13px;
     }
     .dp-form-row {
         flex-direction: column;
+    }
+    .dp-form-card {
+        padding: 18px 14px;
+        border-radius: 12px;
     }
     .dp-bank-row {
         grid-template-columns: 1fr;
         gap: 4px;
     }
+    /* Statutory Compliance Ribbon in 2-Column Grid on Mobile */
     .dp-statutory-ribbon {
-        flex-direction: column;
-        align-items: flex-start;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px 10px !important;
+        padding: 14px 12px !important;
+        align-items: stretch !important;
+    }
+    .dp-ribbon-divider {
+        display: none !important;
+    }
+    .dp-ribbon-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        min-width: 0 !important;
+        font-size: 11.5px !important;
+    }
+    .dp-ribbon-item:last-of-type {
+        grid-column: 1 / -1 !important;
+        justify-content: center !important;
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 6px 10px;
+    }
+    .dp-ribbon-icon {
+        font-size: 20px !important;
+        flex-shrink: 0 !important;
+    }
+    .dp-ribbon-title {
+        font-size: 11.5px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .dp-ribbon-sub {
+        font-size: 9.8px !important;
+        color: #64748b !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 }

@@ -179,7 +179,7 @@ export default function PortalStats() {
                 <FaHeart /> Support Our Mission
               </Link>
               <Link to="/portal/login" className="pt-btn-cta" style={{ textDecoration: 'none', padding: '0.9rem 2rem', fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8, background: '#0F172A' }}>
-                Member Sign In
+                Sign In
               </Link>
             </div>
           )}

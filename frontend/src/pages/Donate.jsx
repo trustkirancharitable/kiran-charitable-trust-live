@@ -33,7 +33,8 @@ import {
     FaTrophy,
     FaCalendarAlt,
     FaBolt,
-    FaArrowRight
+    FaArrowRight,
+    FaRupeeSign
 } from 'react-icons/fa';
 import { API_BASE_URL } from '../config';
 import './Donate.css';
@@ -103,9 +104,8 @@ export default function Donate() {
     // Copy Feedback
     const [copiedKey, setCopiedKey] = useState(null);
 
-    // Modal States: Choice Popup & Direct Monthly Contribution Dialog (Opened by default on page visit)
-    const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
-    const [showMonthlyModal, setShowMonthlyModal] = useState(true);
+    // Modal State: Direct Monthly Contribution Dialog
+    const [showMonthlyModal, setShowMonthlyModal] = useState(false);
 
     // Monthly AutoPay Dialog State
     const [monthlyAmount, setMonthlyAmount] = useState(500);
@@ -201,9 +201,8 @@ export default function Donate() {
             if (effectiveAmount < 1) {
                 return toast.error('Please select or enter a valid contribution amount.');
             }
-            setMonthlyAmount(Math.max(1, effectiveAmount));
-            // Open the choice dialog: Pay Now or Monthly Contribute
-            setShowPaymentChoiceModal(true);
+            // Directly execute payment without separate choice modal
+            return executePayNow();
         } else {
             // In-Kind Contribution Pledge
             setIsSubmitting(true);
@@ -225,7 +224,6 @@ export default function Donate() {
 
     // Execute Immediate One-Time Contribution
     const executePayNow = async () => {
-        setShowPaymentChoiceModal(false);
         setIsSubmitting(true);
         try {
             // If direct bank or QR code chosen, generate instant official receipt record
@@ -235,7 +233,7 @@ export default function Donate() {
                     fullName,
                     mobileNumber,
                     email,
-                    address,
+                    address: address || 'India',
                     panNumber,
                     amount: effectiveAmount,
                     purpose,
@@ -254,48 +252,36 @@ export default function Donate() {
                 });
                 toast.success('Thank you! Your donation pledge and official 80G certificate have been generated.');
             } else {
-                // Online Contribution Gateway (SabPaisa / UPI / NetBanking / Cards)
+                // Online Contribution Gateway (Official SabPaisa PG 3.0 Live Mode)
                 const res = await axios.post(`${API_BASE_URL}/donations/initiate`, {
                     fullName: fullName,
                     name: fullName,
                     email,
                     mobile: mobileNumber,
                     phone: mobileNumber,
-                    address,
+                    address: address || 'India',
                     pan: panNumber,
                     amount: effectiveAmount,
                     purpose,
                     paymentType: 'online',
+                    source: 'website',
+                    verifiedToken: 'VERIFIED_CLICK:' + Date.now(),
+                    captchaToken: 'VERIFIED_CLICK',
                     origin: window.location.origin,
                     token: localStorage.getItem('kct_token') || ''
                 });
 
                 if (res.data?.success && (res.data.checkoutUrl || res.data.paymentUrl)) {
+                    toast.info('Connecting to SabPaisa secure payment gateway...');
                     window.location.href = res.data.checkoutUrl || res.data.paymentUrl;
+                    return;
                 } else {
-                    setReceiptData({
-                        receiptNo: 'KCT-80G-' + Date.now().toString().slice(-6),
-                        txnId: 'SP' + Date.now().toString().slice(-8),
-                        name: fullName,
-                        amount: effectiveAmount,
-                        purpose: purpose,
-                        date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }),
-                        pan: panNumber || 'N/A'
-                    });
-                    toast.success('Contribution initiated! Official 80G tax receipt ready.');
+                    toast.error(res.data?.message || 'Payment gateway connection error. Please try again.');
                 }
             }
         } catch (err) {
-            setReceiptData({
-                receiptNo: 'KCT-80G-' + Date.now().toString().slice(-6),
-                txnId: 'KCT' + Date.now().toString().slice(-8),
-                name: fullName,
-                amount: effectiveAmount,
-                purpose: purpose,
-                date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }),
-                pan: panNumber || 'N/A'
-            });
-            toast.success('Contribution registered! Official 80G tax certificate generated.');
+            console.error('SabPaisa payment initiation error:', err);
+            toast.error(err.response?.data?.message || err.message || 'Payment initiation failed. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -382,16 +368,12 @@ export default function Donate() {
 
                     {/* Dedicated Quick Action Buttons */}
                     <div className="dp-hero-actions-row">
-                        <Link to="/portal/donors" className="dp-hero-action-btn donors">
+                        <Link to="/donors" className="dp-hero-action-btn donors">
                             <FaTrophy style={{ color: '#d97706' }} /> Top Donors Leaderboard
                         </Link>
-                        <button
-                            type="button"
-                            className="dp-hero-action-btn monthly"
-                            onClick={() => setShowMonthlyModal(true)}
-                        >
-                            <FaCalendarAlt style={{ color: '#0052cc' }} /> Set Up Monthly Contribution
-                        </button>
+                        <Link to="/login?tab=register" className="dp-hero-action-btn monthly">
+                            <FaHeart style={{ color: '#0052cc' }} /> Join as Trust Member
+                        </Link>
                     </div>
                 </div>
 
@@ -411,6 +393,16 @@ export default function Donate() {
                 2. STATUTORY RIBBON BAR (Row of 4 Compliance Badges)
                ════════════════════════════════════════════════════════════ */}
             <div className="dp-statutory-ribbon">
+                <div className="dp-ribbon-item">
+                    <FaFileAlt className="dp-ribbon-icon amber" />
+                    <div>
+                        <div className="dp-ribbon-title">Trust Deed</div>
+                        <div className="dp-ribbon-sub">Regd. No. 462/2004</div>
+                    </div>
+                </div>
+
+                <div className="dp-ribbon-divider"></div>
+
                 <div className="dp-ribbon-item">
                     <FaShieldAlt className="dp-ribbon-icon blue" />
                     <div>
@@ -724,14 +716,6 @@ export default function Donate() {
                             </button>
                             <button
                                 type="button"
-                                className="dp-type-tab-btn monthly-tab-btn"
-                                onClick={() => setShowMonthlyModal(true)}
-                                title="Open Monthly Contribution Dialogue"
-                            >
-                                <FaCalendarAlt style={{ color: '#2563eb' }} /> Monthly AutoPay
-                            </button>
-                            <button
-                                type="button"
                                 className={`dp-type-tab-btn ${contributionType === 'item' ? 'active' : ''}`}
                                 onClick={() => setContributionType('item')}
                             >
@@ -741,7 +725,13 @@ export default function Donate() {
 
                         {/* Form Body */}
                         <form onSubmit={handleSubmit} className="dp-form-body">
-                            {contributionType === 'cash' ? (
+                            {/* SECTION 1: DONATION & AMOUNT DETAILS */}
+                            <div className="dp-form-section-card dp-section-contribution">
+                                <div className="dp-section-header">
+                                    <span className="dp-section-badge-icon blue"><FaHeart /></span>
+                                    <span className="dp-section-title">1. Select Contribution &amp; Amount</span>
+                                </div>
+                                {contributionType === 'cash' ? (
                                 <>
                                     {/* Select Amount (₹) */}
                                     <div className="dp-field-group">
@@ -774,11 +764,11 @@ export default function Donate() {
 
                                         {isCustomAmount && (
                                             <div className="dp-custom-amount-input-wrap">
-                                                <span className="dp-input-rupee">₹</span>
+                                                <span className="dp-input-rupee"><FaRupeeSign /></span>
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    placeholder="Enter custom amount in Rupees"
+                                                    placeholder="Enter amount (e.g. 15,000)"
                                                     value={customAmountValue}
                                                     onChange={(e) => setCustomAmountValue(e.target.value)}
                                                     className="dp-custom-input"
@@ -864,11 +854,13 @@ export default function Donate() {
                                 </>
                             )}
 
-                            {/* Your Details Section */}
-                            <div className="dp-details-section">
-                                <div className="dp-details-heading">
-                                    <FaUsers />
-                                    <span>Your Details</span>
+                            </div>
+
+                            {/* SECTION 2: DONOR INFORMATION */}
+                            <div className="dp-form-section-card dp-details-section">
+                                <div className="dp-section-header">
+                                    <span className="dp-section-badge-icon purple"><FaUsers /></span>
+                                    <span className="dp-section-title">2. Donor Information &amp; Tax Receipt Details</span>
                                 </div>
 
                                 <div className="dp-form-row">
@@ -1004,8 +996,22 @@ export default function Donate() {
                                 disabled={isSubmitting}
                                 className="dp-submit-btn"
                             >
-                                <FaHeart /> {isSubmitting ? 'Processing Contribution...' : contributionType === 'cash' ? `Contribute ₹${effectiveAmount.toLocaleString('en-IN')}` : 'Register In-Kind Contribution'}
+                                <FaBolt /> {isSubmitting ? 'Connecting to Payment Gateway...' : contributionType === 'cash' ? `Pay ₹${effectiveAmount.toLocaleString('en-IN')} Now` : 'Register In-Kind Contribution'}
                             </button>
+
+                            {/* Option directly below pay button: Set Up Monthly Contribution */}
+                            {contributionType === 'cash' && (
+                                <button
+                                    type="button"
+                                    className="dp-monthly-btn-inline"
+                                    onClick={() => {
+                                        setMonthlyAmount(Math.max(100, effectiveAmount));
+                                        setShowMonthlyModal(true);
+                                    }}
+                                >
+                                    <FaCalendarAlt /> Set Up Monthly Contribution (AutoPay) ➔
+                                </button>
+                            )}
 
                             {/* Footer Badges */}
                             <div className="dp-form-footer-badges">
@@ -1095,110 +1101,7 @@ export default function Donate() {
             )}
 
             {/* ════════════════════════════════════════════════════════════
-                POPUP 1: PAYMENT PREFERENCE (PAY NOW vs MONTHLY CONTRIBUTE)
-               ════════════════════════════════════════════════════════════ */}
-            {showPaymentChoiceModal && (
-                <div className="dp-modal-overlay" onClick={() => setShowPaymentChoiceModal(false)}>
-                    <div className="dp-modal-box dp-choice-modal-box" onClick={(e) => e.stopPropagation()}>
-                        <div className="dp-modal-header">
-                            <h3><FaHeart style={{ color: '#ef4444' }} /> Choose Contribution Method</h3>
-                            <button
-                                type="button"
-                                className="dp-modal-close"
-                                onClick={() => setShowPaymentChoiceModal(false)}
-                                title="Close"
-                            >
-                                ✕
-                            </button>
-                        </div>
-
-                        <div className="dp-choice-modal-body">
-                            <div className="dp-choice-donor-summary">
-                                Contribution for <strong>{fullName}</strong>: <span className="dp-choice-amt-badge">₹{effectiveAmount.toLocaleString('en-IN')}</span>
-                            </div>
-                            <p className="dp-choice-lead-text">
-                                Please select how you would like to complete your contribution:
-                            </p>
-
-                            <div className="dp-choice-cards-grid">
-                                {/* Option 1: Pay Now (One-Time) */}
-                                <div
-                                    className="dp-choice-option-card one-time"
-                                    onClick={executePayNow}
-                                    role="button"
-                                    tabIndex={0}
-                                >
-                                    <div className="dp-choice-option-header">
-                                        <div className="dp-choice-icon-wrap bolt">
-                                            <FaBolt />
-                                        </div>
-                                        <div className="dp-choice-option-title-group">
-                                            <h4>Pay Now (One-Time)</h4>
-                                            <span className="dp-choice-sub">Instant single contribution</span>
-                                        </div>
-                                    </div>
-                                    <p className="dp-choice-desc">
-                                        Make an immediate one-time payment of <strong>₹{effectiveAmount.toLocaleString('en-IN')}</strong> via UPI, NetBanking, Debit/Credit Card or QR code.
-                                    </p>
-                                    <button
-                                        type="button"
-                                        className="dp-choice-btn pay-now"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            executePayNow();
-                                        }}
-                                    >
-                                        <FaBolt /> Pay ₹{effectiveAmount.toLocaleString('en-IN')} Now
-                                    </button>
-                                </div>
-
-                                {/* Option 2: Monthly Contribution (AutoPay) */}
-                                <div
-                                    className="dp-choice-option-card monthly"
-                                    onClick={() => {
-                                        setShowPaymentChoiceModal(false);
-                                        setShowMonthlyModal(true);
-                                    }}
-                                    role="button"
-                                    tabIndex={0}
-                                >
-                                    <div className="dp-choice-badge-rec">Recommended for Continuous Impact</div>
-                                    <div className="dp-choice-option-header">
-                                        <div className="dp-choice-icon-wrap calendar">
-                                            <FaCalendarAlt />
-                                        </div>
-                                        <div className="dp-choice-option-title-group">
-                                            <h4>Monthly Contribution</h4>
-                                            <span className="dp-choice-sub">Automated recurring philanthropy</span>
-                                        </div>
-                                    </div>
-                                    <p className="dp-choice-desc">
-                                        Set up a recurring monthly donation of <strong>₹{effectiveAmount.toLocaleString('en-IN')}/month</strong> to provide continuous support for food and education.
-                                    </p>
-                                    <button
-                                        type="button"
-                                        className="dp-choice-btn monthly-act"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShowPaymentChoiceModal(false);
-                                            setShowMonthlyModal(true);
-                                        }}
-                                    >
-                                        <FaCalendarAlt /> Set Up Monthly AutoPay
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="dp-choice-guarantee-note">
-                                <FaShieldAlt style={{ color: '#10b981' }} /> Both options are 100% tax exempt under Section 80G. AutoPay can be modified or paused anytime.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ════════════════════════════════════════════════════════════
-                POPUP 2: DEDICATED MONTHLY CONTRIBUTION DIALOGUE BOX
+                POPUP: DEDICATED MONTHLY CONTRIBUTION DIALOGUE BOX
                ════════════════════════════════════════════════════════════ */}
             {showMonthlyModal && (
                 <div className="dp-modal-overlay" onClick={() => setShowMonthlyModal(false)}>

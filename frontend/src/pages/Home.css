@@ -12,6 +12,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding-top: 90px;
 }
 
 /* Crossfade background image layers */
@@ -40,7 +41,7 @@
   z-index: 2;
   max-width: 900px;
   margin: 0 auto;
-  padding: 80px 24px 30px;
+  padding: 20px 24px 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -221,17 +222,29 @@
 }
 
 .hero-dot {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.hero-dot::before {
+  content: '';
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.4);
-  border: none;
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.hero-dot.active {
-  width: 34px;
+.hero-dot.active::before {
+  width: 32px;
   border-radius: 5px;
   background: white;
 }

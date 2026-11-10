@@ -117,7 +117,7 @@ export default function TrustMembers() {
                     </p>
                 </div>
                 <div className="tm-top-join-right">
-                    <Link to="/portal/join" className="tm-banner-join-btn">
+                    <Link to="/login?tab=register" className="tm-banner-join-btn">
                         <FaUserPlus /> Join as a Member →
                     </Link>
                 </div>
@@ -144,7 +144,7 @@ export default function TrustMembers() {
                         return (
                             <div
                                 key={idx}
-                                className={`tm-trustee-card ${isChairperson ? 'tm-card-chairperson' : ''}`}
+                                className={`tm-trustee-card ${isChairperson ? 'tm-card-chairperson' : ''} tm-role-${(trustee.roleKey || trustee.roleLabel || '').toLowerCase().replace(/\s+/g, '-')}`}
                             >
                                 {/* Circular Avatar with Laurel Wreath */}
                                 <div className={`tm-wreath-wrap ${isChairperson ? 'tm-wreath-chair' : ''}`}>
@@ -235,8 +235,8 @@ export default function TrustMembers() {
                         </div>
 
                         {/* Quick Join Button */}
-                        <Link to="/portal/join" className="tm-quick-join-btn">
-                            <FaUserPlus /> Join as Member
+                        <Link to="/login?tab=register" className="tm-quick-join-btn">
+                            <FaUserPlus style={{ color: '#2563eb' }} /> Join as Member
                         </Link>
                     </div>
                 </div>
@@ -331,7 +331,7 @@ export default function TrustMembers() {
                         <h3>Ready to Join Kiran Charitable Trust?</h3>
                         <p>Complete a quick 4-step registration: verify your email, submit member details, complete your membership contribution, and instantly receive your verified Trust Member ID Card.</p>
                     </div>
-                    <Link to="/portal/join" className="tm-bottom-join-btn">
+                    <Link to="/login?tab=register" className="tm-bottom-join-btn">
                         <FaUserPlus /> Join as Trust Member Now →
                     </Link>
                 </div>

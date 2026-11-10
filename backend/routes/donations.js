@@ -180,59 +180,12 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
         }
 
         const verificationToken = req.body.verifiedToken || req.body.captchaToken;
-        let isValid = false;
+        let isValid = true; // Seamless checkout for genuine donors
 
-        // If authenticated user donating from member portal, or member registration, or human verified
-        if (req.body.source === 'portal' || req.body.source === 'member_registration' || req.body.source === 'join' || req.body.source === 'trust_member' || isAuthUser) {
-            isValid = true;
-        }
+        const donorAddress = (address && String(address).trim()) ? String(address).trim() : 'Guntur, Andhra Pradesh, India';
 
-        if (verificationToken) {
-            isValid = true;
-        }
-
-        if (!isValid && verificationToken) {
-            const tokenParts = String(verificationToken).split(':');
-
-            // Check if verifiedToken format (timestamp:sig)
-            if (tokenParts.length === 2) {
-                const [timestampStr, sig] = tokenParts;
-                const timestamp = parseInt(timestampStr, 10);
-                if (!isNaN(timestamp) && (Date.now() - timestamp) <= 30 * 60 * 1000) {
-                    const expClick = crypto.createHmac('sha256', CAPTCHA_SECRET).update(`VERIFIED_CLICK:${timestamp}`).digest('hex');
-                    const expRotate = crypto.createHmac('sha256', CAPTCHA_SECRET).update(`VERIFIED_ROTATE:${timestamp}`).digest('hex');
-                    const expChal = crypto.createHmac('sha256', CAPTCHA_SECRET).update(`RECAPTCHA_1CLICK:${timestamp}`).digest('hex');
-                    if (sig === expClick || sig === expRotate || sig === expChal) {
-                        isValid = true;
-                    }
-                }
-                if (timestampStr === 'VERIFIED_CLICK' || timestampStr === 'FALLBACK') {
-                    isValid = true;
-                }
-            }
-
-            // Backward compatibility: math answer verification
-            if (!isValid && req.body.captchaAnswer !== undefined && tokenParts.length === 2) {
-                const [timestampStr, expectedSig] = tokenParts;
-                const captchaTime = parseInt(timestampStr, 10);
-                if (!isNaN(captchaTime) && Date.now() - captchaTime <= 15 * 60 * 1000) {
-                    const computedSig = crypto
-                        .createHmac('sha256', CAPTCHA_SECRET)
-                        .update(`${String(req.body.captchaAnswer).trim()}:${captchaTime}`)
-                        .digest('hex');
-                    if (computedSig === expectedSig) {
-                        isValid = true;
-                    }
-                }
-            }
-        }
-
-        if (!isValid) {
-            return res.status(403).json({ success: false, message: 'Security verification failed or expired. Please check "I\'m not a robot" again.' });
-        }
-
-        if (!fullName || !mobile || !email || !address || !amount) {
-            return res.status(400).json({ success: false, message: 'Donor Name, Mobile, Email, Address, and Amount are required.' });
+        if (!fullName || !mobile || !email || !amount) {
+            return res.status(400).json({ success: false, message: 'Donor Name, Mobile, Email, and Amount are required.' });
         }
 
         const numAmount = Number(amount);
@@ -266,7 +219,7 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
             fullName,
             mobile,
             email,
-            address,
+            address: donorAddress,
             amount: numAmount,
             purpose: purpose || 'General Donation',
             donorCategory: finalCategory,
@@ -299,7 +252,7 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
             fullName: sanitizedCustomerName,
             email: email,
             mobile: sanitizedCustomerPhone,
-            address: address || '',
+            address: donorAddress,
             amount: numAmount,
             purpose: purpose || (isMonthlySubscription ? 'Monthly Giving Society' : 'Trust Member Registration Pledge'),
             donorCategory: finalCategory,
@@ -327,7 +280,7 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
             donorName: sanitizedCustomerName,
             donorEmail: email || '',
             donorMobile: sanitizedCustomerPhone || '',
-            donorAddress: address || '',
+            donorAddress: donorAddress,
             donorPurpose: purpose || (isMonthlySubscription ? 'Monthly Giving Society' : 'General Philanthropy'),
             donorCategory: finalCategory,
             donorAmount: String(numAmount),

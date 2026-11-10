@@ -31,6 +31,7 @@ import Donate from './pages/Donate'
 import TrustMembers from './pages/TrustMembers'
 import DonorsLeaderboard from './pages/DonorsLeaderboard'
 import Contact from './pages/Contact'
+import MainLogin from './pages/MainLogin'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsConditions from './pages/TermsConditions'
 import NotFound from './pages/NotFound'
@@ -115,6 +116,12 @@ function App() {
                 <Route path="/register/trust-member" element={<TrustMemberRegister />} />
                 <Route path="/monthly-donor" element={<TrustMembership />} />
                 <Route path="/subscribe" element={<TrustMembership />} />
+
+                {/* Official Main Website Login & Registration (Full Header & Footer) */}
+                <Route path="/login" element={<MainLogin />} />
+                <Route path="/signin" element={<MainLogin />} />
+                <Route path="/register" element={<MainLogin />} />
+                <Route path="/join" element={<MainLogin />} />
 
                 {/* User Dashboard & Profile redirects into Member Portal */}
                 <Route path="/dashboard" element={<Navigate to="/portal/profile" replace />} />

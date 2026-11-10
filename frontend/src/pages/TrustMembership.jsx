@@ -121,7 +121,15 @@ function RegisterModal({ onClose, initialTier }) {
   function handlePhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const sizeKB = file.size / 1024;
+    if (sizeKB < 100 || sizeKB > 150) {
+      setError(`Profile photo must be between 100 KB and 150 KB only. Your selected photo is ${sizeKB.toFixed(1)} KB.`);
+      e.target.value = '';
+      return;
+    }
+    setError('');
     set('profilePhoto', file);
+    set('photoSizeKB', sizeKB.toFixed(1));
     const reader = new FileReader();
     reader.onload = ev => set('photoPreview', ev.target.result);
     reader.readAsDataURL(file);
@@ -130,7 +138,13 @@ function RegisterModal({ onClose, initialTier }) {
   function submitProfile(e) {
     e.preventDefault();
     if (!form.profilePhoto) {
-      return setError('Profile photo is mandatory. Please upload a clear photo.');
+      return setError('Profile photo is mandatory. Please upload a clear photo (Size: 100 KB – 150 KB).');
+    }
+    if (form.profilePhoto) {
+      const sizeKB = form.profilePhoto.size / 1024;
+      if (sizeKB < 100 || sizeKB > 150) {
+        return setError(`Profile photo must be between 100 KB and 150 KB only (Current file: ${sizeKB.toFixed(1)} KB).`);
+      }
     }
     const cleanAadhar = form.aadharNumber.replace(/\D/g, '');
     if (!form.name.trim()) return setError('Full name is required.');
@@ -297,21 +311,26 @@ function RegisterModal({ onClose, initialTier }) {
         {step === 2 && (
           <form onSubmit={submitProfile}>
             <div className="tm-fg">
-              <label className="tm-fl">Profile Picture <span className="star" style={{ color: '#ef4444' }}>* (Mandatory)</span></label>
-              <div className="tm-photo-box" onClick={() => fileRef.current?.click()} style={{ border: form.profilePhoto ? '2px solid #10b981' : '1.5px dashed #ef4444' }}>
+              <label className="tm-fl" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <span>Profile Photo <span className="star" style={{ color: '#ef4444' }}>* (Mandatory)</span></span>
+                <span style={{ fontSize: '0.75rem', color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: 6, fontWeight: 700, border: '1px solid #fde68a' }}>
+                  Size Limit: 100 KB – 150 KB
+                </span>
+              </label>
+              <div className="tm-photo-box" onClick={() => fileRef.current?.click()} style={{ border: form.profilePhoto ? '2px solid #10b981' : '1.5px dashed #cbd5e1' }}>
                 <div className="tm-photo-circle">
                   {form.photoPreview ? <img src={form.photoPreview} alt="Preview" /> : '📷'}
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.9rem', color: form.photoPreview ? '#059669' : 'var(--tm-secondary)' }}>
-                    {form.photoPreview ? 'Profile photo selected ✓' : 'Click to upload your photo * (Required)'}
+                    {form.photoPreview ? `Profile photo selected ✓ (${form.photoSizeKB || ''} KB)` : 'Click to upload your photo * (Required)'}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--tm-text-light)' }}>
-                    Displayed on your digital ID card & Member Directory
+                    Size specification: <strong>100 KB to 150 KB only</strong> (JPG/PNG) • Displayed on your digital ID card &amp; Member Directory
                   </div>
                 </div>
               </div>
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/jpg" style={{ display: 'none' }} onChange={handlePhoto} />
             </div>
 
             <div className="tm-field-row">

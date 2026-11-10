@@ -146,7 +146,7 @@ export default function Activities() {
                         <p style={{ color: 'var(--text-gray)', fontSize: 17, marginBottom: 24 }}>
                             Want to get involved in any of these activities?
                         </p>
-                        <Link to="/portal/join" className="btn btn-primary">
+                        <Link to="/login?tab=register" className="btn btn-primary">
                             <FaHeart /> Join as a Member <FaArrowRight />
                         </Link>
                     </div>

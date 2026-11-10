@@ -355,7 +355,7 @@ export default function About() {
                         <Link to="/donate" className="btn btn-primary" style={{ background: 'white', color: 'var(--primary)' }}>
                             <FaHeart /> Donate Now
                         </Link>
-                        <Link to="/portal/join" className="btn btn-secondary">
+                        <Link to="/login?tab=register" className="btn btn-secondary">
                             <FaUsers /> Join as Member
                         </Link>
                     </div>

@@ -400,8 +400,8 @@ export default function PortalLogin() {
               position: 'absolute',
               top: '1rem',
               right: '1rem',
-              width: 28,
-              height: 28,
+              width: 36,
+              height: 36,
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.2)',
               border: 'none',
@@ -726,7 +726,7 @@ export default function PortalLogin() {
                 <button
                   type="button"
                   onClick={() => navigate('/portal/join')}
-                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: '6px 8px', display: 'inline-block' }}
                 >
                   Become a Member &amp; Register here →
                 </button>
@@ -931,7 +931,7 @@ export default function PortalLogin() {
                     <button
                       type="button"
                       onClick={() => { setActiveTab('signin'); setError(''); setSuccess(''); }}
-                      style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                      style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, cursor: 'pointer', padding: '6px 8px', display: 'inline-block' }}
                     >
                       Sign in here
                     </button>

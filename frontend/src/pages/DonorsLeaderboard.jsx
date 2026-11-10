@@ -448,7 +448,7 @@ export default function DonorsLeaderboard() {
 
                     {/* Giving Society Selection Dropdown Filter */}
                     <div className="dl-dropdown-wrapper">
-                        <label className="dl-dropdown-label" htmlFor="giving-society-select">Giving Society:</label>
+                        <label className="dl-dropdown-label" htmlFor="giving-society-select">Society:</label>
                         <select
                             id="giving-society-select"
                             value={societyFilter}
@@ -588,6 +588,43 @@ export default function DonorsLeaderboard() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile Responsive 2-Column Grid Format (Visible on Mobile) */}
+                <div className="dl-mobile-grid-donors">
+                    {isLoading ? (
+                        <div className="dl-table-empty">Loading verified donor registry...</div>
+                    ) : paginatedDonors.length === 0 ? (
+                        <div className="dl-table-empty">No donors found matching your filter criteria.</div>
+                    ) : (
+                        paginatedDonors.map((donor, idx) => {
+                            const rankNum = donor.rank;
+                            const cleanCause = donor.cleanCause || getCleanCause(donor.purpose);
+                            const society = donor.societyInfo || getGivingSocietyInfo(donor.totalDonated || donor.amount || 0);
+
+                            return (
+                                <div key={donor._id || `${donor.name}-${idx}`} className="dl-donor-grid-card">
+                                    <div className="dl-dgc-header">
+                                        <span className="dl-dgc-rank">#{rankNum}</span>
+                                        <span className={`dl-table-society-pill ${society.className}`}>{society.label}</span>
+                                    </div>
+                                    <div className="dl-dgc-name">{donor.name}</div>
+                                    <div className="dl-dgc-amount">₹{(donor.totalDonated || donor.amount || 0).toLocaleString('en-IN')}</div>
+                                    <div className="dl-dgc-meta">
+                                        <span className="dl-dgc-city"><FaMapMarkerAlt /> {donor.city || 'AP'}</span>
+                                        <span className={`dl-cause-chip ${getCauseClass(cleanCause)}`}>{cleanCause}</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="dl-dgc-cert-btn"
+                                        onClick={() => setActiveCertDonor(donor)}
+                                    >
+                                        <FaFileAlt /> Certificate
+                                    </button>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
 
                 {/* 5. TABLE FOOTER & PAGINATION CONTROLS */}

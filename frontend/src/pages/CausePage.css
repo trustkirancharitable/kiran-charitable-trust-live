@@ -34,6 +34,8 @@
     background: rgba(15, 23, 42, 0.75);
     display: flex;
     align-items: center;
+    padding-top: 90px;
+    box-sizing: border-box;
 }
 
 .cause-hero-content {
@@ -314,10 +316,15 @@
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     .cause-hero {
-        height: 45vh;
-        min-height: 350px;
+        height: auto;
+        min-height: 440px;
+    }
+    .cause-hero-overlay {
+        padding-top: 150px !important;
+        padding-bottom: 30px !important;
+        align-items: flex-start !important;
     }
 
     .cause-stats-inner {

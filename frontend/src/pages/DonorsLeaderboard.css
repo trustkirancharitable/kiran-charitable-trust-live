@@ -3,12 +3,15 @@
 /* Container & Base Styles */
 .dl-wireframe-container {
     max-width: 1240px;
+    width: 100%;
     margin: 0 auto;
-    padding: 105px 24px 80px; /* Clears fixed navbar so top reports & stat boxes are 100% visible */
+    padding: 135px 24px 80px; /* Clears fixed navbar so top reports & stat boxes are 100% visible */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #0f172a;
     background-color: #f8fafc;
     min-height: 100vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 /* ========================================================
@@ -101,12 +104,16 @@
     background: transparent;
     border: none;
     border-radius: 14px;
-    padding: 4px 12px;
-    font-size: 12px;
+    padding: 6px 14px;
+    font-size: 13px;
+    min-height: 34px;
     font-weight: 700;
     color: #475569;
     cursor: pointer;
     transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .dl-timeframe-btn:hover {
@@ -367,9 +374,11 @@
 .dl-search-box .dl-search-input,
 input.dl-search-input {
     width: 290px;
+    height: 38px;
+    box-sizing: border-box;
     padding: 9px 34px 9px 42px !important;
     font-size: 13px;
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #cbd5e1;
     border-radius: 8px;
     background: #ffffff;
     color: #0f172a;
@@ -403,12 +412,14 @@ input.dl-search-input {
 }
 
 .dl-sort-select {
+    height: 38px;
+    box-sizing: border-box;
     padding: 8px 14px;
     font-size: 13px;
     font-weight: 600;
     color: #334155;
     background: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #cbd5e1;
     border-radius: 8px;
     outline: none;
     cursor: pointer;
@@ -422,14 +433,20 @@ input.dl-search-input {
 
 /* Dropdown Filters (Giving Society & Cause) */
 .dl-dropdown-wrapper {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    height: 38px;
     background: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #cbd5e1;
     border-radius: 8px;
-    padding: 2px 10px 2px 12px;
+    padding: 0 10px 0 12px;
+    gap: 8px;
+    box-sizing: border-box;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dl-dropdown-wrapper:hover {
+    border-color: #94a3b8;
 }
 
 .dl-dropdown-wrapper:focus-within {
@@ -442,19 +459,32 @@ input.dl-search-input {
     font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
     white-space: nowrap;
+    min-width: 56px;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
 }
 
 .dl-filter-select {
-    padding: 6px 4px;
+    height: 100%;
     font-size: 13px;
     font-weight: 600;
     color: #1e293b;
     background: transparent;
-    border: none;
-    outline: none;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 4px !important;
+    margin: 0;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
 }
 
 .dl-filter-select option {
@@ -527,10 +557,17 @@ input.dl-search-input {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     overflow: hidden;
     margin-bottom: 28px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .dl-table-responsive {
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    display: block;
 }
 
 .dl-leaderboard-table {
@@ -710,8 +747,9 @@ input.dl-search-input {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    padding: 4px 10px;
+    padding: 6px 12px;
     font-size: 12px;
+    min-height: 32px;
     font-weight: 600;
     color: #334155;
     cursor: pointer;
@@ -768,11 +806,15 @@ input.dl-search-input {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 12.5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: 36px;
     font-weight: 600;
     color: #334155;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.15s ease;
 }
 
@@ -793,15 +835,15 @@ input.dl-search-input {
 }
 
 .dl-pag-num-btn {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 600;
     color: #334155;
     cursor: pointer;
@@ -1105,6 +1147,11 @@ input.dl-search-input {
     background: #1e3a8a;
 }
 
+/* Mobile Donors Card Grid (Hidden on Desktop) */
+.dl-mobile-grid-donors {
+    display: none;
+}
+
 /* ========================================================
    10. RESPONSIVE MEDIA QUERIES
    ======================================================== */
@@ -1113,30 +1160,334 @@ input.dl-search-input {
         grid-template-columns: repeat(2, 1fr);
     }
     .dl-top3-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
     }
     .dl-cert-stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    .dl-table-header-control-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+    .dl-search-sort-group {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 10px;
+    }
+    .dl-search-box {
+        flex: 1 1 240px;
+    }
+    .dl-search-box input {
+        width: 100%;
+    }
+    .dl-dropdown-wrapper {
+        flex: 1 1 180px;
+    }
+    .dl-filter-select {
+        flex: 1;
+        min-width: 0;
+    }
+    .dl-sort-wrapper {
+        flex: 1 1 180px;
+    }
+    .dl-sort-select {
+        width: 100%;
+    }
 }
 
 @media (max-width: 640px) {
+    .dl-wireframe-container {
+        padding: 150px 12px 60px !important;
+    }
     .dl-top-stat-row {
         grid-template-columns: 1fr;
     }
-    .dl-table-header-control-row {
+    .dl-section-heading-with-timeframe {
         flex-direction: column;
         align-items: flex-start;
+        gap: 10px;
+    }
+    .dl-timeframe-btn-group {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .dl-timeframe-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        min-height: 32px;
+    }
+
+    /* ═══ FILTER & SEARCH CONTROLS IN STRUCTURED 2-COLUMN GRID ═══ */
+    .dl-table-header-control-row {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        margin-bottom: 14px;
+    }
+    .dl-section-heading.no-margin {
+        margin-bottom: 12px !important;
+        width: 100%;
     }
     .dl-search-sort-group {
-        width: 100%;
-        flex-direction: column;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
-    .dl-search-input {
-        width: 100%;
+    .dl-search-box {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+    }
+    .dl-search-box input,
+    .dl-search-box .dl-search-input,
+    input.dl-search-input {
+        width: 100% !important;
+        height: 46px !important;
+        box-sizing: border-box !important;
+        padding: 10px 36px 10px 38px !important;
+        font-size: 13.5px !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+    }
+    .dl-dropdown-wrapper {
+        width: 100% !important;
+        height: 48px !important;
+        box-sizing: border-box !important;
+        padding: 6px 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: flex-start !important;
+        gap: 2px !important;
+        background: #ffffff !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        min-width: 0 !important;
+        transition: all 0.2s ease !important;
+    }
+    .dl-dropdown-wrapper:focus-within {
+        border-color: #0F52BA !important;
+        box-shadow: 0 0 0 2px rgba(15, 82, 186, 0.15) !important;
+    }
+    .dl-dropdown-label {
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        color: #64748b !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+    .dl-filter-select {
+        width: 100% !important;
+        min-width: 0 !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        color: #0f172a !important;
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        cursor: pointer !important;
+        text-align: left !important;
+        line-height: 1.3 !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+    }
+    .dl-sort-wrapper {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+    }
+    .dl-sort-select {
+        width: 100% !important;
+        height: 46px !important;
+        box-sizing: border-box !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+        padding: 10px 14px !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        background: #ffffff !important;
     }
     .dl-cta-card {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    /* ═══ TOP 3 PODIUM (2 - 1 - 3 Side-by-Side on Mobile) ═══ */
+    .dl-top3-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+        margin-bottom: 22px !important;
+    }
+    .dl-top3-card {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        padding: 16px 4px 10px !important;
+        gap: 4px !important;
+        min-width: 0 !important;
+        box-sizing: border-box !important;
+        border-radius: 12px !important;
+    }
+    .dl-card-gold {
+        transform: translateY(-4px) !important;
+        border: 2px solid #eab308 !important;
+        background: #fffdf5 !important;
+        box-shadow: 0 4px 12px rgba(234, 179, 8, 0.22) !important;
+        z-index: 2 !important;
+    }
+    .dl-card-badge {
+        position: absolute !important;
+        top: -10px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 11px !important;
+        border-radius: 50% !important;
+    }
+    .dl-card-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+        margin-top: 2px !important;
+        flex-shrink: 0 !important;
+    }
+    .dl-card-info {
+        width: 100% !important;
+        min-width: 0 !important;
+        text-align: center !important;
+    }
+    .dl-card-name {
+        font-size: 11.5px !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.2 !important;
+    }
+    .dl-card-location {
+        font-size: 9.5px !important;
+        justify-content: center !important;
+        margin-top: 1px !important;
+        color: #64748b !important;
+    }
+    .dl-cause-chip {
+        font-size: 8.5px !important;
+        padding: 2px 4px !important;
+        margin-top: 2px !important;
+        display: inline-block !important;
+        max-width: 100% !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    .dl-card-amount {
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        margin-top: 2px !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+
+    /* ═══ REMAINING DONORS: 2-COLUMN GRID (Not Table Rows) ═══ */
+    .dl-table-responsive {
+        display: none !important;
+    }
+    .dl-mobile-grid-donors {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 10px 0 !important;
+    }
+    .dl-donor-grid-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        box-sizing: border-box;
+        min-width: 0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .dl-dgc-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+    }
+    .dl-dgc-rank {
+        font-size: 11px;
+        font-weight: 800;
+        color: #0F52BA;
+        background: #eff6ff;
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid #bfdbfe;
+    }
+    .dl-dgc-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .dl-dgc-amount {
+        font-size: 14px;
+        font-weight: 800;
+        color: #15803d;
+    }
+    .dl-dgc-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 10.5px;
+        color: #64748b;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .dl-dgc-city {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10.5px;
+    }
+    .dl-dgc-cert-btn {
+        margin-top: 4px;
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .dl-dgc-cert-btn:hover {
+        background: #dbeafe;
+        color: #1e40af;
     }
 }

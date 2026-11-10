@@ -161,7 +161,7 @@ export default function FounderDesk() {
                         <Link to="/donate" className="btn btn-primary" style={{ marginRight: 16 }}>
                             <FaHeart /> Support the Mission
                         </Link>
-                        <Link to="/portal/join" className="btn btn-outline">
+                        <Link to="/login?tab=register" className="btn btn-outline">
                             <FaUsers /> Join as a Member
                         </Link>
                     </div>
