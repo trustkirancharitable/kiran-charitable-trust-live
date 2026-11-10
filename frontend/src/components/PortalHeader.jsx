@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import { 
     FaSignOutAlt, 
     FaExternalLinkAlt, 
@@ -39,7 +40,12 @@ export default function PortalHeader() {
     const handleSignOut = () => {
         setProfileDropdownOpen(false);
         logout(false);
-        navigate('/portal/login');
+        localStorage.removeItem('kct_user');
+        localStorage.removeItem('kct_token');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common['Authorization'];
+        window.location.href = '/portal/login';
     };
 
     const userName = user?.name || user?.fullName || 'Trust Member';

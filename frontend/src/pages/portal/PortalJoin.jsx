@@ -6,7 +6,8 @@ import { initiateGoogleSignIn } from '../../utils/googleAuth';
 import {
   FaUser, FaEnvelope, FaPhone, FaLock, FaIdCard, FaCamera,
   FaShieldAlt, FaCheckCircle, FaCheck, FaArrowRight, FaCreditCard,
-  FaUniversity, FaExclamationTriangle, FaAward, FaMedal, FaCrown, FaGem
+  FaUniversity, FaExclamationTriangle, FaAward, FaMedal, FaCrown, FaGem,
+  FaSignInAlt
 } from 'react-icons/fa';
 import './Portal.css';
 
@@ -247,6 +248,10 @@ export default function PortalJoin() {
     <div>
       {/* ── Banner ── */}
       <section className="pt-page-banner">
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.3)', padding: '5px 14px', borderRadius: 20, marginBottom: '0.8rem' }}>
+          <span style={{ fontSize: '0.82rem', color: '#FFFFFF', fontWeight: 600 }}>Already an active Trust Member?</span>
+          <Link to="/portal/login" style={{ fontSize: '0.82rem', color: '#FEF08A', fontWeight: 800, textDecoration: 'underline' }}>Sign In here →</Link>
+        </div>
         <span className="pt-page-tag">Become a Trust Member</span>
         <h1 className="pt-page-heading">
           Join as an Official <span>Trust Member</span>
@@ -317,6 +322,33 @@ export default function PortalJoin() {
                 <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.86rem', marginBottom: '1.25rem' }}>
                   Provide your legal details and verify your email to begin your membership.
                 </p>
+
+                {/* Quick Member Login Banner */}
+                <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 10, padding: '12px 16px', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1E3A8A' }}>Already registered as a Trust Member?</div>
+                    <div style={{ fontSize: '0.8rem', color: '#2563EB' }}>Log in to view your ID Card, digital honor certificates &amp; contribution records.</div>
+                  </div>
+                  <Link
+                    to="/portal/login"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: '#0F52BA',
+                      color: '#FFFFFF',
+                      padding: '8px 14px',
+                      borderRadius: 6,
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 6px rgba(15, 82, 186, 0.25)'
+                    }}
+                  >
+                    <FaSignInAlt style={{ fontSize: 11 }} /> Member Login
+                  </Link>
+                </div>
 
                 <form onSubmit={verifyOtp}>
                   <div style={{ marginBottom: '0.9rem' }}>
@@ -529,6 +561,14 @@ export default function PortalJoin() {
                   </svg>
                   Instant Sign-Up with Google
                 </button>
+
+                {/* Member Login Callout */}
+                <div style={{ textAlign: 'center', marginTop: '1.4rem', paddingTop: '1.1rem', borderTop: '1px solid #e2e8f0', fontSize: '0.86rem', color: '#64748b' }}>
+                  Already registered as a Trust Member?{' '}
+                  <Link to="/portal/login" style={{ color: '#0F52BA', fontWeight: 800, textDecoration: 'none' }}>
+                    Sign In to Portal →
+                  </Link>
+                </div>
               </div>
             )}
 

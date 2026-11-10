@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 import {
   FaThLarge,
   FaUser,
@@ -55,10 +56,10 @@ export default function PortalLayout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
-    navigate('/portal/login', { replace: true });
+    window.location.href = '/portal/login';
   };
 
-  const isAuthPage = ['/portal/join', '/portal/login', '/portal/signup', '/portal/forgot-password', '/portal/signin', '/portal/register'].some(p => location.pathname.startsWith(p));
+  const isAuthPage = ['/portal/join', '/portal/login', '/portal/signup', '/portal/forgot-password', '/portal/signin', '/portal/register', '/portal/become-a-member'].some(p => location.pathname.startsWith(p));
 
   // Determine current active section for sidebar highlighting
   const currentTab = searchParams.get('tab') || (location.pathname.includes('/dashboard') ? 'dashboard' : 'dashboard');
@@ -105,6 +106,48 @@ export default function PortalLayout() {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {!location.pathname.includes('/login') && !location.pathname.includes('/signin') && (
+                <Link
+                  to="/portal/login"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: '#FFFFFF',
+                    padding: '8px 16px',
+                    borderRadius: 6,
+                    textDecoration: 'none',
+                    background: '#0F52BA',
+                    boxShadow: '0 2px 8px rgba(15, 82, 186, 0.25)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <FaSignInAlt style={{ fontSize: 12 }} /> Member Login
+                </Link>
+              )}
+              {location.pathname.includes('/login') && (
+                <Link
+                  to="/portal/join"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: '#0F52BA',
+                    padding: '8px 16px',
+                    borderRadius: 6,
+                    textDecoration: 'none',
+                    background: '#EFF6FF',
+                    border: '1px solid #BFDBFE',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <FaUserPlus style={{ fontSize: 12 }} /> Join as Member
+                </Link>
+              )}
               <a
                 href="/"
                 style={{
@@ -146,6 +189,14 @@ export default function PortalLayout() {
         </footer>
       </div>
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 2. STRICT AUTH GUARD FOR ALL MEMBER PORTAL PAGES
+  // If not logged in, any route under /portal/ MUST redirect to /portal/login
+  // ─────────────────────────────────────────────────────────────
+  if (!isAuthenticated) {
+    return <Navigate to="/portal/login" replace state={{ from: location.pathname }} />;
   }
 
   // ─────────────────────────────────────────────────────────────
