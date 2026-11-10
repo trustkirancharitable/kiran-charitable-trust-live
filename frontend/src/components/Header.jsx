@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { 
     FaBars, FaTimes, FaHeart, FaChevronDown, 
-    FaUserPlus, FaTrophy
+    FaUserPlus, FaTrophy, FaSignInAlt
 } from 'react-icons/fa';
 import KLogo from '../assets/Klogo.jpeg';
 import './Header.css';
@@ -57,11 +57,31 @@ export default function Header() {
                     </NavLink>
                 </nav>
 
-                {/* Header Actions: Top Donors + Donate Now */}
+                {/* Header Actions: Top Donors + Member Login + Join Member + Donate Now */}
                 <div className="header-actions">
                     <Link to="/donors" className="btn-signin-nav" title="View Official Top Donors Leaderboard">
                         <FaTrophy style={{ color: '#d97706' }} /> Top Donors
                     </Link>
+
+                    <a
+                        href="/portal/login"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-portal-login-nav"
+                        title="Member Portal Login (Opens in New Tab)"
+                    >
+                        <FaSignInAlt style={{ color: '#0F52BA' }} /> Member Login
+                    </a>
+
+                    <a
+                        href="/portal/join"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-join-nav"
+                        title="Join as Official Trust Member (Opens in New Tab)"
+                    >
+                        <FaUserPlus /> Join Member
+                    </a>
 
                     <Link to="/donate" className="btn btn-primary donate-btn">
                         <FaHeart /> Donate Now
@@ -102,9 +122,27 @@ export default function Header() {
                     Trust Members
                 </NavLink>
 
-                <Link to="/portal/join" className="btn btn-secondary mobile-donate-btn" style={{ marginTop: 10, borderColor: '#86efac', background: '#f0fdf4', color: '#166534' }} onClick={() => setMenuOpen(false)}>
+                <a
+                    href="/portal/login"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary mobile-donate-btn"
+                    style={{ marginTop: 10, borderColor: '#bfdbfe', background: '#eff6ff', color: '#1e40af' }}
+                    onClick={() => setMenuOpen(false)}
+                >
+                    <FaSignInAlt style={{ color: '#0F52BA' }} /> Member Login (New Tab)
+                </a>
+
+                <a
+                    href="/portal/join"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary mobile-donate-btn"
+                    style={{ marginTop: 6, borderColor: '#86efac', background: '#f0fdf4', color: '#166534' }}
+                    onClick={() => setMenuOpen(false)}
+                >
                     <FaUserPlus style={{ color: '#16a34a' }} /> Join as Member (Registration)
-                </Link>
+                </a>
 
                 <Link to="/donors" className="btn btn-secondary mobile-donate-btn" style={{ marginTop: 6 }} onClick={() => setMenuOpen(false)}>
                     <FaTrophy style={{ color: '#d97706' }} /> Top Donors Leaderboard

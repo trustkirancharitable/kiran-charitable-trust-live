@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import { FaXTwitter } from 'react-icons/fa6'
 import {
     FaHeart, FaFacebook, FaInstagram, FaLinkedin,
@@ -49,6 +49,8 @@ export default function Footer() {
                             <li><Link to="/gallery">Gallery</Link></li>
                                                         <li><Link to="/donate">Donate</Link></li>
                             <li><Link to="/donors">Top Donors &amp; Honor Roll</Link></li>
+                            <li><a href="/portal/login" target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa', fontWeight: 600 }}>Member Portal Login ↗</a></li>
+                            <li><a href="/portal/join" target="_blank" rel="noopener noreferrer" style={{ color: '#4ade80', fontWeight: 600 }}>Join as Member (Registration) ↗</a></li>
                             <li><Link to="/contact">Contact Us</Link></li>
                         </ul>
                     </div>
@@ -93,7 +95,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <FaClock />
-                                <span>Mon–Sat: 9:00 AM – 6:00 PM</span>
+                                <span>Monâ€“Sat: 9:00 AM â€“ 6:00 PM</span>
                             </li>
                         </ul>
                     </div>
@@ -102,7 +104,7 @@ export default function Footer() {
 
             <div className="footer-bottom">
                 <div className="container footer-bottom-inner">
-                    <p>© {new Date().getFullYear()} Kiran Charitable Trust. All rights reserved. Made with <FaHeart className="heart-icon" /> for humanity.</p>
+                    <p>Â© {new Date().getFullYear()} Kiran Charitable Trust. All rights reserved. Made with <FaHeart className="heart-icon" /> for humanity.</p>
                     <div className="footer-bottom-links">
                         <Link to="/privacy-policy">Privacy Policy</Link>
                         <Link to="/terms-conditions">Terms & Conditions</Link>
