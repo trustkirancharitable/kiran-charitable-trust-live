@@ -7,7 +7,7 @@ const TrustMember = require('../models/TrustMember');
 const MonthlySchedule = require('../models/MonthlySchedule');
 const Donation = require('../models/Donation');
 const PerformanceMetric = require('../models/PerformanceMetric');
-const { memoryStore, getSupabaseSchemaSQL, getSupabaseAnalytics, persistMemoryStore } = require('../services/supabaseService');
+const { memoryStore, getSupabaseSchemaSQL, getSupabaseAnalytics, persistMemoryStore, syncPayment, syncTrustMember } = require('../services/supabaseService');
 const { 
     sendMonthlyReminderEmail, 
     sendOtpEmail, 
@@ -896,6 +896,11 @@ router.put('/trust-members/:id', async (req, res) => {
         }
         persistMemoryStore();
 
+        // Guaranteed Dual DB Sync: Sync member update to Supabase
+        if (memIdx >= 0 && memoryStore.trust_members) {
+            syncTrustMember(memoryStore.trust_members[memIdx]).catch(e => console.warn('Supabase member update notice:', e.message));
+        }
+
         return res.json({
             success: true,
             message: `Trust member details updated successfully.`
@@ -1765,6 +1770,13 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
             }
         }
         persistMemoryStore();
+
+        // Guaranteed Dual DB Sync: Sync donation update to Supabase
+        const updatedDonation = memoryStore.payments ? memoryStore.payments[donIdx >= 0 ? donIdx : 0] : null;
+        if (updatedDonation) {
+            syncPayment(updatedDonation).catch(e => console.warn('Supabase donation update notice:', e.message));
+        }
+
         autoRankDonors().catch(err => console.warn('Ranking sync notice:', err.message));
 
         return res.json({
