@@ -1721,8 +1721,9 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
         }
 
         // Update in memoryStore
+        let donIdx = -1;
         if (memoryStore.payments) {
-            let donIdx = memoryStore.payments.findIndex(p =>
+            donIdx = memoryStore.payments.findIndex(p =>
                 p._id === strId || p._id === decodedId ||
                 p.id === strId || p.id === decodedId ||
                 p.transactionId === strId || p.transactionId === decodedId ||
@@ -1749,7 +1750,7 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
                     ...(updateDate && !isNaN(updateDate.getTime()) && { createdAt: updateDate, date: updateDate })
                 };
             } else {
-                // Upsert resiliently into memoryStore if previously not tracked in memory
+                donIdx = 0;
                 memoryStore.payments.unshift({
                     _id: strId.startsWith('don_') ? strId : `don_${Date.now()}`,
                     fullName: fullName || 'Anonymous Donor',
@@ -1772,12 +1773,49 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
         persistMemoryStore();
 
         // Guaranteed Dual DB Sync: Sync donation update to Supabase
-        const updatedDonation = memoryStore.payments ? memoryStore.payments[donIdx >= 0 ? donIdx : 0] : null;
+        const updatedDonation = (memoryStore.payments && donIdx >= 0) ? memoryStore.payments[donIdx] : {
+            fullName, email, mobile, amount: Number(amount) || 0,
+            purpose, paymentMethod, status, receiptNumber,
+            transactionId: transactionId || strId,
+            clientTxnId: transactionId || strId
+        };
+
         if (updatedDonation) {
-            syncPayment(updatedDonation).catch(e => console.warn('Supabase donation update notice:', e.message));
+            try {
+                await syncPayment(updatedDonation);
+                console.log('✅ [Dual DB] Payment synced to Supabase:', updatedDonation.receiptNumber || updatedDonation.clientTxnId);
+            } catch (sbErr) {
+                console.warn('Supabase donation update notice:', sbErr.message);
+            }
         }
 
-        autoRankDonors().catch(err => console.warn('Ranking sync notice:', err.message));
+        // Also ensure MongoDB is updated
+        if (mongoose.connection && mongoose.connection.readyState === 1) {
+            try {
+                const targetReceipt = receiptNumber || (updatedDonation && updatedDonation.receiptNumber);
+                const targetTxn = transactionId || strId || (updatedDonation && updatedDonation.transactionId);
+                const mongoUpdate = {};
+                if (fullName !== undefined) mongoUpdate.fullName = fullName;
+                if (email !== undefined) mongoUpdate.email = email;
+                if (mobile !== undefined) mongoUpdate.mobile = mobile;
+                if (amount !== undefined) mongoUpdate.amount = Number(amount);
+                if (purpose !== undefined) mongoUpdate.purpose = purpose;
+                if (paymentMethod !== undefined) mongoUpdate.paymentMethod = paymentMethod;
+                if (status !== undefined) mongoUpdate.status = status;
+                if (targetReceipt) mongoUpdate.receiptNumber = targetReceipt;
+                if (targetTxn) mongoUpdate.transactionId = targetTxn;
+
+                await Donation.findOneAndUpdate(
+                    { $or: [{ receiptNumber: targetReceipt }, { transactionId: targetTxn }, { clientTxnId: targetTxn }].filter(Boolean) },
+                    { $set: mongoUpdate }
+                );
+                console.log('✅ [Dual DB] Payment synced to MongoDB:', targetReceipt || targetTxn);
+            } catch (mongoErr) {
+                console.warn('MongoDB donation update notice:', mongoErr.message);
+            }
+        }
+
+        await autoRankDonors().catch(err => console.warn('Ranking sync notice:', err.message));
 
         return res.json({
             success: true,

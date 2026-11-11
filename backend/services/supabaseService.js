@@ -16,10 +16,12 @@ let supabaseClient = null;
 
 function getSupabase() {
     if (!createClient) return null;
-    if (!supabaseClient && SUPABASE_URL && SUPABASE_KEY) {
+    const url = process.env.SUPABASE_URL || 'https://ozzxyarnrosyyznblaqp.supabase.co';
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96enh5YXJucm9zeXl6bmJsYXFwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5NDQwODk4OSwiZXhwIjoyMTA5OTg0OTg5fQ.V3Ig0vr_OY_tTm2RX2jdZXGfJSlcf4-JOZlv3jNFwwM';
+    if (!supabaseClient && url && key) {
         try {
-            supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
-                auth: { persistSession: false }
+            supabaseClient = createClient(url, key, {
+                auth: { persistSession: false, autoRefreshToken: false }
             });
             console.log('⚡ Supabase client initialized cleanly');
         } catch (e) {
@@ -707,7 +709,48 @@ CREATE POLICY IF NOT EXISTS "Public Read Payments" ON payments FOR SELECT USING 
     `;
 }
 
+
+/**
+ * Fetch all payments directly from Supabase
+ */
+async function fetchSupabasePayments() {
+    const sb = getSupabase();
+    if (!sb) return null;
+    try {
+        const { data, error } = await sb.from('payments').select('*').order('created_at', { ascending: false });
+        if (error) {
+            console.warn('Supabase fetch payments notice:', error.message);
+            return null;
+        }
+        return data || [];
+    } catch (err) {
+        console.warn('Supabase fetch payments error:', err.message);
+        return null;
+    }
+}
+
+/**
+ * Fetch all trust members directly from Supabase
+ */
+async function fetchSupabaseTrustMembers() {
+    const sb = getSupabase();
+    if (!sb) return null;
+    try {
+        const { data, error } = await sb.from('trust_members').select('*').order('donation_amount', { ascending: false });
+        if (error) {
+            console.warn('Supabase fetch trust members notice:', error.message);
+            return null;
+        }
+        return data || [];
+    } catch (err) {
+        console.warn('Supabase fetch trust members error:', err.message);
+        return null;
+    }
+}
+
 module.exports = {
+    fetchSupabasePayments,
+    fetchSupabaseTrustMembers,
     getSupabase,
     syncProfile,
     syncVolunteer,
