@@ -16,7 +16,7 @@ import {
     FaBars, FaEllipsisV, FaCogs, FaCheck, FaUserPlus, FaPlus, FaThLarge,
     FaTrophy, FaCalendarCheck, FaLayerGroup, FaFileInvoiceDollar, FaFlask,
     FaSlidersH, FaFileAlt, FaHistory, FaCopy, FaCrown, FaCheckDouble, FaLink,
-    FaEdit, FaEye
+    FaEdit, FaEye, FaSort, FaSortUp, FaSortDown
 } from 'react-icons/fa';
 import KLogo from '../assets/Klogo.jpeg';
 import { numberToWordsIndian } from '../utils/numberToWords';
@@ -105,13 +105,28 @@ export default function Admin() {
     const [dbLatency, setDbLatency] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Payments Filtering & Management State
+    // Payments Filtering, Direct Header Sorting & Management State
     const [paymentSearch, setPaymentSearch] = useState('');
     const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
+    const [paymentTypeFilter, setPaymentTypeFilter] = useState('all');
     const [paymentDateFilter, setPaymentDateFilter] = useState('all');
+    const [paymentPurposeFilter, setPaymentPurposeFilter] = useState('all');
+    const [paymentAmountFilter, setPaymentAmountFilter] = useState('all');
+    const [paymentSortField, setPaymentSortField] = useState('date');
+    const [paymentSortOrder, setPaymentSortOrder] = useState('desc');
     const [paymentPage, setPaymentPage] = useState(1);
     const [resendingId, setResendingId] = useState(null);
     const [selectedCertDonation, setSelectedCertDonation] = useState(null);
+
+    const handlePaymentSort = (field) => {
+        if (paymentSortField === field) {
+            setPaymentSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setPaymentSortField(field);
+            setPaymentSortOrder(field === 'amount' || field === 'date' ? 'desc' : 'asc');
+        }
+        setPaymentPage(1);
+    };
 
     // 30-Day Sustaining Pledges & Automated Email Scheduler State
     const [selectedScheduleIds, setSelectedScheduleIds] = useState([]);
@@ -307,8 +322,8 @@ export default function Admin() {
         try {
             const headers = getAdminHeaders();
             if (editingDonation) {
-                const id = editingDonation._id || editingDonation.id || editingDonation.transactionId;
-                await axios.put(`${API_BASE_URL}/admin/donations/${id}`, donationFormData, headers);
+                const id = editingDonation._id || editingDonation.id || editingDonation.transactionId || editingDonation.receiptNumber;
+                await axios.put(`${API_BASE_URL}/admin/donations/${encodeURIComponent(id)}`, donationFormData, headers);
                 toast.success('Donation record updated successfully.');
             } else {
                 await axios.post(`${API_BASE_URL}/admin/donations`, donationFormData, headers);
@@ -329,12 +344,12 @@ export default function Admin() {
             const headers = getAdminHeaders();
             const [statsRes, payRes, memRes, volRes, schRes, devRes, usrRes] = await Promise.allSettled([
                 axios.get(`${API_BASE_URL}/admin/dashboard-stats`, headers),
-                axios.get(`${API_BASE_URL}/admin/payments?limit=200`, headers),
+                axios.get(`${API_BASE_URL}/admin/payments?limit=1000`, headers),
                 axios.get(`${API_BASE_URL}/admin/trust-members`, headers),
                 axios.get(`${API_BASE_URL}/volunteers`, headers),
                 axios.get(`${API_BASE_URL}/admin/schedules`, headers),
                 axios.get(`${API_BASE_URL}/admin/developer-metrics`, headers),
-                axios.get(`${API_BASE_URL}/admin/users?limit=200`, headers)
+                axios.get(`${API_BASE_URL}/admin/users?limit=1000`, headers)
             ]);
 
             if (statsRes.status === 'fulfilled' && statsRes.value.data?.success) {
@@ -502,6 +517,28 @@ export default function Admin() {
             toast.error(err.response?.data?.message || 'Failed to resend receipt');
         } finally {
             setResendingId(null);
+        }
+    };
+
+    // Check Live Gateway Status via SabPaisa Enquiry API
+    const [checkingGatewayId, setCheckingGatewayId] = useState(null);
+    const handleCheckGatewayStatus = async (p) => {
+        const id = p._id || p.transactionId;
+        setCheckingGatewayId(id);
+        try {
+            const res = await axios.post(`${API_BASE_URL}/admin/payments/${id}/check-gateway`);
+            if (res.data?.success) {
+                toast.success(`Gateway Status: ${res.data.gatewayStatus} (Synced: ${res.data.syncedStatus})`);
+                if (res.data.donation) {
+                    setPayments(prev => prev.map(item => (item._id === id || item.transactionId === id) ? { ...item, ...res.data.donation } : item));
+                }
+            } else {
+                toast.error(res.data?.message || 'Status check failed');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to check status with SabPaisa');
+        } finally {
+            setCheckingGatewayId(null);
         }
     };
 
@@ -976,8 +1013,8 @@ export default function Admin() {
 
     // Filtered Schedules
     const filteredSchedules = schedules.filter(s => {
-        if (scheduleSearch.trim()) {
-            const q = scheduleSearch.toLowerCase().trim();
+        const q = (scheduleSearch || globalAdminSearch).toLowerCase().trim();
+        if (q) {
             const matches =
                 (s.donorName && s.donorName.toLowerCase().includes(q)) ||
                 (s.email && s.email.toLowerCase().includes(q)) ||
@@ -1003,7 +1040,7 @@ export default function Admin() {
         return true;
     });
 
-    // Filtered Payments
+    // Filtered & Sorted Payments (Direct Header Sort + Multidimensional Filtering)
     const filteredPayments = payments.filter(p => {
         let matchesStatus = true;
         if (paymentStatusFilter === 'success') {
@@ -1018,19 +1055,87 @@ export default function Admin() {
             matchesStatus = Boolean(p.status === 'completed' || p.status === 'success' || p.receiptNumber);
         }
 
-        const query = paymentSearch.toLowerCase().trim();
+        let matchesType = true;
+        if (paymentTypeFilter !== 'all') {
+            matchesType = (p.paymentTypeCode === paymentTypeFilter);
+        }
+
+        let matchesPurpose = true;
+        if (paymentPurposeFilter !== 'all') {
+            const purp = (p.purpose || '').toLowerCase();
+            matchesPurpose = purp.includes(paymentPurposeFilter.toLowerCase());
+        }
+
+        let matchesDate = true;
+        if (paymentDateFilter !== 'all') {
+            const pTime = new Date(p.createdAt || p.created_at || p.date || 0).getTime();
+            const now = Date.now();
+            if (paymentDateFilter === 'today') {
+                const todayStart = new Date();
+                todayStart.setHours(0, 0, 0, 0);
+                matchesDate = pTime >= todayStart.getTime();
+            } else if (paymentDateFilter === 'week') {
+                matchesDate = pTime >= (now - 7 * 86400000);
+            } else if (paymentDateFilter === 'month') {
+                matchesDate = pTime >= (now - 30 * 86400000);
+            } else if (paymentDateFilter === 'year') {
+                const yearStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+                matchesDate = pTime >= yearStart;
+            }
+        }
+
+        let matchesAmount = true;
+        if (paymentAmountFilter !== 'all') {
+            const amt = Number(p.amount) || 0;
+            if (paymentAmountFilter === 'micro') matchesAmount = amt < 1000;
+            else if (paymentAmountFilter === 'tier1') matchesAmount = amt >= 1000 && amt < 10000;
+            else if (paymentAmountFilter === 'tier2') matchesAmount = amt >= 10000 && amt < 100000;
+            else if (paymentAmountFilter === 'hni') matchesAmount = amt >= 100000;
+        }
+
+        const query = (paymentSearch || globalAdminSearch).toLowerCase().trim();
         const matchesSearch = !query
             ? true
             : (
                 (p.fullName || '').toLowerCase().includes(query) ||
                 (p.email || '').toLowerCase().includes(query) ||
                 (p.mobile || '').includes(query) ||
+                (p.phone || '').includes(query) ||
                 (p.transactionId || '').toLowerCase().includes(query) ||
                 (p.clientTxnId || '').toLowerCase().includes(query) ||
-                (p.receiptNumber || '').toLowerCase().includes(query)
+                (p.receiptNumber || '').toLowerCase().includes(query) ||
+                (p.purpose || '').toLowerCase().includes(query) ||
+                (p.paymentType || '').toLowerCase().includes(query) ||
+                (p.paymentMethod || '').toLowerCase().includes(query)
             );
 
-        return matchesStatus && matchesSearch;
+        return matchesStatus && matchesType && matchesPurpose && matchesDate && matchesAmount && matchesSearch;
+    }).sort((a, b) => {
+        let comp = 0;
+        if (paymentSortField === 'amount') {
+            comp = (Number(a.amount) || 0) - (Number(b.amount) || 0);
+        } else if (paymentSortField === 'date') {
+            const timeA = new Date(a.createdAt || a.created_at || a.date || 0).getTime();
+            const timeB = new Date(b.createdAt || b.created_at || b.date || 0).getTime();
+            comp = timeA - timeB;
+        } else if (paymentSortField === 'status') {
+            const statusA = (a.status || '').toLowerCase();
+            const statusB = (b.status || '').toLowerCase();
+            comp = statusA.localeCompare(statusB);
+        } else if (paymentSortField === 'purpose') {
+            const purpA = (a.purpose || '').toLowerCase();
+            const purpB = (b.purpose || '').toLowerCase();
+            comp = purpA.localeCompare(purpB);
+        } else if (paymentSortField === 'donor') {
+            const donorA = (a.fullName || a.full_name || '').toLowerCase();
+            const donorB = (b.fullName || b.full_name || '').toLowerCase();
+            comp = donorA.localeCompare(donorB);
+        } else if (paymentSortField === 'ref') {
+            const refA = (a.clientTxnId || a.transactionId || a.receiptNumber || '').toLowerCase();
+            const refB = (b.clientTxnId || b.transactionId || b.receiptNumber || '').toLowerCase();
+            comp = refA.localeCompare(refB);
+        }
+        return paymentSortOrder === 'desc' ? -comp : comp;
     });
 
     const totalFilteredAmount = filteredPayments.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
@@ -1047,7 +1152,7 @@ export default function Admin() {
         if (userStatusTab === 'all' && u.isDeleted) return false;
 
         const matchesRole = userRoleFilter === 'all' ? true : u.role === userRoleFilter;
-        const q = userSearch.toLowerCase().trim();
+        const q = (userSearch || globalAdminSearch).toLowerCase().trim();
         const matchesSearch = !q
             ? true
             : (
@@ -1074,13 +1179,16 @@ export default function Admin() {
         if (memberStatusTab === 'trash' && !m.isDeleted) return false;
         if (memberStatusTab === 'all' && m.isDeleted) return false;
 
-        const q = memberSearch.toLowerCase().trim();
+        const q = (memberSearch || globalAdminSearch).toLowerCase().trim();
         if (!q) return true;
         return (
             (m.name || '').toLowerCase().includes(q) ||
             (m.email || '').toLowerCase().includes(q) ||
             (m.phone || '').includes(q) ||
-            (m.memberId || '').toLowerCase().includes(q)
+            (m.memberId || '').toLowerCase().includes(q) ||
+            (m.role || '').toLowerCase().includes(q) ||
+            (m.subscriptionTier || '').toLowerCase().includes(q) ||
+            (m.city || '').toLowerCase().includes(q)
         );
     });
 
@@ -1467,7 +1575,7 @@ export default function Admin() {
                         </div>
                     </div>
 
-                    <div className="admin-search-wrapper">
+                    <div className="admin-search-wrapper" style={{ position: 'relative' }}>
                         <FaSearch className="admin-search-icon" />
                         <input
                             type="text"
@@ -1476,6 +1584,27 @@ export default function Admin() {
                             value={globalAdminSearch}
                             onChange={e => setGlobalAdminSearch(e.target.value)}
                         />
+                        {globalAdminSearch && (
+                            <button
+                                type="button"
+                                onClick={() => setGlobalAdminSearch('')}
+                                style={{
+                                    position: 'absolute',
+                                    right: 12,
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#94a3b8',
+                                    cursor: 'pointer',
+                                    fontSize: 14,
+                                    padding: 4
+                                }}
+                                title="Clear search"
+                            >
+                                ✕
+                            </button>
+                        )}
                     </div>
 
                     <div className="admin-topbar-actions">
@@ -1981,18 +2110,43 @@ export default function Admin() {
                                     <option value="10be">10BE Receipts Issued</option>
                                     <option value="cbdt">CBDT Compliant 80G</option>
                                     <option value="pending">Pending Verification</option>
-                                    <option value="failed">Failed / Declined</option>
+                                    <option value="failed">Failed / Timed Out</option>
+                                </select>
+                                <select
+                                    className="admin-select"
+                                    value={paymentTypeFilter}
+                                    onChange={e => { setPaymentTypeFilter(e.target.value); setPaymentPage(1); }}
+                                >
+                                    <option value="all">All Payment Types</option>
+                                    <option value="donation">One-Time Donations</option>
+                                    <option value="monthly_contribution">Monthly Contributions</option>
+                                    <option value="member_registration">Trust Member Registrations</option>
                                 </select>
                                 <select
                                     className="admin-select"
                                     value={paymentDateFilter}
-                                    onChange={e => setPaymentDateFilter(e.target.value)}
+                                    onChange={e => { setPaymentDateFilter(e.target.value); setPaymentPage(1); }}
                                 >
                                     <option value="all">All Dates</option>
                                     <option value="today">Today</option>
                                     <option value="week">This Week</option>
                                     <option value="month">This Month</option>
                                     <option value="year">This Financial Year</option>
+                                </select>
+                                <select
+                                    className="admin-select"
+                                    value={paymentPurposeFilter}
+                                    onChange={e => { setPaymentPurposeFilter(e.target.value); setPaymentPage(1); }}
+                                >
+                                    <option value="all">All Causes / Purposes</option>
+                                    <option value="education">Education Support</option>
+                                    <option value="healthcare">Healthcare &amp; Nutrition</option>
+                                    <option value="annadanam">Annadanam Drive</option>
+                                    <option value="trust membership">Trust Membership</option>
+                                    <option value="women empowerment">Women Empowerment</option>
+                                    <option value="disaster relief">Disaster Relief</option>
+                                    <option value="senior citizen">Senior Citizen Care</option>
+                                    <option value="general">General Welfare Support</option>
                                 </select>
                             </div>
 
@@ -2022,13 +2176,205 @@ export default function Admin() {
                             <table className="admin-data-table">
                                 <thead>
                                     <tr>
-                                        <th>TXN REF &amp; RECEIPT</th>
-                                        <th>DONOR &amp; CONTACT</th>
-                                        <th>AMOUNT (₹)</th>
-                                        <th>PURPOSE &amp; GATEWAY</th>
-                                        <th>STATUS</th>
-                                        <th>DATE</th>
-                                        <th style={{ textAlign: 'center' }}>ACTIONS</th>
+                                        <th
+                                            onClick={() => handlePaymentSort('ref')}
+                                            style={{ cursor: 'pointer', userSelect: 'none', transition: 'background 0.2s', verticalAlign: 'top' }}
+                                            title="Click to sort by Transaction Ref / Receipt"
+                                        >
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                                <span>TXN REF &amp; RECEIPT</span>
+                                                {paymentSortField === 'ref' ? (
+                                                    paymentSortOrder === 'asc' ? <FaSortUp style={{ color: '#38bdf8', fontSize: 13 }} /> : <FaSortDown style={{ color: '#38bdf8', fontSize: 13 }} />
+                                                ) : (
+                                                    <FaSort style={{ opacity: 0.35, fontSize: 12 }} />
+                                                )}
+                                            </div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 5, fontWeight: 500 }}>
+                                                Sort Alphanumeric
+                                            </div>
+                                        </th>
+                                        <th
+                                            onClick={() => handlePaymentSort('donor')}
+                                            style={{ cursor: 'pointer', userSelect: 'none', transition: 'background 0.2s', verticalAlign: 'top' }}
+                                            title="Click to sort alphabetically by Donor Name"
+                                        >
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                                <span>DONOR &amp; CONTACT</span>
+                                                {paymentSortField === 'donor' ? (
+                                                    paymentSortOrder === 'asc' ? <FaSortUp style={{ color: '#38bdf8', fontSize: 13 }} /> : <FaSortDown style={{ color: '#38bdf8', fontSize: 13 }} />
+                                                ) : (
+                                                    <FaSort style={{ opacity: 0.35, fontSize: 12 }} />
+                                                )}
+                                            </div>
+                                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 5, fontWeight: 500 }}>
+                                                Sort A-Z / Z-A
+                                            </div>
+                                        </th>
+                                        <th
+                                            onClick={() => handlePaymentSort('amount')}
+                                            style={{ cursor: 'pointer', userSelect: 'none', transition: 'background 0.2s', verticalAlign: 'top' }}
+                                            title="Click to sort numerically by Amount (₹)"
+                                        >
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                                <span>AMOUNT (₹)</span>
+                                                {paymentSortField === 'amount' ? (
+                                                    paymentSortOrder === 'asc' ? <FaSortUp style={{ color: '#38bdf8', fontSize: 13 }} /> : <FaSortDown style={{ color: '#38bdf8', fontSize: 13 }} />
+                                                ) : (
+                                                    <FaSort style={{ opacity: 0.35, fontSize: 12 }} />
+                                                )}
+                                            </div>
+                                            <select
+                                                value={paymentAmountFilter}
+                                                onChange={e => { setPaymentAmountFilter(e.target.value); setPaymentPage(1); }}
+                                                onClick={e => e.stopPropagation()}
+                                                style={{
+                                                    marginTop: 5,
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    maxWidth: 110,
+                                                    background: '#0f172a',
+                                                    color: '#e2e8f0',
+                                                    border: '1px solid #334155',
+                                                    borderRadius: 6,
+                                                    fontSize: 10.5,
+                                                    padding: '3px 6px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    outline: 'none'
+                                                }}
+                                            >
+                                                <option value="all">All Amounts</option>
+                                                <option value="micro">₹1 – ₹999</option>
+                                                <option value="tier1">₹1k – ₹9.9k</option>
+                                                <option value="tier2">₹10k – ₹99.9k</option>
+                                                <option value="hni">≥ ₹1 Lakh (HNI)</option>
+                                            </select>
+                                        </th>
+                                        <th
+                                            onClick={() => handlePaymentSort('purpose')}
+                                            style={{ cursor: 'pointer', userSelect: 'none', transition: 'background 0.2s', verticalAlign: 'top' }}
+                                            title="Click to sort by Purpose / Gateway"
+                                        >
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                                <span>PURPOSE &amp; GATEWAY</span>
+                                                {paymentSortField === 'purpose' ? (
+                                                    paymentSortOrder === 'asc' ? <FaSortUp style={{ color: '#38bdf8', fontSize: 13 }} /> : <FaSortDown style={{ color: '#38bdf8', fontSize: 13 }} />
+                                                ) : (
+                                                    <FaSort style={{ opacity: 0.35, fontSize: 12 }} />
+                                                )}
+                                            </div>
+                                            <select
+                                                value={paymentPurposeFilter}
+                                                onChange={e => { setPaymentPurposeFilter(e.target.value); setPaymentPage(1); }}
+                                                onClick={e => e.stopPropagation()}
+                                                style={{
+                                                    marginTop: 5,
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    maxWidth: 165,
+                                                    background: '#0f172a',
+                                                    color: '#e2e8f0',
+                                                    border: '1px solid #334155',
+                                                    borderRadius: 6,
+                                                    fontSize: 10.5,
+                                                    padding: '3px 6px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    outline: 'none'
+                                                }}
+                                            >
+                                                <option value="all">All Causes / Purposes</option>
+                                                <option value="education">Education Support</option>
+                                                <option value="healthcare">Healthcare &amp; Nutrition</option>
+                                                <option value="annadanam">Annadanam Feeding Drive</option>
+                                                <option value="trust membership">Trust Membership Activation</option>
+                                                <option value="women empowerment">Women Empowerment</option>
+                                                <option value="disaster relief">Disaster Relief</option>
+                                                <option value="senior citizen">Senior Citizen Care</option>
+                                                <option value="general">General Social Welfare</option>
+                                            </select>
+                                        </th>
+                                        <th
+                                            onClick={() => handlePaymentSort('status')}
+                                            style={{ cursor: 'pointer', userSelect: 'none', transition: 'background 0.2s', verticalAlign: 'top' }}
+                                            title="Click to sort by Payment Status"
+                                        >
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                                <span>STATUS</span>
+                                                {paymentSortField === 'status' ? (
+                                                    paymentSortOrder === 'asc' ? <FaSortUp style={{ color: '#38bdf8', fontSize: 13 }} /> : <FaSortDown style={{ color: '#38bdf8', fontSize: 13 }} />
+                                                ) : (
+                                                    <FaSort style={{ opacity: 0.35, fontSize: 12 }} />
+                                                )}
+                                            </div>
+                                            <select
+                                                value={paymentStatusFilter}
+                                                onChange={e => { setPaymentStatusFilter(e.target.value); setPaymentPage(1); }}
+                                                onClick={e => e.stopPropagation()}
+                                                style={{
+                                                    marginTop: 5,
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    maxWidth: 110,
+                                                    background: '#0f172a',
+                                                    color: '#e2e8f0',
+                                                    border: '1px solid #334155',
+                                                    borderRadius: 6,
+                                                    fontSize: 10.5,
+                                                    padding: '3px 6px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    outline: 'none'
+                                                }}
+                                            >
+                                                <option value="all">All Status</option>
+                                                <option value="success">Completed</option>
+                                                <option value="pending">Pending</option>
+                                                <option value="failed">Timed Out / Failed</option>
+                                                <option value="10be">10BE Receipts</option>
+                                            </select>
+                                        </th>
+                                        <th
+                                            onClick={() => handlePaymentSort('date')}
+                                            style={{ cursor: 'pointer', userSelect: 'none', transition: 'background 0.2s', verticalAlign: 'top' }}
+                                            title="Click to sort chronologically by Date & Time"
+                                        >
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                                                <span>DATE &amp; TIME</span>
+                                                {paymentSortField === 'date' ? (
+                                                    paymentSortOrder === 'asc' ? <FaSortUp style={{ color: '#38bdf8', fontSize: 13 }} /> : <FaSortDown style={{ color: '#38bdf8', fontSize: 13 }} />
+                                                ) : (
+                                                    <FaSort style={{ opacity: 0.35, fontSize: 12 }} />
+                                                )}
+                                            </div>
+                                            <select
+                                                value={paymentDateFilter}
+                                                onChange={e => { setPaymentDateFilter(e.target.value); setPaymentPage(1); }}
+                                                onClick={e => e.stopPropagation()}
+                                                style={{
+                                                    marginTop: 5,
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    maxWidth: 115,
+                                                    background: '#0f172a',
+                                                    color: '#e2e8f0',
+                                                    border: '1px solid #334155',
+                                                    borderRadius: 6,
+                                                    fontSize: 10.5,
+                                                    padding: '3px 6px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    outline: 'none'
+                                                }}
+                                            >
+                                                <option value="all">All Dates</option>
+                                                <option value="today">Today</option>
+                                                <option value="week">Past 7 Days</option>
+                                                <option value="month">Past 30 Days</option>
+                                                <option value="year">FY 2026-27</option>
+                                            </select>
+                                        </th>
+                                        <th style={{ textAlign: 'center', verticalAlign: 'top' }}>ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -2039,11 +2385,11 @@ export default function Admin() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        filteredPayments.slice((paymentPage - 1) * 5, paymentPage * 5).map((p, idx) => {
+                                        filteredPayments.slice((paymentPage - 1) * 10, paymentPage * 10).map((p, idx) => {
                                             const isSuccess = p.status === 'completed' || p.status === 'SUCCESS' || p.status === 'success';
                                             const isPending = p.status === 'pending' || p.status === 'PENDING';
                                             const pId = p._id || p.transactionId;
-                                            const initials = (p.fullName || 'Valued Donor')
+                                            const initials = (p.fullName || p.full_name || 'Valued Donor')
                                                 .split(' ')
                                                 .map(n => n[0])
                                                 .join('')
@@ -2055,7 +2401,7 @@ export default function Admin() {
                                                     <td>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                                             <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#2563eb', fontWeight: 800 }}>
-                                                                {p.clientTxnId || p.transactionId || 'TXN-KCT'}
+                                                                {p.clientTxnId || p.client_txn_id || p.transactionId || p.transaction_id || 'TXN-KCT'}
                                                             </span>
                                                             <button
                                                                 type="button"
@@ -2093,9 +2439,9 @@ export default function Admin() {
                                                                 {initials}
                                                             </div>
                                                             <div>
-                                                                <div style={{ fontWeight: 700, color: '#0f172a' }}>{p.fullName || 'Valued Donor'}</div>
+                                                                <div style={{ fontWeight: 700, color: '#0f172a' }}>{p.fullName || p.full_name || 'Valued Donor'}</div>
                                                                 <div style={{ fontSize: 12, color: '#64748b' }}>{p.email || 'No email'}</div>
-                                                                {p.mobile && <div style={{ fontSize: 11, color: '#94a3b8' }}>{p.mobile}</div>}
+                                                                {(p.mobile || p.phone) && <div style={{ fontSize: 11, color: '#94a3b8' }}>{p.mobile || p.phone}</div>}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -2113,6 +2459,51 @@ export default function Admin() {
                                                         </span>
                                                     </td>
                                                     <td>
+                                                        <div style={{ marginBottom: 4 }}>
+                                                            {(p.paymentTypeCode === 'member_registration' || (p.donorCategory && p.donorCategory.includes('member'))) ? (
+                                                                <span style={{
+                                                                    background: '#e0e7ff',
+                                                                    color: '#3730a3',
+                                                                    fontSize: 10.5,
+                                                                    fontWeight: 700,
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: 12,
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: 4
+                                                                }}>
+                                                                    <FaUserCheck style={{ fontSize: 10 }} /> Trust Member Registration
+                                                                </span>
+                                                            ) : (p.paymentTypeCode === 'monthly_contribution' || (p.donorCategory && p.donorCategory.includes('monthly'))) ? (
+                                                                <span style={{
+                                                                    background: '#d1fae5',
+                                                                    color: '#065f46',
+                                                                    fontSize: 10.5,
+                                                                    fontWeight: 700,
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: 12,
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: 4
+                                                                }}>
+                                                                    <FaCalendarAlt style={{ fontSize: 10 }} /> Monthly Contribution
+                                                                </span>
+                                                            ) : (
+                                                                <span style={{
+                                                                    background: '#e0f2fe',
+                                                                    color: '#0369a1',
+                                                                    fontSize: 10.5,
+                                                                    fontWeight: 700,
+                                                                    padding: '2px 8px',
+                                                                    borderRadius: 12,
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: 4
+                                                                }}>
+                                                                    <FaHeart style={{ fontSize: 10 }} /> One-Time Donation
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0f172a' }}>{p.purpose || 'General Philanthropy'}</div>
                                                         <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{p.paymentMethod || p.paymentMode || 'Online Payment'}</div>
                                                     </td>
@@ -2129,11 +2520,22 @@ export default function Admin() {
                                                             gap: 5
                                                         }}>
                                                             <span style={{ width: 6, height: 6, borderRadius: '50%', background: isSuccess ? '#15803d' : (isPending ? '#b45309' : '#b91c1c') }} />
-                                                            {isSuccess ? 'Completed' : (isPending ? 'Pending' : 'Declined')}
+                                                            {isSuccess ? 'Completed' : (isPending ? 'Pending' : (p.failureReason && (p.failureReason.includes('timed out') || p.failureReason.includes('5-minute')) ? 'Timed Out' : 'Declined'))}
                                                         </span>
+                                                        {p.failureReason && !isSuccess && !isPending && (
+                                                            <div style={{ fontSize: 10, color: '#ef4444', marginTop: 3, maxWidth: 140, lineHeight: 1.2 }}>
+                                                                {p.failureReason.includes('5-minute') ? 'Session expired (>5m)' : p.failureReason}
+                                                            </div>
+                                                        )}
                                                     </td>
-                                                    <td style={{ fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>
-                                                        {new Date(p.createdAt || Date.now()).toLocaleDateString('en-GB')}
+                                                    <td style={{ fontSize: 12, color: '#1e293b', whiteSpace: 'nowrap' }}>
+                                                        <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                                                            {new Date(p.createdAt || p.created_at || p.date || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </div>
+                                                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                            <FaClock style={{ fontSize: 10, color: '#94a3b8' }} />
+                                                            {new Date(p.createdAt || p.created_at || p.date || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
+                                                        </div>
                                                     </td>
                                                     <td>
                                                         <div style={{ display: 'flex', gap: 6, justifyContent: 'center', alignItems: 'center' }}>
@@ -2165,6 +2567,16 @@ export default function Admin() {
                                                                 <FaFileAlt /> 80G Form
                                                             </button>
 
+                                                            <button
+                                                                className="btn-action btn-action-secondary"
+                                                                onClick={() => handleCheckGatewayStatus(p)}
+                                                                disabled={checkingGatewayId === pId}
+                                                                title="Live Gateway Status Enquiry"
+                                                                style={{ padding: '4px 10px', fontSize: 11.5 }}
+                                                            >
+                                                                <FaSyncAlt className={checkingGatewayId === pId ? 'admin-spin' : ''} /> {checkingGatewayId === pId ? 'Checking...' : 'Check Status'}
+                                                            </button>
+
                                                             <select
                                                                 value={p.status || 'pending'}
                                                                 onChange={e => handleUpdatePaymentStatus(p, e.target.value)}
@@ -2187,7 +2599,7 @@ export default function Admin() {
                             {/* 5. Pagination Bar */}
                             <div className="admin-table-pagination">
                                 <div>
-                                    Showing <strong>{filteredPayments.length === 0 ? 0 : (paymentPage - 1) * 5 + 1}</strong> – <strong>{Math.min(paymentPage * 5, filteredPayments.length)}</strong> of <strong>{filteredPayments.length}</strong> donations
+                                    Showing <strong>{filteredPayments.length === 0 ? 0 : (paymentPage - 1) * 10 + 1}</strong> – <strong>{Math.min(paymentPage * 10, filteredPayments.length)}</strong> of <strong>{filteredPayments.length}</strong> donations
                                 </div>
                                 <div className="admin-pag-nav">
                                     <button
@@ -2198,7 +2610,7 @@ export default function Admin() {
                                     >
                                         &lt;
                                     </button>
-                                    {[...Array(Math.min(5, Math.ceil(filteredPayments.length / 5) || 1))].map((_, i) => (
+                                    {[...Array(Math.min(5, Math.ceil(filteredPayments.length / 10) || 1))].map((_, i) => (
                                         <button
                                             key={i}
                                             type="button"
@@ -2208,23 +2620,23 @@ export default function Admin() {
                                             {i + 1}
                                         </button>
                                     ))}
-                                    {Math.ceil(filteredPayments.length / 5) > 5 && (
+                                    {Math.ceil(filteredPayments.length / 10) > 5 && (
                                         <>
                                             <span style={{ padding: '0 4px', color: '#94a3b8' }}>...</span>
                                             <button
                                                 type="button"
-                                                className={`admin-pag-page-btn ${paymentPage === Math.ceil(filteredPayments.length / 5) ? 'active' : ''}`}
-                                                onClick={() => setPaymentPage(Math.ceil(filteredPayments.length / 5))}
+                                                className={`admin-pag-page-btn ${paymentPage === Math.ceil(filteredPayments.length / 10) ? 'active' : ''}`}
+                                                onClick={() => setPaymentPage(Math.ceil(filteredPayments.length / 10))}
                                             >
-                                                {Math.ceil(filteredPayments.length / 5)}
+                                                {Math.ceil(filteredPayments.length / 10)}
                                             </button>
                                         </>
                                     )}
                                     <button
                                         type="button"
                                         className="admin-pag-page-btn"
-                                        disabled={paymentPage >= Math.ceil(filteredPayments.length / 5)}
-                                        onClick={() => setPaymentPage(prev => Math.min(prev + 1, Math.ceil(filteredPayments.length / 5)))}
+                                        disabled={paymentPage >= Math.ceil(filteredPayments.length / 10)}
+                                        onClick={() => setPaymentPage(prev => Math.min(prev + 1, Math.ceil(filteredPayments.length / 10)))}
                                     >
                                         &gt;
                                     </button>
@@ -4100,7 +4512,7 @@ export default function Admin() {
                                         </label>
                                         <input
                                             type="number"
-                                            min="1"
+                                            min="10"
                                             className="admin-search-input"
                                             style={{ width: '100%', padding: '8px 12px' }}
                                             value={memberFormData.donationAmount}
@@ -4260,7 +4672,7 @@ export default function Admin() {
                                         </label>
                                         <input
                                             type="number"
-                                            min="1"
+                                            min="10"
                                             className="admin-search-input"
                                             style={{ width: '100%', padding: '8px 12px', fontWeight: 800, color: '#059669' }}
                                             value={donationFormData.amount}
@@ -4324,7 +4736,7 @@ export default function Admin() {
                                             value={donationFormData.paymentMethod}
                                             onChange={e => setDonationFormData({ ...donationFormData, paymentMethod: e.target.value, paymentMode: e.target.value })}
                                         >
-                                            <option value="Online Payment">Online Payment (SabPaisa)</option>
+                                            <option value="Online Payment">Online Payment (Instant)</option>
                                             <option value="UPI / QR Code">UPI / QR Code</option>
                                             <option value="Bank Transfer / NEFT">Bank Transfer / NEFT</option>
                                             <option value="Cash / Cheque">Cash / Cheque</option>
@@ -4333,27 +4745,49 @@ export default function Admin() {
 
                                     <div>
                                         <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
-                                            Transaction ID / Ref
+                                            Transaction ID / Ref {editingDonation && <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>(Locked Audit Reference)</span>}
                                         </label>
                                         <input
                                             type="text"
                                             className="admin-search-input"
-                                            style={{ width: '100%', padding: '8px 12px', fontFamily: 'monospace' }}
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px 12px',
+                                                fontFamily: 'monospace',
+                                                backgroundColor: editingDonation ? '#f1f5f9' : '#ffffff',
+                                                cursor: editingDonation ? 'not-allowed' : 'text',
+                                                color: editingDonation ? '#64748b' : '#0f172a',
+                                                border: '1px solid #cbd5e1'
+                                            }}
                                             value={donationFormData.transactionId}
-                                            onChange={e => setDonationFormData({ ...donationFormData, transactionId: e.target.value })}
+                                            onChange={e => !editingDonation && setDonationFormData({ ...donationFormData, transactionId: e.target.value })}
+                                            disabled={!!editingDonation}
+                                            readOnly={!!editingDonation}
+                                            title={editingDonation ? 'Transaction ID is permanently locked to preserve banking audit trails' : ''}
                                         />
                                     </div>
 
                                     <div>
                                         <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
-                                            80G Receipt Number
+                                            80G Receipt Number {editingDonation && <span style={{ fontSize: 11, color: '#dc2626', fontWeight: 600 }}>(Locked Statutory 80G No.)</span>}
                                         </label>
                                         <input
                                             type="text"
                                             className="admin-search-input"
-                                            style={{ width: '100%', padding: '8px 12px', fontFamily: 'monospace' }}
+                                            style={{
+                                                width: '100%',
+                                                padding: '8px 12px',
+                                                fontFamily: 'monospace',
+                                                backgroundColor: editingDonation ? '#f1f5f9' : '#ffffff',
+                                                cursor: editingDonation ? 'not-allowed' : 'text',
+                                                color: editingDonation ? '#64748b' : '#0f172a',
+                                                border: '1px solid #cbd5e1'
+                                            }}
                                             value={donationFormData.receiptNumber}
-                                            onChange={e => setDonationFormData({ ...donationFormData, receiptNumber: e.target.value })}
+                                            onChange={e => !editingDonation && setDonationFormData({ ...donationFormData, receiptNumber: e.target.value })}
+                                            disabled={!!editingDonation}
+                                            readOnly={!!editingDonation}
+                                            title={editingDonation ? '80G Receipt Number is permanently locked once issued for CBDT Form 10BE tax compliance' : ''}
                                         />
                                     </div>
 

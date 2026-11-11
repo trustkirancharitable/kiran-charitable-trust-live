@@ -34,7 +34,7 @@ function getTierLabel(tier = '') {
 }
 
 const TIERS = [
-  { id: 'trial',   icon: '⚡', iconCls: 'bronze', label: '1-Rupee Test Member', price: 1,    desc: 'Instant 1-Rupee membership verification and official activation' },
+  { id: 'trial',   icon: '⚡', iconCls: 'bronze', label: '₹10 Minimum Test Member', price: 10,   desc: 'Instant ₹10 membership verification and official activation' },
   { id: 'starter', icon: '🥉', iconCls: 'bronze', label: 'Starter Member', price: 500, desc: 'Official digital ID card, certificate & newsletter' },
   { id: 'silver',  icon: '🥈', iconCls: 'silver',  label: 'Silver Member',  price: 1000, desc: 'Silver privileges, quarterly impact reports & wall feature', featured: false },
   { id: 'gold',    icon: '🥇', iconCls: 'gold',    label: 'Gold Member',    price: 2500, desc: 'All Silver perks + annual summit invitation', featured: true },

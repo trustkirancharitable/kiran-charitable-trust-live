@@ -467,6 +467,9 @@ async function sendPaymentSuccessEmail({ name, email, mobile, address, amount, r
                     <tr>
                         <td style="background-color: #07152d; color: #cbd5e1; padding: 14px 18px; text-align: center; font-size: 11px; line-height: 1.6; border-top: 2px solid #0f52ba;">
                             Need assistance? Email <a href="mailto:contact@kirancharitabletrust.org" style="color: #38bdf8; text-decoration: none;">contact@kirancharitabletrust.org</a> or WhatsApp <a href="https://wa.me/917702468889" style="color: #38bdf8; text-decoration: none;">+91 77024 68889</a>
+                                <div style="margin-top: 6px; font-size: 10.5px; color: #94a3b8;">
+                                    Registered Office: Mandepudi Village, Amaravathi Mandal, Palnadu District, Andhra Pradesh - 522018
+                                </div>
                         </td>
                     </tr>
 
@@ -527,7 +530,7 @@ async function sendPaymentFailureEmail({ name, email, amount, reason, transactio
                     <tr>
                         <td style="background-color: #991b1b; padding: 20px; text-align: center; color: #ffffff;">
                             <h1 style="margin: 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Payment Not Completed</h1>
-                            <p style="margin: 6px 0 0; font-size: 12px; color: #fecaca;">Banking Network Transaction Notice</p>
+                            <p style="margin: 6px 0 0; font-size: 12px; color: #fecaca;">Transaction Notice</p>
                         </td>
                     </tr>
                     <!-- Content -->
@@ -571,8 +574,11 @@ async function sendPaymentFailureEmail({ name, email, amount, reason, transactio
                                 </a>
                             </div>
                             <!-- Help Details -->
-                            <div style="text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-                                Need assistance? Call: <strong>+91 77024 68889</strong> | WhatsApp: <a href="https://wa.me/917702468889" style="color: #0f52ba; text-decoration: none;">+91 77024 68889</a>
+                            <div style="text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 16px; line-height: 1.6;">
+                                Need assistance? WhatsApp: <a href="https://wa.me/917702468889" style="color: #0f52ba; text-decoration: none; font-weight: 600;">+91 77024 68889</a> | Email: <a href="mailto:contact@kirancharitabletrust.org" style="color: #0f52ba; text-decoration: none; font-weight: 600;">contact@kirancharitabletrust.org</a>
+                                <div style="margin-top: 6px; font-size: 11px; color: #64748b;">
+                                    Registered Office: Mandepudi Village, Amaravathi Mandal, Palnadu District, Andhra Pradesh - 522018
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -636,7 +642,7 @@ async function sendPaymentPendingEmail({ name, email, amount, transactionId, pur
                     <tr>
                         <td style="background-color: #b45309; padding: 20px; text-align: center; color: #ffffff;">
                             <h1 style="margin: 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">Payment Under Verification</h1>
-                            <p style="margin: 6px 0 0; font-size: 12px; color: #fef3c7;">Banking Network Settlement Awaited</p>
+                            <p style="margin: 6px 0 0; font-size: 12px; color: #fef3c7;">Awaiting Bank Confirmation</p>
                         </td>
                     </tr>
                     <!-- Content -->
@@ -644,7 +650,7 @@ async function sendPaymentPendingEmail({ name, email, amount, transactionId, pur
                         <td style="padding: 24px 20px; color: #1e293b;">
                             <h2 style="margin-top: 0; font-size: 16px; color: #0f172a;">Dear ${name || 'Valued Donor'},</h2>
                             <p style="font-size: 13.5px; line-height: 1.6; color: #475569;">
-                                Your contribution of <strong>₹${formattedAmount}</strong> has been received by our gateway and is awaiting final reconciliation from your bank or UPI app.
+                                Your contribution of <strong>₹${formattedAmount}</strong> has been safely received and is being confirmed by your bank or UPI app.
                             </p>
                             <!-- Details Box -->
                             <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 14px; margin: 18px 0;">
@@ -671,11 +677,14 @@ async function sendPaymentPendingEmail({ name, email, amount, transactionId, pur
                             <!-- Note -->
                             <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 14px; margin-bottom: 20px; font-size: 12.5px; color: #1e3a8a; line-height: 1.5;">
                                 <strong>What happens next?</strong><br/>
-                                Bank settlements typically clear within a few minutes. As soon as your bank confirms the transfer, your official <strong>Form 10BE 80G Tax Exemption Receipt</strong> will be emailed to you immediately.
+                                Bank confirmations usually arrive within a few minutes. As soon as your bank confirms the transfer, your official <strong>Form 10BE 80G Tax Exemption Receipt</strong> will be emailed to you immediately.
                             </div>
                             <!-- Contact -->
-                            <div style="text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 16px;">
-                                Questions regarding your transfer? WhatsApp: <a href="https://wa.me/917702468889" style="color: #0f52ba; text-decoration: none;">+91 77024 68889</a> | Email: contact@kirancharitabletrust.org
+                            <div style="text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 16px; line-height: 1.6;">
+                                Questions regarding your contribution? WhatsApp: <a href="https://wa.me/917702468889" style="color: #0f52ba; text-decoration: none; font-weight: 600;">+91 77024 68889</a> | Email: <a href="mailto:contact@kirancharitabletrust.org" style="color: #0f52ba; text-decoration: none; font-weight: 600;">contact@kirancharitabletrust.org</a>
+                                <div style="margin-top: 6px; font-size: 11px; color: #64748b;">
+                                    Registered Office: Mandepudi Village, Amaravathi Mandal, Palnadu District, Andhra Pradesh - 522018
+                                </div>
                             </div>
                         </td>
                     </tr>

@@ -12,7 +12,7 @@ import {
 import './Portal.css';
 
 const TIERS = [
-  { id: 'custom',  label: 'Custom / ₹1 Test Tier', price: 1, desc: 'Flexible custom amount (minimum ₹1 for testing & live verification)' },
+  { id: 'custom',  label: 'Custom / ₹10 Minimum Tier', price: 10, desc: 'Flexible custom amount (minimum ₹10 for UPI & live verification)' },
   { id: 'starter', label: 'Starter Member', price: 500, desc: 'Official digital ID card, certificate & monthly newsletter' },
   { id: 'silver',  label: 'Silver Member', price: 1000, desc: 'Silver privileges, quarterly impact reports & member directory listing' },
   { id: 'gold',    label: 'Gold Member', price: 2500, desc: 'All Silver perks + annual summit invitation', featured: true },
@@ -32,7 +32,7 @@ export default function PortalJoin() {
     address: '',
     aadharNumber: '',
     panNumber: '',
-    amount: 1,
+    amount: 10,
     tier: 'custom',
     profilePhoto: null,
     photoPreview: null,
@@ -205,7 +205,7 @@ export default function PortalJoin() {
     }
     setError(''); setLoading(true);
     const cleanAadhar = form.aadharNumber.replace(/\D/g, '');
-    const activeAmount = Math.max(1, Number(form.amount) || selectedTier.price || 1);
+    const activeAmount = Math.max(10, Number(form.amount) || selectedTier.price || 10);
 
     // Online Automated Payment Gateway via SabPaisa
     try {
@@ -698,15 +698,15 @@ export default function PortalJoin() {
                   {form.tier === 'custom' && (
                     <div style={{ marginTop: 10 }}>
                       <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
-                        Enter Custom Test / Sustaining Amount (₹, Min 1)
+                        Enter Custom Test / Sustaining Amount (₹, Min 10)
                       </label>
                       <input
                         type="number"
-                        min="1"
+                        min="10"
                         className="pt-input"
-                        placeholder="Enter amount (e.g. 1)"
+                        placeholder="Enter amount (min ₹10)"
                         value={form.amount}
-                        onChange={e => set('amount', Math.max(1, parseInt(e.target.value) || 1))}
+                        onChange={e => set('amount', Math.max(10, parseInt(e.target.value) || 10))}
                         style={{ fontWeight: 800, color: '#2563eb' }}
                       />
                     </div>

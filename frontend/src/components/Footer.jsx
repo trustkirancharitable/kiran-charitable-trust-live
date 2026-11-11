@@ -96,7 +96,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <FaClock />
-                                <span>Monâ€“Sat: 9:00 AM â€“ 6:00 PM</span>
+                                <span>Mon - Sat: 9:00 AM - 6:00 PM</span>
                             </li>
                         </ul>
                     </div>
@@ -105,7 +105,7 @@ export default function Footer() {
 
             <div className="footer-bottom">
                 <div className="container footer-bottom-inner">
-                    <p>Â© {new Date().getFullYear()} Kiran Charitable Trust. All rights reserved. Made with <FaHeart className="heart-icon" /> for humanity.</p>
+                    <p>&copy; {new Date().getFullYear()} Kiran Charitable Trust. All rights reserved. Made with <FaHeart className="heart-icon" /> for humanity.</p>
                     <div className="footer-bottom-links">
                         <Link to="/privacy-policy">Privacy Policy</Link>
                         <Link to="/terms-conditions">Terms & Conditions</Link>

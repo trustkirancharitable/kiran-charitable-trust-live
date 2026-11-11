@@ -9,14 +9,14 @@ import {
     FaUser, FaEnvelope, FaLock, FaPhone, FaShieldAlt,
     FaCheckCircle, FaCheck, FaArrowRight, FaSignInAlt, FaUserPlus,
     FaIdCard, FaCamera, FaCreditCard, FaExclamationTriangle,
-    FaHandsHelping, FaHeart, FaEye, FaEyeSlash, FaExternalLinkAlt
+    FaHandsHelping, FaHeart, FaAward, FaFileAlt, FaEye, FaEyeSlash, FaExternalLinkAlt
 } from 'react-icons/fa';
 import './MainLogin.css';
 import './portal/Portal.css';
 import './Donate.css';
 
 const TIERS = [
-    { id: 'custom', label: 'Custom / ₹1 Test Tier', price: 1, desc: 'Flexible custom amount (minimum ₹1 for testing & live verification)' },
+    { id: 'custom', label: 'Live Verification Tier', price: 10, desc: 'Live verification tier (₹10 minimum required for live UPI QR)' },
     { id: 'starter', label: 'Starter Member', price: 500, desc: 'Official digital ID card, certificate & monthly newsletter' },
     { id: 'silver', label: 'Silver Member', price: 1000, desc: 'Silver privileges, quarterly impact reports & member directory listing' },
     { id: 'gold', label: 'Gold Member', price: 2500, desc: 'All Silver perks + annual summit invitation', featured: true },
@@ -66,7 +66,7 @@ export default function MainLogin() {
         address: '',
         aadharNumber: '',
         panNumber: '',
-        amount: 1,
+        amount: 10,
         tier: 'custom',
         profilePhoto: null,
         photoPreview: null,
@@ -422,7 +422,7 @@ export default function MainLogin() {
         }
         setErrorMessage(''); setLoadingLocal(true);
         const cleanAadhar = form.aadharNumber.replace(/\D/g, '');
-        const activeAmount = Math.max(1, Number(form.amount) || selectedTier.price || 1);
+        const activeAmount = Math.max(10, Number(form.amount) || selectedTier.price || 10);
 
         try {
             const payload = {
@@ -1135,15 +1135,15 @@ export default function MainLogin() {
                                             {form.tier === 'custom' && (
                                                 <div style={{ marginTop: 10 }}>
                                                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
-                                                        Enter Custom Test / Contribution Amount (₹, Min 1)
+                                                        Enter Custom Test / Contribution Amount (₹, Min 10)
                                                     </label>
                                                     <input
                                                         type="number"
-                                                        min="1"
+                                                        min="10"
                                                         className="main-input"
-                                                        placeholder="Enter amount (e.g. 1)"
+                                                        placeholder="Enter amount (min ₹10)"
                                                         value={form.amount}
-                                                        onChange={e => setFormField('amount', Math.max(1, parseInt(e.target.value) || 1))}
+                                                        onChange={e => setFormField('amount', Math.max(10, parseInt(e.target.value) || 10))}
                                                         style={{ fontWeight: 800, color: '#0F52BA' }}
                                                     />
                                                 </div>
@@ -1263,7 +1263,7 @@ export default function MainLogin() {
                                                 </div>
                                                 <div>
                                                     <div style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1e293b' }}>
-                                                        SabPaisa 3.0 Payment Gateway (UPI, Cards, NetBanking)
+                                                        Instant Online Contribution (UPI, Cards, NetBanking)
                                                     </div>
                                                     <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
                                                         Automated real-time verification. Your Member ID is issued immediately.
@@ -1470,6 +1470,27 @@ export default function MainLogin() {
                                 <div>
                                     <div className="comp-title">NITI AAYOG NGO DARPAN</div>
                                     <div className="comp-val">AP/2023/0342918</div>
+                                </div>
+                            </div>
+                            <div className="compliance-row">
+                                <FaShieldAlt className="comp-icon" />
+                                <div>
+                                    <div className="comp-title">12A REGISTRATION URN</div>
+                                    <div className="comp-val">AAGTK5575QE20261</div>
+                                </div>
+                            </div>
+                            <div className="compliance-row">
+                                <FaAward className="comp-icon" />
+                                <div>
+                                    <div className="comp-title">80G TAX EXEMPTION URN</div>
+                                    <div className="comp-val">AAGTK5575QF20261</div>
+                                </div>
+                            </div>
+                            <div className="compliance-row">
+                                <FaIdCard className="comp-icon" />
+                                <div>
+                                    <div className="comp-title">PERMANENT ACCOUNT NUMBER (PAN)</div>
+                                    <div className="comp-val">AAGTK5575Q</div>
                                 </div>
                             </div>
                         </div>

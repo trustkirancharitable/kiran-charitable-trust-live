@@ -24,6 +24,11 @@ if (!process.env.VERCEL && dns && typeof dns.setServers === 'function') {
     }
 }
 
+const http = require('http');
+const { initializeSocketIO } = require('./services/socketService');
+const { jaegerTracingMiddleware } = require('./middleware/jaegerTracing');
+const { metricsMiddleware, getMetricsEndpoint } = require('./services/metricsService');
+const { kongGatewayMiddleware } = require('./gateway/kongGatewayMiddleware');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -45,8 +50,18 @@ app.use((req, res, next) => {
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self)');
     next();
 });
+
+// 1. Jaeger Distributed Tracing Middleware
+app.use(jaegerTracingMiddleware);
+
+// 2. Prometheus & Grafana Metrics Middleware
+app.use(metricsMiddleware);
+
+// 3. Kong-Pattern API Gateway Middleware
+app.use(kongGatewayMiddleware);
 
 // Database Connection Manager (Supports Serverless & Standalone Server)
 mongoose.set('bufferCommands', false);
@@ -139,6 +154,7 @@ app.use((req, res, next) => {
     };
     if (req.body) sanitize(req.body);
     if (req.params) sanitize(req.params);
+    if (req.query) sanitize(req.query);
     next();
 });
 
@@ -154,6 +170,10 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/donations', require('./routes/donations'));
 app.use('/api/payment', require('./routes/donations'));
 app.use('/api/contact', require('./routes/contact'));
+app.use('/api/notifications', require('./routes/notifications'));
+
+// Prometheus Scrape Endpoint for Grafana Dashboards
+app.get('/metrics', getMetricsEndpoint);
 
 // Root & Health check endpoints
 app.get('/', (req, res) => {
@@ -204,7 +224,9 @@ const { start30DayReminderScheduler } = require('./services/schedulerService');
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;
     connectDB().finally(() => {
-        app.listen(PORT, () => {
+        const httpServer = http.createServer(app);
+        initializeSocketIO(httpServer);
+        httpServer.listen(PORT, () => {
             console.log(`🚀 High-Security Server running on http://localhost:${PORT}`);
             // Start automated purge of expired sent OTP emails (older than 3 days) from Titan mailbox
             startAutoCleanupCron(24);

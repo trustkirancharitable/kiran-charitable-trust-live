@@ -7,7 +7,11 @@ const MonthlySchedule = require('../models/MonthlySchedule');
 const PerformanceMetric = require('../models/PerformanceMetric');
 const { sendPaymentSuccessEmail, sendPaymentPendingEmail, sendPaymentFailureEmail } = require('../services/emailService');
 const { autoRankDonors } = require('../services/rankingService');
-const { memoryStore, persistMemoryStore } = require('../services/supabaseService');
+const { syncPayment, memoryStore, persistMemoryStore } = require('../services/supabaseService');
+const { requireTurnstile } = require('../middleware/turnstileMiddleware');
+const { kafkaEngine, TOPICS } = require('../services/kafkaService');
+const { emitDonationLive } = require('../services/socketService');
+const { donationCounter, donationAmountCounter } = require('../services/metricsService');
 
 // Rate Limiter for payment session generation (Protects against continuous DDoS / automated bot floods)
 let paymentLimiter = (req, res, next) => next();
@@ -189,8 +193,8 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
         }
 
         const numAmount = Number(amount);
-        if (isNaN(numAmount) || numAmount < 1) {
-            return res.status(400).json({ success: false, message: 'Minimum online donation amount is ₹1.' });
+        if (isNaN(numAmount) || numAmount < 10) {
+            return res.status(400).json({ success: false, message: 'Minimum online donation amount is ₹10.' });
         }
 
         // SabPaisa PG 3.0 REST API expects amount in paise (1 INR = 100 paise)
@@ -343,6 +347,46 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
 
         if (sabpaisaData && sabpaisaData.success && sabpaisaData.checkoutUrl && sabpaisaData.clientSecret) {
             const fullCheckoutUrl = `${sabpaisaData.checkoutUrl}?clientSecret=${sabpaisaData.clientSecret}`;
+
+            // Guaranteed Dual DB & Email: Sync PENDING transaction to Supabase & MongoDB
+            try {
+                // Kafka & Metrics dispatch
+            try {
+                kafkaEngine.produce(TOPICS.DONATION_INITIATED, {
+                    clientTxnId,
+                    amount: numAmount,
+                    email,
+                    status: 'PENDING'
+                });
+                donationCounter.inc({ status: 'pending', payment_method: 'sabpaisa', purpose: payload.description || purpose || 'general' });
+            } catch (e) {}
+
+            syncPayment({
+                    fullName: sanitizedCustomerName,
+                    email: email,
+                    mobile: sanitizedCustomerPhone,
+                    amount: numAmount,
+                    purpose: payload.description || purpose,
+                    donorCategory: finalCategory,
+                    receiptNumber: donation.receiptNumber,
+                    clientTxnId: clientTxnId,
+                    paymentMethod: 'SabPaisa PG',
+                    status: 'PENDING'
+                }).catch(e => console.warn('Supabase initial pending sync notice:', e.message));
+
+                if (email) {
+                    sendPaymentPendingEmail({
+                        name: sanitizedCustomerName,
+                        email: email,
+                        amount: numAmount,
+                        transactionId: clientTxnId,
+                        purpose: payload.description || purpose
+                    }).catch(e => console.warn('Payment pending email notice:', e.message));
+                }
+            } catch (errPending) {
+                console.warn('Initial pending sync notice:', errPending.message);
+            }
+
             return res.status(200).json({
                 success: true,
                 message: 'SabPaisa checkout URL generated successfully.',
@@ -360,6 +404,93 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
     } catch (error) {
         console.error('SabPaisa Init Error:', error.message || error);
         res.status(500).json({ success: false, message: error.message || 'Payment initiation failed.' });
+    }
+});
+
+// POST /api/donations/s2s-upi — SabPaisa PG 3.0 Server-to-Server UPI (QR & Intent)
+router.post('/s2s-upi', paymentLimiter, async (req, res) => {
+    try {
+        const {
+            fullName, customerName,
+            mobile, customerPhone,
+            email, customerEmail,
+            amount,
+            paymentMode = 'UPI_QR',
+            purpose = 'Trust Contribution',
+            customMerchantId, customApiKey, customSecretKey
+        } = req.body;
+
+        const name = (fullName || customerName || 'Donor').trim();
+        const phone = String(mobile || customerPhone || '').replace(/\D/g, '').slice(-10);
+        const userEmail = (email || customerEmail || '').trim();
+        const numAmount = Number(amount);
+
+        if (!name || !phone || !userEmail || isNaN(numAmount) || numAmount < 10) {
+            return res.status(400).json({
+                success: false,
+                message: 'Name, 10-digit mobile, email, and valid amount (minimum ₹10) are required.'
+            });
+        }
+
+        const paiseAmount = Math.round(numAmount * 100);
+        const clientCode = customMerchantId || DEFAULT_CLIENT_CODE;
+        const apiKey = customApiKey || DEFAULT_API_KEY;
+        const secretKey = customSecretKey || DEFAULT_SECRET_KEY;
+        const timestamp = Math.floor(Date.now() / 1000);
+        const merchantTxnId = 'KCT-S2S-' + Date.now() + '-' + Math.floor(1000 + Math.random() * 9000);
+
+        const checksum = generateSabpaisaChecksum(clientCode, merchantTxnId, paiseAmount, timestamp, secretKey);
+
+        const s2sPayload = {
+            merchantId: clientCode,
+            merchantTxnId,
+            amount: paiseAmount,
+            currency: 'INR',
+            customerName: name.replace(/[^a-zA-Z\s]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100) || 'Donor',
+            customerEmail: userEmail,
+            customerPhone: phone,
+            paymentMode: paymentMode === 'UPI_INTENT' ? 'UPI_INTENT' : 'UPI_QR',
+            timestamp,
+            checksum
+        };
+
+        const sabpaisaRes = await fetch(DEFAULT_BASE_URL + '/api/v2/payments/s2s', {
+            method: 'POST',
+            headers: {
+                'X-Api-Key': apiKey,
+                'X-Merchant-Id': clientCode,
+                'Content-Type': 'application/json',
+                'X-Idempotency-Key': merchantTxnId
+            },
+            body: JSON.stringify(s2sPayload)
+        });
+
+        const s2sData = await sabpaisaRes.json();
+        console.log('SabPaisa S2S response status:', sabpaisaRes.status, s2sData);
+
+        if (s2sData.success) {
+            return res.status(201).json({
+                success: true,
+                paymentMode: s2sData.paymentMode,
+                upiQrString: s2sData.upiQrString,
+                intentUrl: s2sData.intentUrl,
+                paymentId: s2sData.paymentId,
+                merchantTxnId: s2sData.merchantTxnId || merchantTxnId,
+                amount: numAmount,
+                message: s2sData.message || 'S2S payment initiated successfully.'
+            });
+        }
+
+        return res.status(sabpaisaRes.status).json({
+            success: false,
+            errorCode: s2sData.errorCode,
+            errorMessage: s2sData.errorMessage || 'SabPaisa S2S request rejected.',
+            traceId: s2sData.traceId,
+            details: s2sData
+        });
+    } catch (err) {
+        console.error('SabPaisa S2S API Error:', err.message);
+        return res.status(500).json({ success: false, message: err.message });
     }
 });
 
@@ -610,6 +741,27 @@ const handleCallback = async (req, res) => {
                 }).catch(e => console.warn('Payment success email err:', e.message));
 
                 // Dispatch copy to Trust Admin
+                // Kafka Stream & Real-Time Socket.IO Live Alert
+                try {
+                    kafkaEngine.produce(TOPICS.DONATION_COMPLETED, {
+                        clientTxnId,
+                        transactionId: pgTxnNo || clientTxnId,
+                        amount: Number(finalAmount),
+                        fullName: finalName,
+                        email: finalEmail,
+                        purpose: finalPurpose,
+                        receiptNumber: finalReceipt
+                    });
+                    emitDonationLive({
+                        fullName: finalName,
+                        amount: Number(finalAmount),
+                        purpose: finalPurpose,
+                        isAnonymous: Boolean(donation?.isAnonymous)
+                    });
+                    donationCounter.inc({ status: 'success', payment_method: 'sabpaisa', purpose: finalPurpose });
+                    donationAmountCounter.inc({ purpose: finalPurpose, donor_category: finalCategory }, Number(finalAmount));
+                } catch (e) {}
+
                 if (finalEmail.toLowerCase() !== 'trustkirancharitable@gmail.com') {
                     sendPaymentSuccessEmail({
                         name: `${finalName} (Trust Office Copy)`,
@@ -646,6 +798,27 @@ const handleCallback = async (req, res) => {
                     console.log(`📧 Payment failure alert notice delivered to: ${finalEmail}`);
                 }).catch(e => console.warn('Payment failure email err:', e.message));
             }
+        }
+
+        // Guaranteed Dual DB sync to Supabase for EVERY status (SUCCESS, FAILED, PENDING)
+        try {
+            syncPayment({
+                fullName: finalName,
+                email: finalEmail,
+                mobile: finalMobile,
+                amount: Number(finalAmount),
+                purpose: finalPurpose,
+                donorCategory: finalCategory,
+                receiptNumber: finalReceipt,
+                transactionId: pgTxnNo || clientTxnId,
+                clientTxnId: clientTxnId,
+                paymentMethod: 'SabPaisa PG',
+                status: isSuccess ? 'SUCCESS' : (isPending ? 'PENDING' : 'FAILED'),
+                failureReason: isSuccess ? '' : failureReason,
+                isAnonymous: false
+            }).catch(e => console.warn('Supabase callback sync notice:', e.message));
+        } catch (sbErr) {
+            console.warn('Supabase sync notice in callback:', sbErr.message);
         }
 
         // Update Memory Store and Disk Persistence on successful payment
@@ -862,7 +1035,7 @@ const handleCallback = async (req, res) => {
         } else if (isPending) {
             return sendBreakoutHtml(res, `${clientRedirectUrl}${targetPage}${querySep}status=pending&txnId=${encodeURIComponent(pgTxnNo || clientTxnId || '')}&txId=${encodeURIComponent(pgTxnNo || clientTxnId || '')}&clientTxnId=${encodeURIComponent(clientTxnId || '')}&amount=${encodeURIComponent(finalAmount)}&name=${encodeURIComponent(finalName)}${tokenQuery}`, 'pending');
         } else {
-            return sendBreakoutHtml(res, `${clientRedirectUrl}${targetPage}${querySep}status=failed&txnId=${encodeURIComponent(pgTxnNo || clientTxnId || '')}&txId=${encodeURIComponent(pgTxnNo || clientTxnId || '')}&amount=${encodeURIComponent(finalAmount)}&name=${encodeURIComponent(finalName)}&reason=${encodeURIComponent(failureReason)}${tokenQuery}`, 'failed');
+            return sendBreakoutHtml(res, `${clientRedirectUrl}${targetPage}${querySep}status=failed&txnId=${encodeURIComponent(pgTxnNo || clientTxnId || '')}&txId=${encodeURIComponent(pgTxnNo || clientTxnId || '')}&clientTxnId=${encodeURIComponent(clientTxnId || '')}&amount=${encodeURIComponent(finalAmount)}&name=${encodeURIComponent(finalName)}&email=${encodeURIComponent(finalEmail || '')}&mobile=${encodeURIComponent(finalMobile || '')}&address=${encodeURIComponent(finalAddress || '')}&purpose=${encodeURIComponent(finalPurpose || '')}&reason=${encodeURIComponent(failureReason)}${tokenQuery}`, 'failed');
         }
 
     } catch (error) {
@@ -1055,8 +1228,8 @@ router.post('/', async (req, res) => {
             if (!amount || !purpose || !paymentMethod) {
                 return res.status(400).json({ success: false, message: 'Amount, purpose and payment method are required for cash donation' });
             }
-            if (numAmount < 1) {
-                return res.status(400).json({ success: false, message: 'Donation amount must be at least ₹1' });
+            if (numAmount < 10) {
+                return res.status(400).json({ success: false, message: 'Donation amount must be at least ₹10' });
             }
         } else {
             if (!itemCategory || !itemName || !itemQuantity || !deliveryMethod) {

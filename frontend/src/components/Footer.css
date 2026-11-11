@@ -197,10 +197,17 @@
 
 .footer-bottom p {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.5);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.footer-bottom p .heart-icon,
+.heart-icon {
+    color: #3b82f6;
+    display: inline-block;
+    vertical-align: -2px;
+    margin: 0 4px;
 }
 
 .heart-icon {

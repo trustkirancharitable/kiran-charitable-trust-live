@@ -48,6 +48,25 @@ router.get('/leaderboard', async (req, res) => {
             console.warn('Leaderboard trust member read notice:', dbErr.message);
         }
 
+        // Fallback for trustMembersWall if MongoDB is not connected
+        if (!trustMembersWall || trustMembersWall.length === 0) {
+            const { memoryStore } = require('../services/supabaseService');
+            if (memoryStore && Array.isArray(memoryStore.trust_members)) {
+                trustMembersWall = memoryStore.trust_members
+                    .filter(m => m.approvalStatus === 'active' && !m.isDeleted)
+                    .map(m => ({
+                        name: m.name,
+                        profilePhoto: m.profilePhoto || '',
+                        donationAmount: m.donationAmount || 0,
+                        memberId: m.memberId || '',
+                        totalDonated: m.totalDonated || 0,
+                        createdAt: m.createdAt || new Date(),
+                        subscriptionTier: m.subscriptionTier || 'Trust Member'
+                    }))
+                    .sort((a, b) => (b.totalDonated || 0) - (a.totalDonated || 0));
+            }
+        }
+
         // Optional search and filter query processing
         let honors = leaderboard.honorsList || [];
         const { search, tier, period } = req.query;

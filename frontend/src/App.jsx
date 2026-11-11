@@ -12,7 +12,7 @@ import FounderDesk from './pages/FounderDesk'
 import Activities from './pages/Activities'
 import Gallery from './pages/Gallery'
 import Volunteers from './pages/Volunteers'
-import TrustMemberRegister from './pages/TrustMemberRegister'
+
 import TrustMembership from './pages/TrustMembership'
 import PortalLayout from './pages/portal/PortalLayout'
 import PortalHome from './pages/portal/PortalHome'
@@ -113,15 +113,15 @@ function App() {
                 <Route path="/trust-members" element={<TrustMembers />} />
                 <Route path="/members" element={<TrustMembers />} />
                 <Route path="/trust-membership" element={<TrustMembership />} />
-                <Route path="/register/trust-member" element={<TrustMemberRegister />} />
+                <Route path="/register/trust-member" element={<Navigate to="/login?tab=register" replace />} />
                 <Route path="/monthly-donor" element={<TrustMembership />} />
                 <Route path="/subscribe" element={<TrustMembership />} />
 
                 {/* Official Main Website Login & Registration (Full Header & Footer) */}
                 <Route path="/login" element={<MainLogin />} />
-                <Route path="/signin" element={<MainLogin />} />
-                <Route path="/register" element={<MainLogin />} />
-                <Route path="/join" element={<MainLogin />} />
+                <Route path="/signin" element={<Navigate to="/login" replace />} />
+                <Route path="/register" element={<Navigate to="/login?tab=register" replace />} />
+                <Route path="/join" element={<Navigate to="/login?tab=register" replace />} />
 
                 {/* User Dashboard & Profile redirects into Member Portal */}
                 <Route path="/dashboard" element={<Navigate to="/portal/profile" replace />} />

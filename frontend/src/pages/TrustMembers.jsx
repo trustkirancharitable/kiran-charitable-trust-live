@@ -14,6 +14,10 @@ import {
     FaUserPlus
 } from 'react-icons/fa';
 import './TrustMembers.css';
+import ChairmanImg from '../assets/Pallepogu Kiranbabu Chairman.jpeg';
+import TreasurerImg from '../assets/Srungarapati Rakesh Treasurer.jpeg';
+import ViceChairmanImg from '../assets/Konda Ravi Teja Vice Chairman.png';
+import ExecutiveImg from '../assets/Konda Ravi Bharath Executive.png';
 
 export default function TrustMembers() {
     const [boardOfTrustees, setBoardOfTrustees] = useState([]);
@@ -23,7 +27,7 @@ export default function TrustMembers() {
     // Search, Filter, Sort & Pagination State
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRole, setSelectedRole] = useState('ALL');
-    const [sortOption, setSortOption] = useState('az'); // 'az' | 'za' | 'newest' | 'role'
+    const [sortOption, setSortOption] = useState('default'); // 'az' | 'za' | 'newest' | 'role'
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 16; // 4x4 clean grid of 16 members per page
 
@@ -68,8 +72,30 @@ export default function TrustMembers() {
             list = list.filter(m => (m.role || '').toLowerCase() === selectedRole.toLowerCase());
         }
 
-        // 3. Sorting
+        // 3. Sorting with Core 4 Leadership Members Always Coming First
+        const CORE_LEADERS = [
+            'Pallepogu Kiranbabu',
+            'Konda Ravi Teja',
+            'Srungarapati Rakesh',
+            'Konda Ravi Bharath'
+        ];
+
         list.sort((a, b) => {
+            const aCoreIdx = CORE_LEADERS.indexOf(a.name);
+            const bCoreIdx = CORE_LEADERS.indexOf(b.name);
+            const aIsCore = aCoreIdx !== -1;
+            const bIsCore = bCoreIdx !== -1;
+
+            // Core members always appear before non-core members
+            if (aIsCore && !bIsCore) return -1;
+            if (!aIsCore && bIsCore) return 1;
+
+            // When both are core members: always preserve official leadership hierarchy (1: Chairman, 2: Vice Chairman, 3: Treasurer, 4: Executive Member)
+            if (aIsCore && bIsCore) {
+                return aCoreIdx - bCoreIdx;
+            }
+
+            // Normal sorting for non-core members
             if (sortOption === 'az') return (a.name || '').localeCompare(b.name || '');
             if (sortOption === 'za') return (b.name || '').localeCompare(a.name || '');
             if (sortOption === 'newest') return new Date(b.joinDate || 0) - new Date(a.joinDate || 0);
@@ -93,13 +119,20 @@ export default function TrustMembers() {
     }, [filteredMembers, currentPage, pageSize]);
 
     // Default board of 5 trustees if API is still loading
-    const displayBoard = boardOfTrustees.length > 0 ? boardOfTrustees : [
+    const defaultBoardPhotos = {
+        'Pallepogu Kiranbabu': ChairmanImg,
+        'Konda Ravi Teja': ViceChairmanImg,
+        'Srungarapati Rakesh': TreasurerImg,
+        'Konda Ravi Bharath': ExecutiveImg
+    };
+
+    const displayBoard = (boardOfTrustees.length > 0 ? boardOfTrustees : [
         { roleLabel: 'President', name: 'Sri P. Subba Rao', highlight: false },
-        { roleLabel: 'Vice Chairperson', name: 'Konda Ravi Teja', highlight: false },
-        { roleLabel: 'Chairperson', name: 'Pallepogu Kiranbabu', highlight: true },
-        { roleLabel: 'Secretary', name: 'Smt. P. Lakshmi Devi', highlight: false },
-        { roleLabel: 'Treasurer', name: 'Srungarapati Rakesh', highlight: false },
-    ];
+        { roleLabel: 'Vice Chairperson', name: 'Konda Ravi Teja', highlight: false, photo: ViceChairmanImg },
+        { roleLabel: 'Chairperson', name: 'Pallepogu Kiranbabu', highlight: true, photo: ChairmanImg },
+        { roleLabel: 'Executive Member', name: 'Konda Ravi Bharath', highlight: false, photo: ExecutiveImg },
+        { roleLabel: 'Treasurer', name: 'Srungarapati Rakesh', highlight: false, photo: TreasurerImg }
+    ]).map(t => ({ ...t, photo: t.photo || defaultBoardPhotos[t.name] || null }));
 
     return (
         <div className="tm-template-container">
@@ -152,7 +185,15 @@ export default function TrustMembers() {
                                         <FaAward className="tm-laurel-icon" />
                                     </div>
                                     <div className="tm-trustee-avatar">
-                                        <FaUser />
+                                        {trustee.photo ? (
+                                            <img
+                                                src={trustee.photo}
+                                                alt={trustee.name}
+                                                className="tm-trustee-avatar-img"
+                                            />
+                                        ) : (
+                                            <FaUser />
+                                        )}
                                     </div>
                                     <div className="tm-laurel-branch right">
                                         <FaAward className="tm-laurel-icon" />

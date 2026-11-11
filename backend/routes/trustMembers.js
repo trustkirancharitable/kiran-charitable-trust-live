@@ -533,12 +533,13 @@ router.get('/public-list', async (req, res) => {
                 highlight: true
             },
             {
-                roleKey: 'secretary',
-                roleLabel: 'Secretary',
-                name: 'Smt. P. Lakshmi Devi',
+                roleKey: 'executive_member',
+                roleLabel: 'Executive Member',
+                name: 'Konda Ravi Bharath',
                 city: 'Guntur',
                 state: 'Andhra Pradesh',
-                highlight: false
+                highlight: false,
+                photo: '/src/assets/Konda Ravi Bharath Executive.png'
             },
             {
                 roleKey: 'treasurer',
@@ -551,6 +552,54 @@ router.get('/public-list', async (req, res) => {
         ];
 
         let members = [];
+
+        const leadershipTrustees = [
+            {
+                name: 'Pallepogu Kiranbabu',
+                memberId: 'KCT-TR-001',
+                role: 'Founder & Chairman',
+                city: 'Mandepudi',
+                state: 'AP',
+                profilePhoto: '/src/assets/Pallepogu Kiranbabu Chairman.jpeg',
+                description: 'Leading conceptualization, public welfare administration, and structural development of the trust.',
+                subscriptionTier: 'Patron Trustee',
+                joinDate: '2024-01-01'
+            },
+            {
+                name: 'Konda Ravi Teja',
+                memberId: 'KCT-TR-002',
+                role: 'Vice Chairman',
+                city: 'Palnadu',
+                state: 'AP',
+                profilePhoto: '/src/assets/Konda Ravi Teja Vice Chairman.png',
+                description: 'Steering structural development, coordinating board decisions, and managing public outreach programs of the trust.',
+                subscriptionTier: 'Executive Trustee',
+                joinDate: '2024-01-05'
+            },
+            {
+                name: 'Srungarapati Rakesh',
+                memberId: 'KCT-TR-003',
+                role: 'Treasurer',
+                city: 'Narasaraopet',
+                state: 'AP',
+                profilePhoto: '/src/assets/Srungarapati Rakesh Treasurer.jpeg',
+                description: 'Overseeing financial management, accountability, compliance, and complete transparency in the distribution of resources.',
+                subscriptionTier: 'Executive Trustee',
+                joinDate: '2024-01-08'
+            },
+            {
+                name: 'Konda Ravi Bharath',
+                memberId: 'KCT-TR-004',
+                role: 'Executive Member',
+                city: 'Guntur',
+                state: 'AP',
+                profilePhoto: '/src/assets/Konda Ravi Bharath Executive.png',
+                description: 'Supervising field execution, volunteer operations, and direct community distribution work across regions.',
+                subscriptionTier: 'Executive Member',
+                joinDate: '2024-01-10'
+            }
+        ];
+        members.push(...leadershipTrustees);
 
         try {
             if (mongoose.connection?.readyState === 1) {
@@ -592,11 +641,13 @@ router.get('/public-list', async (req, res) => {
             console.warn('Public list DB notice:', dbErr.message);
         }
 
-        // Merge memory store if DB empty
-        if (members.length === 0 && require('../services/supabaseService').memoryStore?.trust_members?.length > 0) {
+        // Merge memory store members with leadership trustees
+        const { memoryStore } = require('../services/supabaseService');
+        if (memoryStore?.trust_members?.length > 0) {
+            const existingNames = new Set(members.map(m => (m.name || '').toLowerCase().trim()));
             const rolesPool = ['Trustee', 'Member', 'Advisor', 'Executive Member'];
-            members = require('../services/supabaseService').memoryStore.trust_members
-                .filter(m => m.approvalStatus !== 'deleted' && !m.isDeleted)
+            const extra = memoryStore.trust_members
+                .filter(m => m.approvalStatus !== 'deleted' && !m.isDeleted && !existingNames.has((m.name || '').toLowerCase().trim()))
                 .map((m, idx) => ({
                     name: m.name,
                     memberId: m.memberId || m.member_id || `KCT-MEM-${1050 + idx}`,
@@ -607,6 +658,7 @@ router.get('/public-list', async (req, res) => {
                     subscriptionTier: m.subscriptionTier || m.subscription_tier || 'Starter Member',
                     joinDate: m.createdAt || m.created_at || new Date().toISOString()
                 }));
+            members.push(...extra);
         }
 
         return res.json({

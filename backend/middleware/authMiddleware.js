@@ -113,8 +113,9 @@ const requireAuth = async (req, res, next) => {
 const requireAdmin = async (req, res, next) => {
     return requireAuth(req, res, () => {
         // Allow if role is admin or if admin email matches
-        const adminEmail = (process.env.EMAIL_USER || 'trustkirancharitable@gmail.com').toLowerCase();
-        if (req.user && (req.user.role === 'admin' || (req.user.email && req.user.email.toLowerCase() === adminEmail))) {
+        const adminEmails = [(process.env.ADMIN_EMAIL || '').toLowerCase(), (process.env.EMAIL_USER || '').toLowerCase(), 'trustkirancharitable@gmail.com'].filter(Boolean);
+        const userEmail = (req.user?.email || '').toLowerCase();
+        if (req.user && (req.user.role === 'admin' || adminEmails.includes(userEmail))) {
             return next();
         }
         return res.status(403).json({ success: false, message: 'Admin access required' });

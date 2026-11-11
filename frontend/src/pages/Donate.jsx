@@ -34,7 +34,9 @@ import {
     FaCalendarAlt,
     FaBolt,
     FaArrowRight,
-    FaRupeeSign
+    FaRupeeSign,
+    FaExclamationTriangle,
+    FaSyncAlt
 } from 'react-icons/fa';
 import { API_BASE_URL } from '../config';
 import './Donate.css';
@@ -104,8 +106,9 @@ export default function Donate() {
     // Copy Feedback
     const [copiedKey, setCopiedKey] = useState(null);
 
-    // Modal State: Direct Monthly Contribution Dialog
-    const [showMonthlyModal, setShowMonthlyModal] = useState(false);
+    // Modal States: Choice Popup & Direct Monthly Contribution Dialog (Opened by default on page visit)
+    const [showPaymentChoiceModal, setShowPaymentChoiceModal] = useState(false);
+    const [showMonthlyModal, setShowMonthlyModal] = useState(true);
 
     // Monthly AutoPay Dialog State
     const [monthlyAmount, setMonthlyAmount] = useState(500);
@@ -118,6 +121,7 @@ export default function Donate() {
 
     // Receipt / Success Certificate Modal
     const [receiptData, setReceiptData] = useState(null);
+    const [paymentFailureModal, setPaymentFailureModal] = useState(null);
 
     const effectiveAmount = isCustomAmount ? (Number(customAmountValue) || 0) : selectedAmount;
 
@@ -153,6 +157,48 @@ export default function Donate() {
                 pan: searchParams.get('pan') || 'AAGTK5575Q'
             });
             toast.success('Donation completed successfully! 80G Tax Exemption Receipt generated.');
+        } else if (status === 'failed' || status === 'timeout' || status === 'cancelled') {
+            // Restore details from query string or localStorage
+            let restoredName = searchParams.get('name') || '';
+            let restoredEmail = searchParams.get('email') || '';
+            let restoredMobile = searchParams.get('mobile') || '';
+            let restoredAddress = searchParams.get('address') || '';
+            let restoredPurpose = searchParams.get('purpose') || '';
+            let restoredAmt = Number(searchParams.get('amount') || 0);
+
+            try {
+                const saved = JSON.parse(localStorage.getItem('kct_last_donation_form') || '{}');
+                if (!restoredName && saved.fullName) restoredName = saved.fullName;
+                if (!restoredEmail && saved.email) restoredEmail = saved.email;
+                if (!restoredMobile && saved.mobileNumber) restoredMobile = saved.mobileNumber;
+                if (!restoredAddress && saved.address) restoredAddress = saved.address;
+                if (saved.panNumber) setPanNumber(saved.panNumber);
+                if (!restoredPurpose && saved.purpose) restoredPurpose = saved.purpose;
+                if (!restoredAmt && (saved.effectiveAmount || saved.amount)) restoredAmt = Number(saved.effectiveAmount || saved.amount);
+            } catch (e) {}
+
+            if (restoredName) setFullName(restoredName);
+            if (restoredEmail) setEmail(restoredEmail);
+            if (restoredMobile) setMobileNumber(restoredMobile);
+            if (restoredAddress) setAddress(restoredAddress);
+            if (restoredPurpose) setPurpose(restoredPurpose);
+            if (restoredAmt && restoredAmt >= 5) {
+                if (presetAmounts.includes(restoredAmt)) {
+                    setSelectedAmount(restoredAmt);
+                    setIsCustomAmount(false);
+                } else {
+                    setIsCustomAmount(true);
+                    setCustomAmountValue(restoredAmt);
+                }
+            }
+
+            const rawReason = searchParams.get('reason') || 'Payment session timed out or was cancelled by the bank.';
+            setPaymentFailureModal({
+                name: restoredName,
+                amount: restoredAmt || selectedAmount,
+                reason: rawReason,
+                txnId: txnId || searchParams.get('clientTxnId') || ''
+            });
         }
     }, [searchParams]);
 
@@ -198,11 +244,12 @@ export default function Donate() {
         }
 
         if (contributionType === 'cash') {
-            if (effectiveAmount < 1) {
-                return toast.error('Please select or enter a valid contribution amount.');
+            if (effectiveAmount < 10) {
+                return toast.error('Minimum donation amount is ₹10. Please enter ₹10 or more.');
             }
-            // Directly execute payment without separate choice modal
-            return executePayNow();
+            setMonthlyAmount(Math.max(100, effectiveAmount));
+            // Open the choice dialog: Pay Now or Monthly Contribute
+            setShowPaymentChoiceModal(true);
         } else {
             // In-Kind Contribution Pledge
             setIsSubmitting(true);
@@ -224,6 +271,7 @@ export default function Donate() {
 
     // Execute Immediate One-Time Contribution
     const executePayNow = async () => {
+        setShowPaymentChoiceModal(false);
         setIsSubmitting(true);
         try {
             // If direct bank or QR code chosen, generate instant official receipt record
@@ -272,7 +320,7 @@ export default function Donate() {
                 });
 
                 if (res.data?.success && (res.data.checkoutUrl || res.data.paymentUrl)) {
-                    toast.info('Connecting to SabPaisa secure payment gateway...');
+                    toast.info('Connecting to secure online payment...');
                     window.location.href = res.data.checkoutUrl || res.data.paymentUrl;
                     return;
                 } else {
@@ -371,6 +419,13 @@ export default function Donate() {
                         <Link to="/donors" className="dp-hero-action-btn donors">
                             <FaTrophy style={{ color: '#d97706' }} /> Top Donors Leaderboard
                         </Link>
+                        <button
+                            type="button"
+                            className="dp-hero-action-btn monthly"
+                            onClick={() => setShowMonthlyModal(true)}
+                        >
+                            <FaCalendarAlt style={{ color: '#0052cc' }} /> Set Up Monthly Contribution
+                        </button>
                         <Link to="/login?tab=register" className="dp-hero-action-btn monthly">
                             <FaHeart style={{ color: '#0052cc' }} /> Join as Trust Member
                         </Link>
@@ -716,6 +771,14 @@ export default function Donate() {
                             </button>
                             <button
                                 type="button"
+                                className="dp-type-tab-btn monthly-tab-btn"
+                                onClick={() => setShowMonthlyModal(true)}
+                                title="Open Monthly Contribution Dialogue"
+                            >
+                                <FaCalendarAlt style={{ color: '#2563eb' }} /> Monthly AutoPay
+                            </button>
+                            <button
+                                type="button"
                                 className={`dp-type-tab-btn ${contributionType === 'item' ? 'active' : ''}`}
                                 onClick={() => setContributionType('item')}
                             >
@@ -767,8 +830,8 @@ export default function Donate() {
                                                 <span className="dp-input-rupee"><FaRupeeSign /></span>
                                                 <input
                                                     type="number"
-                                                    min="1"
-                                                    placeholder="Enter amount (e.g. 15,000)"
+                                                    min="10"
+                                                    placeholder="Enter amount (min ₹10)"
                                                     value={customAmountValue}
                                                     onChange={(e) => setCustomAmountValue(e.target.value)}
                                                     className="dp-custom-input"
@@ -1101,7 +1164,110 @@ export default function Donate() {
             )}
 
             {/* ════════════════════════════════════════════════════════════
-                POPUP: DEDICATED MONTHLY CONTRIBUTION DIALOGUE BOX
+                POPUP 1: PAYMENT PREFERENCE CHOICE (PAY NOW vs MONTHLY)
+               ════════════════════════════════════════════════════════════ */}
+            {showPaymentChoiceModal && (
+                <div className="dp-modal-overlay" onClick={() => setShowPaymentChoiceModal(false)}>
+                    <div className="dp-modal-box dp-choice-modal-box" onClick={(e) => e.stopPropagation()}>
+                        <div className="dp-modal-header">
+                            <h3><FaHeart style={{ color: '#ef4444' }} /> Choose Contribution Method</h3>
+                            <button
+                                type="button"
+                                className="dp-modal-close"
+                                onClick={() => setShowPaymentChoiceModal(false)}
+                                title="Close"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="dp-choice-modal-body">
+                            <div className="dp-choice-donor-summary">
+                                Contribution for <strong>{fullName}</strong>: <span className="dp-choice-amt-badge">₹{effectiveAmount.toLocaleString('en-IN')}</span>
+                            </div>
+                            <p className="dp-choice-lead-text">
+                                Please select how you would like to complete your contribution:
+                            </p>
+
+                            <div className="dp-choice-cards-grid">
+                                {/* Option 1: Pay Now (One-Time) */}
+                                <div
+                                    className="dp-choice-option-card one-time"
+                                    onClick={executePayNow}
+                                    role="button"
+                                    tabIndex={0}
+                                >
+                                    <div className="dp-choice-option-header">
+                                        <div className="dp-choice-icon-wrap bolt">
+                                            <FaBolt />
+                                        </div>
+                                        <div className="dp-choice-option-title-group">
+                                            <h4>Pay Now (One-Time)</h4>
+                                            <span className="dp-choice-sub">Instant single contribution</span>
+                                        </div>
+                                    </div>
+                                    <p className="dp-choice-desc">
+                                        Make an immediate one-time payment of <strong>₹{effectiveAmount.toLocaleString('en-IN')}</strong> via UPI, NetBanking, Debit/Credit Card or QR code.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="dp-choice-btn pay-now"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            executePayNow();
+                                        }}
+                                    >
+                                        <FaBolt /> Pay ₹{effectiveAmount.toLocaleString('en-IN')} Now
+                                    </button>
+                                </div>
+
+                                {/* Option 2: Monthly Contribution (AutoPay) */}
+                                <div
+                                    className="dp-choice-option-card monthly"
+                                    onClick={() => {
+                                        setShowPaymentChoiceModal(false);
+                                        setShowMonthlyModal(true);
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                >
+                                    <div className="dp-choice-badge-rec">Recommended for Continuous Impact</div>
+                                    <div className="dp-choice-option-header">
+                                        <div className="dp-choice-icon-wrap calendar">
+                                            <FaCalendarAlt />
+                                        </div>
+                                        <div className="dp-choice-option-title-group">
+                                            <h4>Monthly Contribution</h4>
+                                            <span className="dp-choice-sub">Automated recurring philanthropy</span>
+                                        </div>
+                                    </div>
+                                    <p className="dp-choice-desc">
+                                        Set up a recurring monthly donation of <strong>₹{effectiveAmount.toLocaleString('en-IN')}/month</strong> to provide continuous support for food and education.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="dp-choice-btn monthly-act"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowPaymentChoiceModal(false);
+                                            setShowMonthlyModal(true);
+                                        }}
+                                    >
+                                        <FaCalendarAlt /> Set Up Monthly AutoPay
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="dp-choice-guarantee-note">
+                                <FaShieldAlt style={{ color: '#10b981' }} /> Both options are 100% tax exempt under Section 80G. AutoPay can be modified or paused anytime.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════
+                POPUP 2: DEDICATED MONTHLY CONTRIBUTION DIALOGUE BOX
                ════════════════════════════════════════════════════════════ */}
             {showMonthlyModal && (
                 <div className="dp-modal-overlay" onClick={() => setShowMonthlyModal(false)}>
@@ -1303,6 +1469,76 @@ export default function Donate() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════════════
+                PAYMENT FAILED / TIMED OUT POPUP DIALOG BOX
+               ════════════════════════════════════════════════════════════ */}
+            {paymentFailureModal && (
+                <div className="payment-failure-dialog-overlay" onClick={() => setPaymentFailureModal(null)}>
+                    <div className="payment-failure-dialog-box" onClick={e => e.stopPropagation()}>
+                        <button className="failure-close-btn" onClick={() => setPaymentFailureModal(null)} title="Close">
+                            <FaTimes />
+                        </button>
+                        <div className="failure-dialog-icon">
+                            <FaExclamationTriangle />
+                        </div>
+                        <h3 className="failure-dialog-title">Payment Unsuccessful / Timed Out</h3>
+                        <p className="failure-dialog-desc">
+                            Your payment session was not completed or timed out on the banking gateway.
+                            We have safely restored all your contribution details below so you can retry seamlessly without re-typing.
+                        </p>
+                        <div className="failure-dialog-details">
+                            <div className="failure-detail-row">
+                                <span>Donor Name:</span>
+                                <strong>{paymentFailureModal.name || fullName || 'Donor'}</strong>
+                            </div>
+                            <div className="failure-detail-row">
+                                <span>Contribution Amount:</span>
+                                <strong style={{ color: '#059669', fontSize: '16px' }}>₹{paymentFailureModal.amount || effectiveAmount}</strong>
+                            </div>
+                            <div className="failure-detail-row">
+                                <span>Status / Reason:</span>
+                                <span style={{ color: '#dc2626', fontWeight: 600 }}>{paymentFailureModal.reason}</span>
+                            </div>
+                            {paymentFailureModal.txnId && (
+                                <div className="failure-detail-row">
+                                    <span>Transaction Ref:</span>
+                                    <code style={{ fontSize: '11px', color: '#64748b' }}>{paymentFailureModal.txnId}</code>
+                                </div>
+                            )}
+                        </div>
+                        <div className="failure-dialog-actions">
+                            <button
+                                type="button"
+                                className="btn btn-primary failure-retry-btn"
+                                onClick={() => {
+                                    setPaymentFailureModal(null);
+                                    setTimeout(() => {
+                                        const formEl = document.querySelector('.donate-form-container') || document.querySelector('.donation-action-card');
+                                        if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
+                                    }, 100);
+                                }}
+                            >
+                                <FaSyncAlt /> Retry Contribution Now
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-secondary failure-bank-btn"
+                                onClick={() => {
+                                    setPaymentFailureModal(null);
+                                    setPaymentMode('bank');
+                                    setTimeout(() => {
+                                        const bankEl = document.getElementById('direct-bank-details');
+                                        if (bankEl) bankEl.scrollIntoView({ behavior: 'smooth' });
+                                    }, 100);
+                                }}
+                            >
+                                <FaUniversity /> Pay via Direct Bank NEFT / QR
+                            </button>
                         </div>
                     </div>
                 </div>

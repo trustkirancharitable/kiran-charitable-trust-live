@@ -31,6 +31,8 @@ backend/config/
 *.json
 !package*.json
 !tsconfig*.json
+!backend/data/local_store.json
+!*vercel.json
 
 trust-portal-standalone/
 

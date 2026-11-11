@@ -186,6 +186,36 @@ async function autoRankDonors() {
             });
         }
 
+        // 2b. Ingest Memory Store active Trust Members
+        if (memoryStore && Array.isArray(memoryStore.trust_members)) {
+            memoryStore.trust_members.forEach(m => {
+                if (m.approvalStatus === 'active' && !m.isDeleted) {
+                    const key = (m.email || m.phone || m.name).toLowerCase().trim();
+                    const amt = Number(m.totalDonated) || Number(m.donationAmount) || 0;
+                    if (amt > 0) {
+                        if (!donorMap.has(key)) {
+                            donorMap.set(key, { 
+                                name: m.name, 
+                                email: m.email || '',
+                                phone: m.phone || '',
+                                photo: m.profilePhoto || '', 
+                                city: m.city || 'Guntur',
+                                state: m.state || 'Andhra Pradesh',
+                                purpose: 'Trust Membership',
+                                lastDonatedAt: m.createdAt || new Date(),
+                                totalDonated: 0, 
+                                count: 0 
+                            });
+                        }
+                        const record = donorMap.get(key);
+                        record.totalDonated += amt;
+                        record.count += 1;
+                        if (m.profilePhoto && !record.photo) record.photo = m.profilePhoto;
+                    }
+                }
+            });
+        }
+
         // 3. Helper to determine Giving Society Tier
         const getTierDetails = (amount, rank) => {
             if (rank === 1) return { tierName: 'Chief Benefactor', tierBadge: 'Gold Champion', level: 1 };

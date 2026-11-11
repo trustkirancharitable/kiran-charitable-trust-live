@@ -190,28 +190,37 @@ const PAYMENT_METHODS = [
 async function seedDonors() {
     console.log(`Starting generation of ${DONOR_PROFILES.length} verified donor records...`);
 
-    // Base date range: Jan 2025 to Nov 2026 (spread over ~670 days)
-    const baseStartTime = new Date('2025-01-10T09:30:00.000Z').getTime();
+    // Distribute timestamps realistically so Day, Week, Month, Year, and Overall all have rich active data
     const nowTime = Date.now();
-    const timeSpan = nowTime - baseStartTime;
-
     const seededPayments = [];
     const mongoDocs = [];
 
     DONOR_PROFILES.forEach((profile, index) => {
-        // Distribute timestamp realistically across the period
-        const progress = index / DONOR_PROFILES.length;
-        const recordTime = new Date(baseStartTime + (progress * timeSpan) + (Math.sin(index) * 86400000 * 2));
+        let ageMs;
+        if (index < 5) {
+            ageMs = (index * 6 * 3600 * 1000) + ((index * 37) % 59) * 60000;
+        } else if (index < 20) {
+            ageMs = (24 + (index - 5) * 1.5) * 3600 * 1000;
+        } else if (index < 45) {
+            ageMs = (2 + (index - 20) * 0.2) * 86400 * 1000;
+        } else if (index < 85) {
+            ageMs = (8 + (index - 45) * 0.5) * 86400 * 1000;
+        } else if (index < 135) {
+            ageMs = (30 + (index - 85) * 6) * 86400 * 1000;
+        } else {
+            ageMs = (340 + (index - 135) * 15) * 86400 * 1000;
+        }
+        const recordTime = new Date(nowTime - ageMs);
         
-        // Sanitize email slug
+    // Sanitize email slug
         const emailSlug = profile.name.toLowerCase()
             .replace(/^(dr|smt|er|sri)\.?\s+/g, '')
             .replace(/[^a-z0-9]/g, '')
             .slice(0, 15);
         const email = `${emailSlug}_${100 + index}@gmail.com`;
 
-        const mobile = `+91 9${Math.floor(100000000 + (index * 5892341) % 899999999)}`;
-        const panNumber = `AAGTK${Math.floor(1000 + (index * 37) % 8999)}P`;
+        const mobile = `+91 9${Math.floor(10 + (index * 7) % 89)}****${Math.floor(1000 + (index * 37) % 8999)}`;
+        const panNumber = `AAGTK****${String.fromCharCode(65 + (index % 26))}`;
         const purpose = INITIATIVES[index % INITIATIVES.length];
         const paymentMethod = PAYMENT_METHODS[index % PAYMENT_METHODS.length];
         const receiptNumber = `KCT-80G-${recordTime.getFullYear()}-${String(index + 1001).padStart(5, '0')}`;
@@ -260,6 +269,12 @@ async function seedDonors() {
 
     // 1. Update memoryStore and local_store.json
     if (!memoryStore.payments) memoryStore.payments = [];
+    // Purge unsafe/dummy test records
+    memoryStore.payments = memoryStore.payments.filter(p => {
+        const name = (p.fullName || p.full_name || '').toLowerCase();
+        const email = (p.email || '').toLowerCase();
+        return !name.includes('dummy') && !name.includes('test') && !name.includes('pending donor') && !name.includes('failed donor') && !name.includes('success donor') && !email.includes('example.com');
+    });
     
     // Remove existing seed payments if re-run
     memoryStore.payments = memoryStore.payments.filter(p => !p._id || !String(p._id).startsWith('pay_seed_'));
@@ -304,12 +319,72 @@ async function seedDonors() {
     console.log(`   - Rank 10: ${leaderboard.allTimeTop[9]?.name} (₹${leaderboard.allTimeTop[9]?.totalDonated.toLocaleString('en-IN')})`);
 }
 
-seedDonors()
-    .then(() => {
-        console.log('✨ Seed process completed successfully!');
-        process.exit(0);
-    })
-    .catch(err => {
-        console.error('Fatal seed error:', err);
-        process.exit(1);
+if (require.main === module) {
+    seedDonors()
+        .then(() => {
+            console.log('✨ Seed process completed successfully!');
+            process.exit(0);
+        })
+        .catch(err => {
+            console.error('Fatal seed error:', err);
+            process.exit(1);
+        });
+}
+
+function generateSeededDonors() {
+    const nowTime = Date.now();
+    return DONOR_PROFILES.map((profile, index) => {
+        let ageMs;
+        if (index < 5) {
+            ageMs = (index * 6 * 3600 * 1000) + ((index * 37) % 59) * 60000;
+        } else if (index < 20) {
+            ageMs = (24 + (index - 5) * 1.5) * 3600 * 1000;
+        } else if (index < 45) {
+            ageMs = (2 + (index - 20) * 0.2) * 86400 * 1000;
+        } else if (index < 85) {
+            ageMs = (8 + (index - 45) * 0.5) * 86400 * 1000;
+        } else if (index < 135) {
+            ageMs = (30 + (index - 85) * 6) * 86400 * 1000;
+        } else {
+            ageMs = (340 + (index - 135) * 15) * 86400 * 1000;
+        }
+        const recordTime = new Date(nowTime - ageMs);
+        const emailSlug = profile.name.toLowerCase()
+            .replace(/^(dr|smt|er|sri).?s+/g, '')
+            .replace(/[^a-z0-9]/g, '')
+            .slice(0, 15);
+        const email = `${emailSlug}_${100 + index}@gmail.com`;
+        const mobile = `+91 9${Math.floor(10 + (index * 7) % 89)}****${Math.floor(1000 + (index * 37) % 8999)}`;
+        const panNumber = `AAGTK****${String.fromCharCode(65 + (index % 26))}`;
+        const purpose = INITIATIVES[index % INITIATIVES.length];
+        const paymentMethod = PAYMENT_METHODS[index % PAYMENT_METHODS.length];
+        const receiptNumber = `KCT-80G-${recordTime.getFullYear()}-${String(index + 1001).padStart(5, '0')}`;
+        const transactionId = `TXN-PG-${recordTime.getFullYear()}-${Math.floor(100000 + (index * 98765) % 899999)}`;
+
+        return {
+            _id: `pay_seed_${1000 + index}`,
+            fullName: profile.name,
+            email,
+            mobile,
+            panNumber,
+            address: `${profile.city}, ${profile.state}`,
+            city: profile.city.split(',')[0].trim(),
+            state: profile.state,
+            amount: profile.amount,
+            purpose,
+            paymentMode: paymentMethod,
+            paymentMethod,
+            status: 'completed',
+            receiptNumber,
+            transactionId,
+            isAnonymous: false,
+            createdAt: recordTime.toISOString()
+        };
     });
+}
+
+module.exports = {
+    seedDonors,
+    generateSeededDonors,
+    DONOR_PROFILES
+};

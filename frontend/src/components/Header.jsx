@@ -59,15 +59,15 @@ export default function Header() {
                 {/* Header Actions (Top Donors, Join as Trust Member, Donate Now) */}
                 <div className="header-actions">
                     <Link to="/donors" className="btn-signin-nav" title="View Official Top Donors Leaderboard">
-                        <FaTrophy style={{ color: '#d97706' }} /> Top Donors
+                        <FaTrophy style={{ color: '#d97706' }} /> <span className="nav-btn-label">Top Donors</span>
                     </Link>
 
                     <Link to="/login?tab=register" className="btn-join-nav" title="Join as Trust Member">
-                        <FaHandshake style={{ color: '#2563eb' }} /> Join Member
+                        <FaHandshake style={{ color: '#2563eb' }} /> <span className="nav-btn-label">Join Member</span>
                     </Link>
 
                     <Link to="/donate" className="btn btn-primary donate-btn">
-                        <FaHeart /> Donate Now
+                        <FaHeart /> <span className="nav-btn-label">Donate Now</span>
                     </Link>
                 </div>
 

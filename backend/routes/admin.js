@@ -7,7 +7,7 @@ const TrustMember = require('../models/TrustMember');
 const MonthlySchedule = require('../models/MonthlySchedule');
 const Donation = require('../models/Donation');
 const PerformanceMetric = require('../models/PerformanceMetric');
-const { memoryStore, getSupabaseSchemaSQL, persistMemoryStore } = require('../services/supabaseService');
+const { memoryStore, getSupabaseSchemaSQL, getSupabaseAnalytics, persistMemoryStore } = require('../services/supabaseService');
 const { 
     sendMonthlyReminderEmail, 
     sendOtpEmail, 
@@ -33,6 +33,22 @@ router.get('/supabase-sql', (req, res) => {
         success: true,
         sql: getSupabaseSchemaSQL()
     });
+});
+
+// GET /api/admin/supabase-analytics — Aggregated Supabase & Cloud DB Analytics
+router.get('/supabase-analytics', async (req, res) => {
+    try {
+        const analytics = await getSupabaseAnalytics();
+        res.json({
+            success: true,
+            analytics
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message || 'Failed to retrieve Supabase analytics'
+        });
+    }
 });
 
 // GET /api/admin/dashboard-stats — Financial & Registration Dashboard
@@ -87,6 +103,30 @@ router.get('/dashboard-stats', async (req, res) => {
                     userEmailSet.add(em);
                     totalUsers++;
                     const cDate = new Date(u.created_at || u.createdAt || Date.now());
+                    if (cDate >= todayStart) todayUsersCount++;
+                    if (cDate >= monthStart) monthUsersCount++;
+                }
+            }
+        }
+        for (const tm of (memoryStore.trust_members || [])) {
+            if (tm.email && !tm.isDeleted && tm.approvalStatus !== 'deleted') {
+                const em = tm.email.toLowerCase().trim();
+                if (!userEmailSet.has(em)) {
+                    userEmailSet.add(em);
+                    totalUsers++;
+                    const cDate = new Date(tm.createdAt || Date.now());
+                    if (cDate >= todayStart) todayUsersCount++;
+                    if (cDate >= monthStart) monthUsersCount++;
+                }
+            }
+        }
+        for (const pay of (memoryStore.payments || [])) {
+            if (pay.email && !pay.isDeleted) {
+                const em = pay.email.toLowerCase().trim();
+                if (!userEmailSet.has(em)) {
+                    userEmailSet.add(em);
+                    totalUsers++;
+                    const cDate = new Date(pay.createdAt || pay.created_at || Date.now());
                     if (cDate >= todayStart) todayUsersCount++;
                     if (cDate >= monthStart) monthUsersCount++;
                 }
@@ -419,36 +459,164 @@ router.post('/dev-action/test-email', async (req, res) => {
     }
 });
 
-// GET /api/admin/payments — Payments and Transaction History
+// GET /api/admin/payments — Payments and Transaction History (Normalized & Descending)
 router.get('/payments', async (req, res) => {
     try {
-        const { status, limit = 50, page = 1 } = req.query;
+        const { status, type, limit = 200, page = 1 } = req.query;
         let payments = [];
         let total = 0;
 
+        const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+
+        // Collect from MongoDB if connected
         try {
             if (mongoose.connection.readyState === 1) {
-                const filter = status ? { status } : {};
-                const skip = (Number(page) - 1) * Number(limit);
-                payments = await Donation.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).maxTimeMS(1000);
-                total = await Donation.countDocuments(filter).maxTimeMS(1000);
+                // Auto-expire pending payments older than 5 minutes in DB
+                await Donation.updateMany(
+                    { 
+                        status: { $regex: /^pending$/i }, 
+                        createdAt: { $lte: new Date(fiveMinutesAgo) } 
+                    },
+                    { 
+                        $set: { 
+                            status: 'failed', 
+                            failureReason: 'Payment session timed out (5-minute window expired)' 
+                        } 
+                    }
+                ).catch(() => {});
+
+                const filter = status && status !== 'all' ? { status } : {};
+                payments = await Donation.find(filter).sort({ createdAt: -1 }).maxTimeMS(1000).lean();
             }
         } catch (e) {
             console.warn('DB payments fetch notice:', e.message);
         }
 
-        if (payments.length === 0 && memoryStore.payments) {
-            const filtered = status ? memoryStore.payments.filter(p => p.status === status) : memoryStore.payments;
-            const skip = (Number(page) - 1) * Number(limit);
-            payments = filtered.slice(skip, skip + Number(limit));
-            total = filtered.length;
+        // Merge with memoryStore / local_store records
+        const storePayments = memoryStore.payments || [];
+        const combined = [...payments];
+        const existingTxns = new Set(combined.map(p => p.transactionId || p.clientTxnId || p.client_txn_id || String(p._id)));
+
+        let storeModified = false;
+        for (const sp of storePayments) {
+            // Check 5-minute timeout in memoryStore records
+            const spStatus = (sp.status || 'PENDING').toLowerCase();
+            const spCreated = new Date(sp.createdAt || sp.created_at || Date.now()).getTime();
+            if (spStatus === 'pending' && spCreated < fiveMinutesAgo) {
+                sp.status = 'failed';
+                sp.failure_reason = 'Payment session timed out (5-minute window expired)';
+                sp.failureReason = 'Payment session timed out (5-minute window expired)';
+                storeModified = true;
+            }
+
+            const tid = sp.transaction_id || sp.transactionId || sp.client_txn_id || sp.clientTxnId || sp.receipt_number || sp.receiptNumber;
+            if (tid && !existingTxns.has(tid)) {
+                existingTxns.add(tid);
+                combined.push(sp);
+            }
         }
+
+        if (storeModified) {
+            persistMemoryStore();
+        }
+
+        // Sort descending by date (NEWEST TRANSACTIONS ALWAYS AT TOP)
+        combined.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+
+        // Normalize every record with both camelCase & snake_case
+        const normalized = combined.map(p => {
+            let rawStatus = (p.status || 'PENDING').toLowerCase();
+            const createdTime = new Date(p.createdAt || p.created_at || Date.now()).getTime();
+            let failureReason = p.failureReason || p.failure_reason || '';
+
+            // Check 5-minute timeout window
+            if (rawStatus === 'pending' && createdTime < fiveMinutesAgo) {
+                rawStatus = 'failed';
+                failureReason = 'Payment session timed out (5-minute window expired)';
+            }
+
+            // Determine explicit Payment Type:
+            // 1) Trust Member Registration
+            // 2) Monthly Contribution
+            // 3) One-Time Donation
+            const donorCat = (p.donorCategory || p.donor_category || '').toLowerCase();
+            const purposeStr = (p.purpose || '').toLowerCase();
+            let paymentType = 'One-Time Donation';
+            let paymentTypeCode = 'donation';
+
+            if (
+                donorCat.includes('member') || 
+                donorCat.includes('trust_member') || 
+                purposeStr.includes('trust member') || 
+                purposeStr.includes('member registration') || 
+                purposeStr.includes('membership')
+            ) {
+                paymentType = 'Trust Member Registration';
+                paymentTypeCode = 'member_registration';
+            } else if (
+                donorCat.includes('monthly') || 
+                donorCat.includes('pledge') || 
+                donorCat.includes('subscription') || 
+                purposeStr.includes('monthly') || 
+                purposeStr.includes('sustaining') || 
+                purposeStr.includes('autopay')
+            ) {
+                paymentType = 'Monthly Contribution';
+                paymentTypeCode = 'monthly_contribution';
+            } else {
+                paymentType = 'One-Time Donation';
+                paymentTypeCode = 'donation';
+            }
+
+            return {
+                ...p,
+                _id: p._id || p.id || p.client_txn_id || p.clientTxnId || ('pay_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+                fullName: p.fullName || p.full_name || p.name || 'Valued Philanthropist',
+                full_name: p.full_name || p.fullName || p.name || 'Valued Philanthropist',
+                email: p.email || '',
+                mobile: p.mobile || p.phone || '',
+                phone: p.phone || p.mobile || '',
+                amount: Number(p.amount) || 0,
+                purpose: p.purpose || 'General Donation',
+                paymentType,
+                paymentTypeCode,
+                donorCategory: p.donorCategory || p.donor_category || donorCat || 'general',
+                donor_category: p.donor_category || p.donorCategory || donorCat || 'general',
+                paymentMethod: p.paymentMethod || p.payment_method || 'SabPaisa PG',
+                payment_method: p.payment_method || p.paymentMethod || 'SabPaisa PG',
+                transactionId: p.transactionId || p.transaction_id || p.clientTxnId || p.client_txn_id || '',
+                transaction_id: p.transaction_id || p.transactionId || p.client_txn_id || p.clientTxnId || '',
+                clientTxnId: p.clientTxnId || p.client_txn_id || p.transactionId || p.transaction_id || '',
+                client_txn_id: p.client_txn_id || p.clientTxnId || p.transaction_id || p.transactionId || '',
+                receiptNumber: p.receiptNumber || p.receipt_number || '',
+                receipt_number: p.receipt_number || p.receiptNumber || '',
+                status: rawStatus,
+                failureReason,
+                createdAt: p.createdAt || p.created_at || new Date().toISOString(),
+                created_at: p.created_at || p.createdAt || new Date().toISOString()
+            };
+        });
+
+        // Filter by status if requested
+        let filtered = normalized;
+        if (status && status !== 'all') {
+            filtered = filtered.filter(p => p.status === status.toLowerCase() || (status === 'success' && p.status === 'completed'));
+        }
+        if (type && type !== 'all') {
+            filtered = filtered.filter(p => p.paymentTypeCode === type.toLowerCase());
+        }
+
+        total = filtered.length;
+        const pageNum = Math.max(1, Number(page));
+        const limitNum = Math.max(1, Number(limit));
+        const skip = (pageNum - 1) * limitNum;
+        const paginated = filtered.slice(skip, skip + limitNum);
 
         return res.json({
             success: true,
             total,
-            page: Number(page),
-            payments
+            page: pageNum,
+            payments: paginated
         });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Failed to fetch payments' });
@@ -1333,6 +1501,88 @@ router.put('/payments/:id/status', async (req, res) => {
     }
 });
 
+// POST /api/admin/payments/:id/check-gateway — Query SabPaisa PG 3.0 API live and sync payment status
+router.post('/payments/:id/check-gateway', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const DEFAULT_CLIENT_CODE = process.env.SABPAISA_CLIENT_CODE || 'KIRA99';
+        const DEFAULT_API_KEY = process.env.SABPAISA_API_KEY || 'N2c3SjY2U1ZqVW1MUDlUOHg2dkJkdz09';
+        const DEFAULT_BASE_URL = process.env.SABPAISA_BASE_URL || 'https://merchant-api.sabpaisa.in';
+
+        // Find transaction
+        let donation = null;
+        if (mongoose.connection.readyState === 1) {
+            donation = await Donation.findOne({
+                $or: [
+                    mongoose.Types.ObjectId.isValid(id) ? { _id: id } : null,
+                    { transactionId: id },
+                    { receiptNumber: id }
+                ].filter(Boolean)
+            });
+        }
+        if (!donation) {
+            donation = (memoryStore.payments || []).find(p => p._id === id || p.transactionId === id || p.clientTxnId === id);
+        }
+
+        const merchantTxnId = donation ? (donation.transactionId || donation.clientTxnId || id) : id;
+
+        // Query SabPaisa Live Gateway
+        const enquiryRes = await fetch(`${DEFAULT_BASE_URL}/api/v2/payments/enquiry`, {
+            method: 'POST',
+            headers: {
+                'X-Api-Key': DEFAULT_API_KEY,
+                'X-Merchant-Id': DEFAULT_CLIENT_CODE,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                clientCode: DEFAULT_CLIENT_CODE,
+                merchantId: DEFAULT_CLIENT_CODE,
+                merchantTxnId
+            })
+        });
+
+        const enquiryData = await enquiryRes.json().catch(() => ({}));
+        const rawStatus = (enquiryData.status || enquiryData.statusCode || enquiryData.paymentStatus || '').toUpperCase();
+
+        let updatedStatus = null;
+        if (rawStatus === 'SUCCESS' || rawStatus === 'COMPLETED' || rawStatus === '0000') {
+            updatedStatus = 'completed';
+        } else if (rawStatus === 'FAILED' || rawStatus === 'FAILURE' || rawStatus === 'DECLINED') {
+            updatedStatus = 'failed';
+        }
+
+        if (updatedStatus && donation) {
+            donation.status = updatedStatus;
+            donation.gatewayStatus = rawStatus;
+            if (updatedStatus === 'completed' && donation.email) {
+                sendPaymentSuccessEmail({
+                    name: donation.fullName || 'Valued Donor',
+                    email: donation.email,
+                    mobile: donation.mobile,
+                    address: donation.address,
+                    amount: donation.amount,
+                    receiptNumber: donation.receiptNumber || `KCT-${Date.now()}`,
+                    transactionId: donation.sabpaisaTxnId || donation.transactionId,
+                    clientTxnId: donation.transactionId,
+                    purpose: donation.purpose
+                }).catch(e => console.warn('Receipt dispatch notice:', e.message));
+            }
+            persistMemoryStore();
+            autoRankDonors().catch(() => {});
+        }
+
+        return res.json({
+            success: true,
+            gatewayStatus: rawStatus || 'NOT_FOUND_ON_GATEWAY',
+            syncedStatus: updatedStatus || donation?.status || 'pending',
+            details: enquiryData,
+            donation
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Gateway enquiry check failed: ' + err.message });
+    }
+});
+
 // POST /api/admin/donations (and /api/admin/payments) — Add/Record a new donation manually
 router.post(['/donations', '/payments'], async (req, res) => {
     try {
@@ -1417,6 +1667,7 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
     try {
         const { id } = req.params;
         const strId = String(id).trim();
+        const decodedId = decodeURIComponent(strId);
         const {
             fullName, email, mobile, amount, purpose, paymentMethod,
             paymentMode, transactionId, panNumber, pan, address, status, receiptNumber,
@@ -1429,7 +1680,17 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
             try {
                 const query = mongoose.Types.ObjectId.isValid(strId)
                     ? { _id: strId }
-                    : { $or: [{ transactionId: strId }, { clientTxnId: strId }, { receiptNumber: strId }] };
+                    : { 
+                        $or: [
+                            { transactionId: strId }, 
+                            { clientTxnId: strId }, 
+                            { receiptNumber: strId },
+                            { transactionId: decodedId },
+                            { receiptNumber: decodedId },
+                            ...(transactionId ? [{ transactionId }, { clientTxnId: transactionId }] : []),
+                            ...(receiptNumber ? [{ receiptNumber }] : [])
+                        ] 
+                    };
 
                 const updateFields = {};
                 if (fullName !== undefined) updateFields.fullName = fullName;
@@ -1456,8 +1717,14 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
 
         // Update in memoryStore
         if (memoryStore.payments) {
-            const donIdx = memoryStore.payments.findIndex(p =>
-                p._id === strId || p.id === strId || p.transactionId === strId || p.clientTxnId === strId || p.receiptNumber === strId
+            let donIdx = memoryStore.payments.findIndex(p =>
+                p._id === strId || p._id === decodedId ||
+                p.id === strId || p.id === decodedId ||
+                p.transactionId === strId || p.transactionId === decodedId ||
+                p.clientTxnId === strId || p.clientTxnId === decodedId ||
+                p.receiptNumber === strId || p.receiptNumber === decodedId ||
+                (transactionId && (p.transactionId === transactionId || p.clientTxnId === transactionId)) ||
+                (receiptNumber && p.receiptNumber === receiptNumber)
             );
             if (donIdx >= 0) {
                 memoryStore.payments[donIdx] = {
@@ -1476,6 +1743,25 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
                     ...(receiptNumber !== undefined && { receiptNumber }),
                     ...(updateDate && !isNaN(updateDate.getTime()) && { createdAt: updateDate, date: updateDate })
                 };
+            } else {
+                // Upsert resiliently into memoryStore if previously not tracked in memory
+                memoryStore.payments.unshift({
+                    _id: strId.startsWith('don_') ? strId : `don_${Date.now()}`,
+                    fullName: fullName || 'Anonymous Donor',
+                    email: email || '',
+                    mobile: mobile || '',
+                    amount: Number(amount) || 0,
+                    purpose: purpose || 'General Philanthropy',
+                    paymentMethod: paymentMethod || 'Online Payment',
+                    paymentMode: paymentMode || paymentMethod || 'online',
+                    transactionId: transactionId || strId,
+                    clientTxnId: transactionId || strId,
+                    receiptNumber: receiptNumber || `KCT-80G-${Date.now().toString().slice(-6)}`,
+                    panNumber: panNumber || '',
+                    address: address || '',
+                    status: status || 'completed',
+                    createdAt: updateDate || new Date()
+                });
             }
         }
         persistMemoryStore();
@@ -1565,7 +1851,51 @@ router.get('/users', async (req, res) => {
             users = await User.find(query, '-password').sort({ isDeleted: -1, createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
             total = await User.countDocuments(query);
         } else {
-            const rawUsers = (memoryStore.profiles && memoryStore.profiles.length > 0) ? memoryStore.profiles : (memoryStore.users || []);
+            let rawUsers = (memoryStore.profiles && memoryStore.profiles.length > 0) ? [...memoryStore.profiles] : (memoryStore.users ? [...memoryStore.users] : []);
+            const seenEmails = new Set(rawUsers.map(u => (u.email || '').toLowerCase().trim()));
+
+            // Ingest verified Trust Members as registered users with appropriate roles
+            if (memoryStore.trust_members && memoryStore.trust_members.length > 0) {
+                for (const tm of memoryStore.trust_members) {
+                    const em = (tm.email || '').toLowerCase().trim();
+                    if (em && !seenEmails.has(em)) {
+                        seenEmails.add(em);
+                        rawUsers.push({
+                            _id: tm._id || ('usr_tm_' + tm.memberId),
+                            id: tm._id || ('usr_tm_' + tm.memberId),
+                            name: tm.name,
+                            email: tm.email,
+                            phone: tm.phone || '',
+                            role: (tm.role && tm.role.toLowerCase().includes('chairman')) ? 'admin' : 'trust_member',
+                            status: tm.approvalStatus === 'active' ? 'active' : (tm.approvalStatus || 'active'),
+                            isDeleted: Boolean(tm.isDeleted),
+                            subscriptionTier: tm.subscriptionTier || 'Trust Member',
+                            createdAt: tm.createdAt || new Date().toISOString()
+                        });
+                    }
+                }
+            }
+
+            // Ingest unique donors from payment records as registered users (role: 'donor')
+            if (memoryStore.payments && memoryStore.payments.length > 0) {
+                for (const p of memoryStore.payments) {
+                    const em = (p.email || '').toLowerCase().trim();
+                    if (em && !seenEmails.has(em)) {
+                        seenEmails.add(em);
+                        rawUsers.push({
+                            _id: p._id || ('usr_don_' + Math.random().toString(36).slice(2, 9)),
+                            id: p._id || ('usr_don_' + Math.random().toString(36).slice(2, 9)),
+                            name: p.fullName || p.full_name || 'Donor',
+                            email: p.email,
+                            phone: p.mobile || p.phone || '',
+                            role: 'donor',
+                            status: 'active',
+                            isDeleted: false,
+                            createdAt: p.createdAt || p.created_at || new Date().toISOString()
+                        });
+                    }
+                }
+            }
             let filtered = rawUsers;
             if (role && role !== 'all') {
                 filtered = filtered.filter(u => u.role === role);

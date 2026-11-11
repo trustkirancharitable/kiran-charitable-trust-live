@@ -260,22 +260,29 @@
     flex-shrink: 0;
 }
 
-/* Member Login Button in Header */
+/* Member Login / Top Donors Button in Header (Fixed Width/Height Bounds for Telugu & Multilingual Support) */
 .btn-signin-nav,
 .btn-portal-login-nav {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 9px 16px;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 0 14px;
     border-radius: 50px;
-    font-size: 15.5px;
+    font-size: 13.8px;
     font-weight: 700;
+    line-height: 1;
     color: #1E40AF;
     background: #EFF6FF;
     border: 1.5px solid #BFDBFE;
     text-decoration: none;
     transition: all 0.2s ease;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .btn-signin-nav:hover, .btn-portal-login-nav:hover {
@@ -290,17 +297,24 @@
 .btn-join-nav {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 9px 16px;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 0 14px;
     border-radius: 50px;
-    font-size: 15.5px;
+    font-size: 13.8px;
     font-weight: 700;
+    line-height: 1;
     color: #1e40af;
     background: #eff6ff;
     border: 1.5px solid #bfdbfe;
     text-decoration: none;
     transition: all 0.2s ease;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .btn-join-nav:hover {
@@ -315,12 +329,22 @@
 .donate-btn,
 .header-actions .donate-btn,
 .header .donate-btn {
-    padding: 10px 20px;
-    font-size: 16px !important;
-    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 40px;
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    font-size: 14px !important;
+    font-weight: 750;
+    line-height: 1;
     white-space: nowrap;
     flex-shrink: 0;
     border-radius: 50px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Mobile Quick Action Bar (3 Main Options) */
@@ -465,16 +489,22 @@
     .btn-signin-nav,
     .btn-portal-login-nav,
     .btn-join-nav {
-        padding: 8px 13px;
-        font-size: 14.8px;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 11px;
+        font-size: 13px;
         font-weight: 700;
+        box-sizing: border-box;
     }
 
     .header-actions .donate-btn,
     .header .donate-btn {
-        padding: 9px 18px;
-        font-size: 15.2px;
-        font-weight: 800;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 14px;
+        font-size: 13.5px;
+        font-weight: 750;
+        box-sizing: border-box;
     }
 }
 
@@ -500,25 +530,34 @@
     }
 
     .btn-signin-nav {
-        padding: 8px 14px;
-        font-size: 14.5px;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 11px;
+        font-size: 13px;
         font-weight: 700;
         display: inline-flex;
+        box-sizing: border-box;
     }
 
     .btn-join-nav {
-        padding: 8px 14px;
-        font-size: 14.5px;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 11px;
+        font-size: 13px;
         font-weight: 700;
         display: inline-flex;
+        box-sizing: border-box;
     }
 
     .header-actions .donate-btn,
     .header .donate-btn {
+        height: 38px;
+        min-height: 38px;
         display: inline-flex !important;
-        padding: 9px 18px;
-        font-size: 15px;
-        font-weight: 800;
+        padding: 0 14px;
+        font-size: 13.5px;
+        font-weight: 750;
+        box-sizing: border-box;
     }
 
     .desktop-only {
@@ -564,10 +603,11 @@
     .header .donate-btn {
         flex: 1 1 0% !important;
         min-width: 0 !important;
-        height: 38px !important;
-        min-height: 38px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
         padding: 0 4px !important;
-        font-size: clamp(11.8px, 3.2vw, 12.8px) !important;
+        font-size: clamp(13px, 3.5vw, 14.5px) !important;
         font-weight: 750 !important;
         letter-spacing: -0.2px !important;
         border-radius: 8px !important;
@@ -605,4 +645,11 @@
         justify-content: center !important;
         flex-shrink: 0 !important;
     }
+}
+
+.nav-btn-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
 }
