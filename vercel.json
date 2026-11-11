@@ -3,6 +3,11 @@
   "framework": "vite",
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{backend/data/**,backend/assets/**}"
+    }
+  },
   "headers": [
     {
       "source": "/api/donations/sabpaisa-callback",

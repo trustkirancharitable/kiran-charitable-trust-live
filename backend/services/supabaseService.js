@@ -266,11 +266,26 @@ const DEFAULT_MONTHLY_SCHEDULES = [
     }
 ];
 
+let defaultBundledStore = null;
+try {
+    defaultBundledStore = require('../data/local_store.json');
+} catch (e) {
+    try {
+        defaultBundledStore = require('../../backend/data/local_store.json');
+    } catch (e2) {}
+}
+
 function loadMemoryStore() {
     try {
+        let parsed = null;
         if (fs.existsSync(STORE_FILE)) {
             const raw = fs.readFileSync(STORE_FILE, 'utf8');
-            const parsed = JSON.parse(raw);
+            parsed = JSON.parse(raw);
+        } else if (defaultBundledStore) {
+            parsed = defaultBundledStore;
+        }
+
+        if (parsed) {
             const loadedMembers = (parsed.trust_members && parsed.trust_members.length > 0)
                 ? parsed.trust_members
                 : [...DEFAULT_TRUST_MEMBERS];

@@ -17,6 +17,21 @@ let cachedLeaderboard = {
 };
 
 /**
+ * Normalizes donor key so distinct donors are never merged by shared test emails
+ */
+function getDonorKey(d) {
+    const isAnon = d.isAnonymous || d.is_anonymous;
+    if (isAnon) {
+        return 'anon_' + ((d.email || d.phone || d.mobile || d._id || d.id || 'anonymous').toLowerCase().trim());
+    }
+    const rawName = (d.fullName || d.full_name || d.name || '').trim();
+    if (rawName && rawName.toLowerCase() !== 'valued contributor') {
+        return rawName.toLowerCase().replace(/[\s\-_.]+/g, '');
+    }
+    return (d.email || d.phone || d.mobile || 'anon').toLowerCase().trim();
+}
+
+/**
  * Core Auto-Ranking Algorithm
  * Aggregates all completed donations and verified trust member payments,
  * ranks donors from highest to lowest, and assigns podium spots.
@@ -39,7 +54,7 @@ async function autoRankDonors() {
                     .lean();
 
                 donations.forEach(d => {
-                    const key = (d.email || d.phone || d.fullName || 'anon').toLowerCase().trim();
+                    const key = getDonorKey(d);
                     const name = (d.isAnonymous || d.is_anonymous) ? 'Anonymous Well-Wisher' : (d.fullName || d.full_name || 'Valued Contributor');
                     const photo = d.profilePhoto || d.profile_photo || '';
                     const amt = Number(d.amount) || 0;
@@ -94,33 +109,27 @@ async function autoRankDonors() {
                     }
                 });
 
-                // Ingest active Trust Members
+                // Ingest active Trust Members (as fallbacks if not already counted in donations)
                 const members = await TrustMember.find({ approvalStatus: 'active' })
                     .select('name email phone totalDonated donationAmount profilePhoto address city state subscriptionTier createdAt')
                     .lean();
 
                 members.forEach(m => {
-                    const key = (m.email || m.phone || m.name).toLowerCase().trim();
+                    const key = getDonorKey(m);
                     const amt = Number(m.totalDonated) || Number(m.donationAmount) || 0;
-                    if (amt > 0) {
-                        if (!donorMap.has(key)) {
-                            donorMap.set(key, { 
-                                name: m.name, 
-                                email: m.email || '',
-                                phone: m.phone || '',
-                                photo: m.profilePhoto || '', 
-                                city: m.city || 'Guntur',
-                                state: m.state || 'Andhra Pradesh',
-                                purpose: 'Trust Membership',
-                                lastDonatedAt: m.createdAt || new Date(),
-                                totalDonated: 0, 
-                                count: 0 
-                            });
-                        }
-                        const record = donorMap.get(key);
-                        record.totalDonated += amt;
-                        record.count += 1;
-                        if (m.profilePhoto && !record.photo) record.photo = m.profilePhoto;
+                    if (amt > 0 && !donorMap.has(key)) {
+                        donorMap.set(key, { 
+                            name: m.name, 
+                            email: m.email || '',
+                            phone: m.phone || '',
+                            photo: m.profilePhoto || '', 
+                            city: m.city || 'Guntur',
+                            state: m.state || 'Andhra Pradesh',
+                            purpose: 'Trust Membership',
+                            lastDonatedAt: m.createdAt || new Date(),
+                            totalDonated: amt, 
+                            count: 1 
+                        });
                     }
                 });
             } catch (dbErr) {
@@ -132,7 +141,7 @@ async function autoRankDonors() {
         if (memoryStore && Array.isArray(memoryStore.payments)) {
             memoryStore.payments.forEach(p => {
                 if (p.status === 'completed') {
-                    const key = (p.email || p.fullName || p.full_name || 'anon').toLowerCase().trim();
+                    const key = getDonorKey(p);
                     const name = (p.isAnonymous || p.is_anonymous) ? 'Anonymous Well-Wisher' : (p.fullName || p.full_name || 'Valued Contributor');
                     const amt = Number(p.amount) || 0;
                     const photo = p.profilePhoto || p.profile_photo || '';
@@ -186,31 +195,25 @@ async function autoRankDonors() {
             });
         }
 
-        // 2b. Ingest Memory Store active Trust Members
+        // 2b. Ingest Memory Store active Trust Members (as fallbacks if not already counted)
         if (memoryStore && Array.isArray(memoryStore.trust_members)) {
             memoryStore.trust_members.forEach(m => {
                 if (m.approvalStatus === 'active' && !m.isDeleted) {
-                    const key = (m.email || m.phone || m.name).toLowerCase().trim();
+                    const key = getDonorKey(m);
                     const amt = Number(m.totalDonated) || Number(m.donationAmount) || 0;
-                    if (amt > 0) {
-                        if (!donorMap.has(key)) {
-                            donorMap.set(key, { 
-                                name: m.name, 
-                                email: m.email || '',
-                                phone: m.phone || '',
-                                photo: m.profilePhoto || '', 
-                                city: m.city || 'Guntur',
-                                state: m.state || 'Andhra Pradesh',
-                                purpose: 'Trust Membership',
-                                lastDonatedAt: m.createdAt || new Date(),
-                                totalDonated: 0, 
-                                count: 0 
-                            });
-                        }
-                        const record = donorMap.get(key);
-                        record.totalDonated += amt;
-                        record.count += 1;
-                        if (m.profilePhoto && !record.photo) record.photo = m.profilePhoto;
+                    if (amt > 0 && !donorMap.has(key)) {
+                        donorMap.set(key, { 
+                            name: m.name, 
+                            email: m.email || '',
+                            phone: m.phone || '',
+                            photo: m.profilePhoto || '', 
+                            city: m.city || 'Guntur',
+                            state: m.state || 'Andhra Pradesh',
+                            purpose: 'Trust Membership',
+                            lastDonatedAt: m.createdAt || new Date(),
+                            totalDonated: amt, 
+                            count: 1 
+                        });
                     }
                 }
             });

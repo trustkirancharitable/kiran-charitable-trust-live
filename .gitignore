@@ -41,3 +41,4 @@ scratch/
 site_screenshots/
 screenshots/
 scripts/
+.env*
