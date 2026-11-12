@@ -4,7 +4,7 @@ import { initiateGoogleSignIn } from '../utils/googleAuth';
 import KLogo from '../assets/Klogo.jpeg';
 import './TrustMembership.css';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL || '';
 
 function formatINR(n) {
   if (!n && n !== 0) return '₹0';

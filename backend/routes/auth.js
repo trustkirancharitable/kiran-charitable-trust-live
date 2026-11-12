@@ -422,6 +422,61 @@ router.post('/login', async (req, res) => {
                 message: 'This account was created via Email OTP. Please sign in via OTP or use "Forgot Password" to set a password.'
             });
         }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: 'Invalid credentials. Please verify your password.' });
+        }
+
+        const token = createToken(user._id || user.id, user.role || 'donor', user.email);
+        return res.json({
+            success: true,
+            message: 'Signed in successfully',
+            token,
+            user: {
+                id: user._id || user.id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone || '',
+                address: user.address || '',
+                avatar: user.avatar || user.profilePhoto || '',
+                role: user.role || 'donor',
+                memberId: user.memberId || '',
+                trustMemberId: user.trustMemberId || user.memberId || ''
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: 'Login failed: ' + err.message });
+    }
+});
+
+// POST /api/auth/send-otp
+router.post('/send-otp', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email address is required' });
+        }
+        const normalizedEmail = email.toLowerCase().trim();
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        localOtpCache.set(normalizedEmail, {
+            otp: otpCode,
+            expiresAt: Date.now() + 10 * 60 * 1000
+        });
+
+        try {
+            await Otp.deleteMany({ email: normalizedEmail });
+            await Otp.create({
+                email: normalizedEmail,
+                otp: otpCode,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+            });
+        } catch (dbErr) {
+            console.warn('⚠️ Otp DB create notice:', dbErr.message);
+        }
+
+        let dispatchResult = { success: false };
         try {
             dispatchResult = await sendOtpEmail(normalizedEmail, otpCode);
         } catch (err) {
@@ -438,7 +493,7 @@ router.post('/login', async (req, res) => {
             otp: otpCode
         });
     } catch (err) {
-        return res.status(500).json({ success: false, message: 'Failed to send verification code.' });
+        return res.status(500).json({ success: false, message: 'Failed to send verification code: ' + err.message });
     }
 });
 
