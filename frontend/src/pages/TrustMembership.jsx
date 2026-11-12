@@ -57,6 +57,7 @@ function RegisterModal({ onClose, initialTier }) {
   const [loading, setLoading] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
   const [authToken, setAuthToken] = useState('');
+  const [otpToken, setOtpToken] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [memberId, setMemberId] = useState('');
@@ -82,6 +83,7 @@ function RegisterModal({ onClose, initialTier }) {
       });
       const d = await r.json();
       if (d.success) {
+        if (d.otpToken) setOtpToken(d.otpToken);
         setOtpCountdown(60);
         setSuccess(`Verification code sent to ${form.email}`);
         setAuthMode('verify');
@@ -102,7 +104,7 @@ function RegisterModal({ onClose, initialTier }) {
       const r = await fetch(`${API}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email, otp: form.otp, type: 'trust_member_register' }),
+        body: JSON.stringify({ email: form.email, otp: form.otp, type: 'trust_member_register', otpToken }),
       });
       const d = await r.json();
       if (d.success) {

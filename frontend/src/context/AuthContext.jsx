@@ -146,6 +146,9 @@ export function AuthProvider({ children }) {
         setIsLoading(true);
         try {
             const res = await axios.post(`${API_BASE_URL}/auth/send-otp`, { email });
+            if (res.data?.otpToken) {
+                sessionStorage.setItem('kct_otp_token', res.data.otpToken);
+            }
             return res.data;
         } catch (err) {
             return {
@@ -158,19 +161,23 @@ export function AuthProvider({ children }) {
     };
 
     // 6. Verify Email OTP
-    const verifyOtp = async ({ email, otp, name, phone, role }) => {
+    const verifyOtp = async ({ email, otp, name, phone, role, type }) => {
         setIsLoading(true);
         try {
+            const otpToken = sessionStorage.getItem('kct_otp_token') || '';
             const res = await axios.post(`${API_BASE_URL}/auth/verify-otp`, {
                 email,
                 otp,
                 name,
                 phone,
-                role
+                role,
+                type,
+                otpToken
             });
             if (res.data?.success && res.data.token) {
                 setToken(res.data.token);
                 setUser(res.data.user);
+                sessionStorage.removeItem('kct_otp_token');
                 closeAuthModal();
             }
             return res.data;

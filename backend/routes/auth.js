@@ -483,12 +483,20 @@ router.post('/send-otp', async (req, res) => {
             console.error('OTP email dispatch error:', err.message);
         }
 
+        const timestamp = Date.now();
+        const otpSignature = crypto
+            .createHmac('sha256', JWT_SECRET)
+            .update(`${normalizedEmail}:${otpCode}:${timestamp}`)
+            .digest('hex');
+        const otpToken = `${timestamp}:${otpSignature}`;
+
         return res.json({
             success: true,
             emailDispatched: dispatchResult.success,
             message: dispatchResult.success
                 ? `Verification code sent to ${normalizedEmail}`
                 : `Verification code: ${otpCode} generated for ${normalizedEmail}`,
+            otpToken,
             devOtp: otpCode,
             otp: otpCode
         });
@@ -508,13 +516,31 @@ router.post('/verify-otp', async (req, res) => {
         const enteredOtp = String(otp).trim();
 
         let isValid = false;
-        // Always allow 123456 for instant testing and zero-friction verification
+        // 1. Master code for testing
         if (enteredOtp === '123456') {
             isValid = true;
         }
 
+        // 2. Cryptographic token verification (100% resilient across serverless lambdas)
+        if (!isValid && req.body.otpToken) {
+            try {
+                const [timeStr, expectedSig] = String(req.body.otpToken).split(':');
+                const t = parseInt(timeStr, 10);
+                if (!isNaN(t) && (Date.now() - t) <= 15 * 60 * 1000) {
+                    const computedSig = crypto
+                        .createHmac('sha256', JWT_SECRET)
+                        .update(`${normalizedEmail}:${enteredOtp}:${t}`)
+                        .digest('hex');
+                    if (computedSig === expectedSig) {
+                        isValid = true;
+                    }
+                }
+            } catch (sigErr) {}
+        }
+
+        // 3. In-memory cache fallback
         const cached = localOtpCache.get(normalizedEmail);
-        if (cached && cached.expiresAt > Date.now() && cached.otp === enteredOtp) {
+        if (!isValid && cached && cached.expiresAt > Date.now() && cached.otp === enteredOtp) {
             isValid = true;
             localOtpCache.delete(normalizedEmail);
         }
@@ -537,9 +563,14 @@ router.post('/verify-otp', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid or expired verification code.' });
         }
 
-        // Only allow existing accounts to log in via OTP
+        // Only allow existing accounts to log in via OTP (allow new registrations)
         const isRegistered = await isEmailRegistered(normalizedEmail);
-        if (!isRegistered && req.body.type !== 'register' && req.body.type !== 'trust_member_register') {
+        const isRegFlow = req.body.type === 'register' || 
+                          req.body.type === 'trust_member_register' || 
+                          req.body.intent === 'register' ||
+                          req.body.isRegister === true;
+
+        if (!isRegistered && !isRegFlow) {
             return res.status(404).json({
                 success: false,
                 message: 'No registered account found with this email. Please register first.'
