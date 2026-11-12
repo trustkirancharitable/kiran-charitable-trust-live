@@ -9,7 +9,7 @@ const User = require('../models/User');
 const PerformanceMetric = require('../models/PerformanceMetric');
 const upload = require('../services/uploadService');
 const { uploadPhotoToR2 } = require('../services/cloudflareR2Service');
-const { syncTrustMember, syncProfile, syncMonthlySchedule, memoryStore, persistMemoryStore } = require('../services/supabaseService');
+const { syncTrustMember, syncProfile, syncMonthlySchedule, memoryStore, persistMemoryStore, fetchSupabaseTrustMembers } = require('../services/supabaseService');
 const { sendTrustMemberWelcomeEmail, sendMonthlyReminderEmail } = require('../services/emailService');
 const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 
@@ -503,7 +503,7 @@ router.get('/my-schedules', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/trust-members/public-list — Public member directory (no sensitive data)
+// GET /api/trust-members/public-list — Public member directory (Live Supabase + MongoDB)
 router.get('/public-list', async (req, res) => {
     try {
         // 1. Official Board of Trustees Leadership
@@ -514,6 +514,7 @@ router.get('/public-list', async (req, res) => {
                 name: 'Sri P. Subba Rao',
                 city: 'Guntur',
                 state: 'Andhra Pradesh',
+                photo: '',
                 highlight: false
             },
             {
@@ -522,6 +523,7 @@ router.get('/public-list', async (req, res) => {
                 name: 'Konda Ravi Teja',
                 city: 'Palnadu',
                 state: 'Andhra Pradesh',
+                photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/vice_chairman_raviteja.png',
                 highlight: false
             },
             {
@@ -530,6 +532,7 @@ router.get('/public-list', async (req, res) => {
                 name: 'Pallepogu Kiranbabu',
                 city: 'Mandepudi',
                 state: 'Andhra Pradesh',
+                photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/chairman_kiranbabu.jpeg',
                 highlight: true
             },
             {
@@ -538,8 +541,8 @@ router.get('/public-list', async (req, res) => {
                 name: 'Konda Ravi Bharath',
                 city: 'Guntur',
                 state: 'Andhra Pradesh',
-                highlight: false,
-                photo: '/src/assets/Konda Ravi Bharath Executive.png'
+                photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/executive_ravibharath.png',
+                highlight: false
             },
             {
                 roleKey: 'treasurer',
@@ -547,118 +550,102 @@ router.get('/public-list', async (req, res) => {
                 name: 'Srungarapati Rakesh',
                 city: 'Narasaraopet',
                 state: 'Andhra Pradesh',
+                photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/treasurer_rakesh.jpeg',
                 highlight: false
             }
         ];
 
         let members = [];
+        const seenEmails = new Set();
+        const seenIds = new Set();
 
-        const leadershipTrustees = [
-            {
-                name: 'Pallepogu Kiranbabu',
-                memberId: 'KCT-TR-001',
-                role: 'Founder & Chairman',
-                city: 'Mandepudi',
-                state: 'AP',
-                profilePhoto: '/src/assets/Pallepogu Kiranbabu Chairman.jpeg',
-                description: 'Leading conceptualization, public welfare administration, and structural development of the trust.',
-                subscriptionTier: 'Patron Trustee',
-                joinDate: '2024-01-01'
-            },
-            {
-                name: 'Konda Ravi Teja',
-                memberId: 'KCT-TR-002',
-                role: 'Vice Chairman',
-                city: 'Palnadu',
-                state: 'AP',
-                profilePhoto: '/src/assets/Konda Ravi Teja Vice Chairman.png',
-                description: 'Steering structural development, coordinating board decisions, and managing public outreach programs of the trust.',
-                subscriptionTier: 'Executive Trustee',
-                joinDate: '2024-01-05'
-            },
-            {
-                name: 'Srungarapati Rakesh',
-                memberId: 'KCT-TR-003',
-                role: 'Treasurer',
-                city: 'Narasaraopet',
-                state: 'AP',
-                profilePhoto: '/src/assets/Srungarapati Rakesh Treasurer.jpeg',
-                description: 'Overseeing financial management, accountability, compliance, and complete transparency in the distribution of resources.',
-                subscriptionTier: 'Executive Trustee',
-                joinDate: '2024-01-08'
-            },
-            {
-                name: 'Konda Ravi Bharath',
-                memberId: 'KCT-TR-004',
-                role: 'Executive Member',
-                city: 'Guntur',
-                state: 'AP',
-                profilePhoto: '/src/assets/Konda Ravi Bharath Executive.png',
-                description: 'Supervising field execution, volunteer operations, and direct community distribution work across regions.',
-                subscriptionTier: 'Executive Member',
-                joinDate: '2024-01-10'
+        const addMember = (m) => {
+            const emailKey = (m.email || '').toLowerCase().trim();
+            const idKey = (m.memberId || m.member_id || '').trim();
+            if (emailKey && seenEmails.has(emailKey)) return;
+            if (idKey && seenIds.has(idKey)) return;
+            if (emailKey) seenEmails.add(emailKey);
+            if (idKey) seenIds.add(idKey);
+
+            let photo = m.profilePhoto || m.profile_photo || m.avatar || '';
+            if (photo.includes('Pallepogu Kiranbabu') || photo.includes('Chairman')) {
+                photo = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/chairman_kiranbabu.jpeg';
+            } else if (photo.includes('Ravi Teja') || photo.includes('Vice Chairman')) {
+                photo = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/vice_chairman_raviteja.png';
+            } else if (photo.includes('Ravi Bharath') || photo.includes('Executive')) {
+                photo = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/executive_ravibharath.png';
+            } else if (photo.includes('Rakesh') || photo.includes('Treasurer')) {
+                photo = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/treasurer_rakesh.jpeg';
+            } else if (photo.startsWith('/src/assets/')) {
+                photo = photo.replace('/src/assets/', '/assets/');
             }
-        ];
-        members.push(...leadershipTrustees);
 
+            members.push({
+                _id: m._id || m.id,
+                id: m.id || m._id,
+                name: m.name || 'Trust Member',
+                memberId: idKey || `KCT-TM-${1000 + members.length}`,
+                email: emailKey,
+                phone: m.phone || m.mobile || '',
+                role: m.role || 'Trust Member',
+                city: m.city || 'Guntur',
+                state: m.state || 'AP',
+                profilePhoto: photo,
+                photo: photo,
+                subscriptionTier: m.subscriptionTier || m.subscription_tier || (m.donationAmount >= 5000 ? 'Diamond Member' : m.donationAmount >= 2500 ? 'Gold Member' : m.donationAmount >= 1000 ? 'Silver Member' : 'Starter Member'),
+                donationAmount: Number(m.donationAmount || m.donation_amount) || 0,
+                totalDonated: Number(m.totalDonated || m.total_donated) || 0,
+                approvalStatus: m.approvalStatus || m.approval_status || 'active',
+                joinDate: m.joinDate || m.createdAt || m.created_at || new Date().toISOString()
+            });
+        };
+
+        // 1. Primary Live Source: Ingest directly from Supabase
         try {
-            if (mongoose.connection?.readyState === 1) {
-                const dbMembers = await TrustMember.find({ approvalStatus: { $ne: 'deleted' } })
-                    .select('name memberId profilePhoto donationAmount city state role privilegeRole createdAt')
-                    .sort({ createdAt: -1 })
-                    .lean();
-
-                const rolesPool = ['Trustee', 'Member', 'Advisor', 'Executive Member'];
-                const citiesPool = [
-                    { city: 'Guntur', state: 'AP' },
-                    { city: 'Hyderabad', state: 'TS' },
-                    { city: 'Vijayawada', state: 'AP' },
-                    { city: 'Palnadu', state: 'AP' },
-                    { city: 'Visakhapatnam', state: 'AP' },
-                    { city: 'Bengaluru', state: 'KA' },
-                    { city: 'Chennai', state: 'TN' },
-                    { city: 'Tirupati', state: 'AP' }
-                ];
-
-                members = dbMembers.map((m, idx) => {
-                    const assignedRole = m.role || m.privilegeRole || rolesPool[idx % rolesPool.length];
-                    const loc = citiesPool[idx % citiesPool.length];
-                    return {
-                        name: m.name,
-                        memberId: m.memberId || `KCT-TM-${1000 + idx}`,
-                        role: assignedRole,
-                        city: m.city || loc.city,
-                        state: m.state || loc.state,
-                        profilePhoto: m.profilePhoto || '',
-                        subscriptionTier: m.donationAmount >= 5000 ? 'Diamond Member' :
-                                          m.donationAmount >= 2500 ? 'Gold Member' :
-                                          m.donationAmount >= 1000 ? 'Silver Member' : 'Starter Member',
-                        joinDate: m.createdAt
-                    };
+            const sbMembers = await fetchSupabaseTrustMembers();
+            if (sbMembers && sbMembers.length > 0) {
+                sbMembers.forEach(m => {
+                    const isDel = m.is_deleted === true || m.approval_status === 'deleted' || m.approval_status === 'suspended';
+                    if (!isDel) {
+                        addMember({
+                            id: m.id,
+                            name: m.name,
+                            memberId: m.member_id,
+                            email: m.email,
+                            phone: m.phone,
+                            role: m.role,
+                            city: m.city,
+                            state: m.state,
+                            profilePhoto: m.profile_photo,
+                            subscriptionTier: m.subscription_tier,
+                            donationAmount: m.donation_amount,
+                            totalDonated: m.total_donated,
+                            approvalStatus: m.approval_status,
+                            createdAt: m.created_at
+                        });
+                    }
                 });
             }
-        } catch (dbErr) {
-            console.warn('Public list DB notice:', dbErr.message);
+        } catch (sbErr) {
+            console.warn('Supabase public trust members fetch notice:', sbErr.message);
         }
 
-        // Merge memory store members with leadership trustees
-        const { memoryStore } = require('../services/supabaseService');
-        if (memoryStore?.trust_members?.length > 0) {
-            const existingNames = new Set(members.map(m => (m.name || '').toLowerCase().trim()));
-            const rolesPool = ['Trustee', 'Member', 'Advisor', 'Executive Member'];
-            const extra = memoryStore.trust_members
-                .filter(m => m.approvalStatus !== 'deleted' && !m.isDeleted && !existingNames.has((m.name || '').toLowerCase().trim()))
-                .map((m, idx) => ({
-                    name: m.name,
-                    memberId: m.memberId || m.member_id || `KCT-MEM-${1050 + idx}`,
-                    role: m.role || rolesPool[idx % rolesPool.length],
-                    city: m.city || (m.address ? m.address.split(',')[0].trim() : 'Guntur'),
-                    state: m.state || 'AP',
-                    profilePhoto: m.profilePhoto || m.profile_photo || '',
-                    subscriptionTier: m.subscriptionTier || m.subscription_tier || 'Starter Member',
-                    joinDate: m.createdAt || m.created_at || new Date().toISOString()
-                }));
-            members.push(...extra);
+        // 2. Dual Database: Ingest from MongoDB
+        try {
+            if (mongoose.connection?.readyState === 1) {
+                const dbMembers = await TrustMember.find({ isDeleted: { $ne: true }, approvalStatus: { $nin: ['deleted', 'suspended'] } })
+                    .lean();
+                dbMembers.forEach(addMember);
+            }
+        } catch (dbErr) {
+            console.warn('MongoDB public trust members fetch notice:', dbErr.message);
+        }
+
+        // 3. Fallback: Ingest from memoryStore only if 0 members
+        if (members.length === 0 && memoryStore?.trust_members?.length > 0) {
+            memoryStore.trust_members
+                .filter(m => !m.isDeleted && m.approvalStatus !== 'deleted' && m.approvalStatus !== 'suspended')
+                .forEach(addMember);
         }
 
         return res.json({

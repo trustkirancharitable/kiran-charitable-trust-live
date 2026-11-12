@@ -103,7 +103,7 @@ export default function PortalMonthlyDonor() {
   const [agreeTerms, setAgreeTerms] = useState(true);
 
   const [form, setForm] = useState({
-    fullName: 'Shaik Fayaz',
+    fullName: user?.name || '',
     email: 'sfayazmr@gmail.com',
     mobile: '9139278523',
     address: '29-155-B, Tekke, Nandyal, Andhra Pradesh - 518501',
@@ -226,7 +226,7 @@ export default function PortalMonthlyDonor() {
 
     const finalDonorName = (donorNameParam && donorNameParam !== 'Valued Member' && donorNameParam !== 'Valued Donor')
       ? donorNameParam
-      : (savedDonor.fullName || 'Shaik Fayaz');
+      : (savedDonor.fullName || user?.name || '');
     const finalAmount = amountParam || savedDonor.amount || 500;
     const finalReceipt = receiptNoParam || ('KCT-80G-' + Date.now().toString().slice(-6));
     const finalTxn = txnIdParam || ('SP' + Date.now().toString());
@@ -259,7 +259,7 @@ export default function PortalMonthlyDonor() {
               <div className="cert-org-details">
                 <span className="cert-form-tag">CBDT FORM NO. 10BE • OFFICIAL CERTIFICATE OF DONATION</span>
                 <h1 className="cert-trust-title">KIRAN CHARITABLE TRUST</h1>
-                <p className="cert-trust-reg">Registered under AP Societies Registration Act, 2001 • Registration No: 462/2004</p>
+                <p className="cert-trust-reg">Registered under AP Societies Registration Act, 2001 • Registration No: 3/2026</p>
                 <p className="cert-trust-addr">Registered Office: D.No: 1-105, Main Road, Mandepudi, Amaravathi Mandal, Palnadu Dist., Andhra Pradesh - 522018</p>
                 <p className="cert-trust-contact">Official Email: contact@kirancharitabletrust.org | Helpline: +91 77024 68889 / +91 94408 81222</p>
               </div>
@@ -329,7 +329,7 @@ export default function PortalMonthlyDonor() {
             <div className="cert-seal-box">
               <div className="cert-round-stamp">
                 <span>KIRAN CHARITABLE TRUST</span>
-                <small>* GOVT REG: 462/2004 *</small>
+                <small>* GOVT REG: 3/2026 *</small>
                 <strong>VERIFIED 80G</strong>
               </div>
             </div>
@@ -550,12 +550,13 @@ export default function PortalMonthlyDonor() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontWeight: 800, color: '#0052cc', fontSize: 16 }}>₹</span>
                   <input
-                    type="number"
-                    min="100"
-                    placeholder="e.g. 1500"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Min ₹10"
                     value={customAmount}
                     onChange={e => {
-                      setCustomAmount(e.target.value);
+                      const val = e.target.value.replace(/\D/g, '');
+                      setCustomAmount(val);
                       setIsCustom(true);
                     }}
                     onClick={e => e.stopPropagation()}
@@ -563,9 +564,9 @@ export default function PortalMonthlyDonor() {
                       width: 120,
                       padding: '8px 12px',
                       borderRadius: 8,
-                      border: '1.5px solid #cbd5e1',
+                      border: customAmount !== '' && Number(customAmount) < 10 ? '1.5px solid #dc2626' : '1.5px solid #cbd5e1',
                       fontWeight: 800,
-                      color: '#0052cc',
+                      color: customAmount !== '' && Number(customAmount) < 10 ? '#dc2626' : '#0052cc',
                       fontSize: 15
                     }}
                   />

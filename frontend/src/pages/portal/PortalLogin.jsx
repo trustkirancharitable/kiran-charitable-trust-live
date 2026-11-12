@@ -1250,7 +1250,7 @@ export default function PortalLogin() {
                     Congratulations, Trust Member!
                   </h3>
                   <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1.25rem 0' }}>
-                    Your contribution succeeded. You are now officially enrolled under Regd. No. 462/2004.
+                    Your contribution succeeded. You are now officially enrolled under Regd. No. 3/2026.
                   </p>
 
                   {/* Digital ID Card Preview */}

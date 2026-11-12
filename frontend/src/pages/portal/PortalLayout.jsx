@@ -56,7 +56,7 @@ export default function PortalLayout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
-    window.location.href = '/portal/login';
+    window.location.href = '/login?tab=login';
   };
 
   const isAuthPage = ['/portal/join', '/portal/login', '/portal/signup', '/portal/forgot-password', '/portal/signin', '/portal/register', '/portal/become-a-member'].some(p => location.pathname.startsWith(p));
@@ -66,7 +66,7 @@ export default function PortalLayout() {
   const isProfileRoute = location.pathname.includes('/portal/profile') || location.pathname.includes('/portal/dashboard');
 
   const userName = user?.name || user?.fullName || 'Trust Member';
-  const memberId = user?.memberId || user?.trustMemberId || user?.trustMember?.memberId || 'KCT-MEM-1015';
+  const memberId = user?.memberId || user?.trustMemberId || user?.trustMember?.memberId || 'KCT-MEM-1007';
   const userInitial = (userName.charAt(0) || 'M').toUpperCase();
   const avatarUrl = user?.avatar || user?.profilePhoto || user?.trustMember?.profilePhoto || null;
 
@@ -108,7 +108,7 @@ export default function PortalLayout() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {!location.pathname.includes('/login') && !location.pathname.includes('/signin') && (
                 <Link
-                  to="/portal/login"
+                  to="/login?tab=login"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -129,7 +129,7 @@ export default function PortalLayout() {
               )}
               {location.pathname.includes('/login') && (
                 <Link
-                  to="/portal/join"
+                  to="/login?tab=register"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -179,7 +179,7 @@ export default function PortalLayout() {
         {/* Minimal Footer */}
         <footer style={{ background: '#0F172A', color: '#94A3B8', padding: '20px 16px', textAlign: 'center', fontSize: 12 }}>
           <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-            <span>© {new Date().getFullYear()} Kiran Charitable Trust • Regd. No. 462/2004</span>
+            <span>© {new Date().getFullYear()} Kiran Charitable Trust • Regd. No. 3/2026</span>
             <div style={{ display: 'flex', gap: 16 }}>
               <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#94A3B8', textDecoration: 'none' }}>Privacy Policy</a>
               <a href="/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#94A3B8', textDecoration: 'none' }}>Terms</a>
@@ -196,7 +196,7 @@ export default function PortalLayout() {
   // If not logged in, any route under /portal/ MUST redirect to /portal/login
   // ─────────────────────────────────────────────────────────────
   if (!isAuthenticated) {
-    return <Navigate to="/portal/login" replace state={{ from: location.pathname }} />;
+    return <Navigate to="/login?tab=login" replace state={{ from: location.pathname }} />;
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -356,7 +356,7 @@ export default function PortalLayout() {
                 Guest Visitor Session
               </div>
               <Link
-                to="/portal/login"
+                to="/login?tab=login"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -375,7 +375,7 @@ export default function PortalLayout() {
                 <FaSignInAlt /> Sign In to Portal
               </Link>
               <Link
-                to="/portal/join"
+                to="/login?tab=register"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -522,7 +522,7 @@ export default function PortalLayout() {
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 8, borderLeft: '1px solid #E2E8F0' }}>
                 <Link
-                  to="/portal/login"
+                  to="/login?tab=login"
                   style={{
                     fontSize: 12.5,
                     fontWeight: 700,
@@ -549,7 +549,7 @@ export default function PortalLayout() {
         {/* Fixed Pinned Bottom Footer */}
         <footer className="portal-fixed-footer">
           <div style={{ maxWidth: 1440, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-            <span>© {new Date().getFullYear()} Kiran Charitable Trust • Official Member &amp; Donor Portal (Regd. No. 462/2004)</span>
+            <span>© {new Date().getFullYear()} Kiran Charitable Trust • Official Member &amp; Donor Portal (Regd. No. 3/2026)</span>
             <div style={{ display: 'flex', gap: 16 }}>
               <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" style={{ color: '#94A3B8', textDecoration: 'none' }}>Privacy Policy</a>
               <a href="/terms-conditions" target="_blank" rel="noopener noreferrer" style={{ color: '#94A3B8', textDecoration: 'none' }}>Terms of Service</a>

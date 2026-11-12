@@ -463,7 +463,7 @@ export default function MainLogin() {
             {/* Hero Section */}
             <section className="main-login-hero">
                 <div className="main-login-hero-badges">
-                    <span className="badge-gov">Regd. No. 462/2004</span>
+                    <span className="badge-gov">Regd. No. 3/2026</span>
                     <span className="badge-tax">80G &amp; 12A Certified</span>
                     <span className="badge-sec">100% Tax Exempt &amp; Direct</span>
                 </div>
@@ -1013,7 +1013,7 @@ export default function MainLogin() {
                                             Step 2: Official Member Profile &amp; Identification
                                         </h3>
                                         <p style={{ color: '#64748B', fontSize: '0.86rem', marginBottom: '1.25rem' }}>
-                                            Aadhaar verification and official member photo are required for trust records under Regd. No. 462/2004.
+                                            Aadhaar verification and official member photo are required for trust records under Regd. No. 3/2026.
                                         </p>
 
                                         {/* Photo Upload */}
@@ -1135,17 +1135,29 @@ export default function MainLogin() {
                                             {form.tier === 'custom' && (
                                                 <div style={{ marginTop: 10 }}>
                                                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
-                                                        Enter Custom Test / Contribution Amount (₹, Min 10)
+                                                        Enter Custom Contribution Amount (₹, Min 10)
                                                     </label>
                                                     <input
-                                                        type="number"
-                                                        min="10"
+                                                        type="text"
+                                                        inputMode="numeric"
                                                         className="main-input"
                                                         placeholder="Enter amount (min ₹10)"
                                                         value={form.amount}
-                                                        onChange={e => setFormField('amount', Math.max(10, parseInt(e.target.value) || 10))}
-                                                        style={{ fontWeight: 800, color: '#0F52BA' }}
+                                                        onChange={e => {
+                                                            const val = e.target.value.replace(/\D/g, '');
+                                                            setFormField('amount', val);
+                                                        }}
+                                                        style={{
+                                                            fontWeight: 800,
+                                                            color: '#0F52BA',
+                                                            borderColor: (form.amount !== '' && Number(form.amount) < 10) ? '#dc2626' : undefined
+                                                        }}
                                                     />
+                                                    {form.amount !== '' && Number(form.amount) < 10 && (
+                                                        <div style={{ color: '#dc2626', fontSize: 12, fontWeight: 700, marginTop: 4 }}>
+                                                            ⚠️ Minimum contribution amount is ₹10
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -1343,7 +1355,7 @@ export default function MainLogin() {
                                             Congratulations, Trust Member!
                                         </h2>
                                         <p style={{ color: '#64748B', fontSize: '0.88rem', maxWidth: 440, margin: '0 auto 1.5rem' }}>
-                                            Your contribution succeeded. You are officially certified as a Kiran Charitable Trust Member under Regd. No. 462/2004.
+                                            Your contribution succeeded. You are officially certified as a Kiran Charitable Trust Member under Regd. No. 3/2026.
                                         </p>
 
                                         {/* Digital Member Card */}
@@ -1462,7 +1474,7 @@ export default function MainLogin() {
                                 <FaIdCard className="comp-icon" />
                                 <div>
                                     <div className="comp-title">TRUST REGISTRATION NO.</div>
-                                    <div className="comp-val">462/2004 (Govt. of AP)</div>
+                                    <div className="comp-val">3/2026 (Govt. of AP)</div>
                                 </div>
                             </div>
                             <div className="compliance-row">

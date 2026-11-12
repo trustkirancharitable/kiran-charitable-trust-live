@@ -193,7 +193,7 @@ function RegisterModal({ onClose, initialTier }) {
         <div className="tm-modal-header">
           <div>
             <h3 className="tm-modal-title">Join as Official Trust Member</h3>
-            <p className="tm-modal-sub">Kiran Charitable Trust • Regd. 462/2004</p>
+            <p className="tm-modal-sub">Kiran Charitable Trust • Regd. 3/2026</p>
           </div>
           <button className="tm-modal-close-btn" onClick={onClose}>✕</button>
         </div>
@@ -866,7 +866,7 @@ export default function TrustMembership() {
             <ul className="tm-benefits-list">
               <li>
                 <span className="tm-benefit-icon">✓</span>
-                <span>Official Digital Membership ID & Certificate with Regd. No. 462/2004</span>
+                <span>Official Digital Membership ID & Certificate with Regd. No. 3/2026</span>
               </li>
               <li>
                 <span className="tm-benefit-icon">✓</span>
@@ -971,7 +971,7 @@ export default function TrustMembership() {
       {/* ── PORTAL FOOTER ── */}
       <footer className="tm-portal-footer">
         <div>
-          <strong>Kiran Charitable Trust</strong> • Regd. No. 462/2004 under AP Societies Act • 80G & 12A Certified
+          <strong>Kiran Charitable Trust</strong> • Regd. No. 3/2026 under AP Societies Act • 80G & 12A Certified
         </div>
         <div style={{ marginTop: '0.8rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
           <Link to="/">Home</Link>

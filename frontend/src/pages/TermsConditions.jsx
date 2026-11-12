@@ -29,7 +29,7 @@ export default function TermsConditions() {
                                 <p>Last Updated: November 2026 | Effective Date: November 2026</p>
                                 <div style={{ marginTop: 8, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                     <span style={{ fontSize: 11.5, background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: 12, color: '#e0f2fe' }}>
-                                        Regd. No. 462/2004
+                                        Regd. No. 3/2026
                                     </span>
                                     <span style={{ fontSize: 11.5, background: 'rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: 12, color: '#a7f3d0' }}>
                                         Under Indian Trusts Act, 1882
@@ -41,7 +41,7 @@ export default function TermsConditions() {
                         {/* Introduction */}
                         <div className="legal-intro">
                             <p>
-                                Welcome to <strong>Kiran Charitable Trust</strong> (&quot;Trust&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). These Terms of Service (&quot;Terms&quot;) constitute a legally binding electronic agreement between you (&quot;User&quot;, &quot;Donor&quot;, &quot;Member&quot;, or &quot;Visitor&quot;) and Kiran Charitable Trust, an Indian public charitable trust registered under the Indian Trusts Act, 1882 (Regd. No. 462/2004, Amaravathi, Andhra Pradesh).
+                                Welcome to <strong>Kiran Charitable Trust</strong> (&quot;Trust&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). These Terms of Service (&quot;Terms&quot;) constitute a legally binding electronic agreement between you (&quot;User&quot;, &quot;Donor&quot;, &quot;Member&quot;, or &quot;Visitor&quot;) and Kiran Charitable Trust, an Indian public charitable trust registered under the Indian Trusts Act, 1882 (Regd. No. 3/2026, Amaravathi, Andhra Pradesh).
                             </p>
                             <p style={{ marginTop: 12 }}>
                                 By accessing our website, donating, registering as a Trust Member, creating an account, or interacting with any of our community drives, you unconditionally agree to comply with and be bound by these Terms and our companion Privacy Policy.
@@ -121,7 +121,7 @@ export default function TermsConditions() {
                                         <strong>Voluntary Monthly Pledges:</strong> Members may commit to monthly or annual recurring contribution tiers (including test member verifications starting at ₹1, ₹500, ₹1,000, or custom amounts).
                                     </li>
                                     <li>
-                                        <strong>Official Membership ID:</strong> Upon verification of credentials and initial contribution confirmation, an official Membership ID (e.g., <code>KCT-MEM-1032</code>) is issued under Regd. No. 462/2004.
+                                        <strong>Official Membership ID:</strong> Upon verification of credentials and initial contribution confirmation, an official Membership ID (e.g., <code>KCT-MEM-1032</code>) is issued under Regd. No. 3/2026.
                                     </li>
                                     <li>
                                         <strong>Public Member Wall:</strong> Members can opt in to be featured on our public Member Wall in recognition of their sustained community support. You may toggle public display on or off at any time via your account settings.

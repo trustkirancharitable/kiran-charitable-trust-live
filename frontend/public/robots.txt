@@ -1,16 +1,33 @@
 # Robots.txt for Kiran Charitable Trust (https://www.kirancharitabletrust.org)
 User-agent: *
 Allow: /
+Allow: /donate
+Allow: /trust-membership
+Allow: /trust-members
+Allow: /donors
+Allow: /about
+Allow: /founder-desk
+Allow: /activities
+Allow: /gallery
+Allow: /volunteers
+Allow: /contact
+Allow: /causes/
+Allow: /privacy-policy
+Allow: /terms-conditions
 Allow: /favicon*
 Allow: /logo.png
 Allow: /apple-touch-icon.png
 Allow: /site.webmanifest
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
 
 # Explicit Googlebot indexing for Search & Console
 User-agent: Googlebot
 Allow: /
-Allow: /favicon*
-Allow: /logo.png
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
 
 User-agent: Googlebot-Image
 Allow: /

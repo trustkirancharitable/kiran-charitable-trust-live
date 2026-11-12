@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
                                 <p>Last Updated: November 2026 | Effective Date: November 2026</p>
                                 <div style={{ marginTop: 8, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                                     <span style={{ fontSize: 11.5, background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: 12, color: '#e0f2fe' }}>
-                                        Regd. No. 462/2004
+                                        Regd. No. 3/2026
                                     </span>
                                     <span style={{ fontSize: 11.5, background: 'rgba(16,185,129,0.25)', padding: '2px 8px', borderRadius: 12, color: '#a7f3d0' }}>
                                         12A &amp; 80G Certified NGO
@@ -41,7 +41,7 @@ export default function PrivacyPolicy() {
                         {/* Introduction */}
                         <div className="legal-intro">
                             <p>
-                                <strong>Kiran Charitable Trust</strong> (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;, or the &quot;Trust&quot;) is a registered non-profit public charitable trust under the Indian Trusts Act, 1882 (Registration No. 462/2004), holding statutory approvals under Section 12A (URN: AAGTK5575QE20261) and Section 80G (URN: AAGTK5575QF20261) of the Income Tax Act, 1961, with PAN <strong>AAGTK5575Q</strong> and NITI Aayog NGO Darpan ID <strong>AP/2023/0361245</strong>.
+                                <strong>Kiran Charitable Trust</strong> (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;, or the &quot;Trust&quot;) is a registered non-profit public charitable trust under the Indian Trusts Act, 1882 (Registration No. 3/2026), holding statutory approvals under Section 12A (URN: AAGTK5575QE20261) and Section 80G (URN: AAGTK5575QF20261) of the Income Tax Act, 1961, with PAN <strong>AAGTK5575Q</strong> and NITI Aayog NGO Darpan ID <strong>AP/2023/0361245</strong>.
                             </p>
                             <p style={{ marginTop: 12 }}>
                                 We are deeply committed to respecting and protecting the personal privacy of our donors, trust members, volunteers, beneficiaries, and website visitors. This Privacy Policy governs our collection, use, retention, disclosure, and protection of information in accordance with the <strong>Digital Personal Data Protection Act, 2023 (DPDP Act, India)</strong>, the <strong>Information Technology Act, 2000</strong>, and global data privacy standards.

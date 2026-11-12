@@ -579,7 +579,7 @@ export default function PortalJoin() {
                   Step 2: Official Member Profile &amp; Identification
                 </h3>
                 <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.86rem', marginBottom: '1.25rem' }}>
-                  Aadhaar verification and official member photo are required for trust registration under Regd. No. 462/2004.
+                  Aadhaar verification and official member photo are required for trust registration under Regd. No. 3/2026.
                 </p>
 
                 {/* Profile Photo */}
@@ -923,7 +923,7 @@ export default function PortalJoin() {
                   Congratulations, Trust Member!
                 </h2>
                 <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.88rem', maxWidth: 440, margin: '0 auto 1.5rem' }}>
-                  Your contribution succeeded. You are officially recognized as a certified Kiran Charitable Trust Member under Regd. No. 462/2004.
+                  Your contribution succeeded. You are officially recognized as a certified Kiran Charitable Trust Member under Regd. No. 3/2026.
                 </p>
 
                 {/* Digital Member Card */}
@@ -1004,7 +1004,7 @@ export default function PortalJoin() {
             </p>
 
             {[
-              ['Official Membership ID & Certificate', 'Verified registration under Regd. No. 462/2004'],
+              ['Official Membership ID & Certificate', 'Verified registration under Regd. No. 3/2026'],
               ['80G Income Tax Exemption', 'Tax deductible receipts for all monthly contributions'],
               ['Recognized on Official Member Wall', 'Featured on public trust member directory and leaderboard'],
               ['Quarterly Transparency Reports', 'Direct program audit breakdowns delivered to your inbox'],

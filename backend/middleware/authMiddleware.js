@@ -27,6 +27,56 @@ const requireAuth = async (req, res, next) => {
         }
 
         if (!user) {
+            // 1. Check Supabase Cloud DB (Primary live source when MongoDB disconnected)
+            const { getSupabase } = require('../services/supabaseService');
+            const sb = getSupabase();
+            if (sb) {
+                try {
+                    const targetEmail = (decoded.email || '').toLowerCase().trim();
+                    const { data: sbMem } = await sb.from('trust_members')
+                        .select('*')
+                        .eq('email', targetEmail)
+                        .maybeSingle();
+                    if (sbMem) {
+                        user = {
+                            _id: sbMem.id,
+                            id: sbMem.id,
+                            name: sbMem.name,
+                            email: sbMem.email,
+                            phone: sbMem.phone,
+                            role: 'trust_member',
+                            address: sbMem.address,
+                            avatar: sbMem.profile_photo,
+                            aadharNumber: sbMem.aadhar_number,
+                            panNumber: sbMem.pan_number,
+                            trustMemberId: sbMem.member_id,
+                            memberId: sbMem.member_id
+                        };
+                    } else {
+                        const { data: sbProf } = await sb.from('profiles')
+                            .select('*')
+                            .eq('email', targetEmail)
+                            .maybeSingle();
+                        if (sbProf) {
+                            user = {
+                                _id: sbProf.id,
+                                id: sbProf.id,
+                                name: sbProf.name,
+                                email: sbProf.email,
+                                phone: sbProf.phone,
+                                role: sbProf.role || 'donor',
+                                address: sbProf.address,
+                                avatar: sbProf.avatar_url
+                            };
+                        }
+                    }
+                } catch (sbErr) {
+                    console.warn('AuthMiddleware Supabase lookup notice:', sbErr.message);
+                }
+            }
+        }
+
+        if (!user) {
             const { memoryStore } = require('../services/supabaseService');
             const targetId = decoded.userId || '';
             const targetEmail = (decoded.email || '').toLowerCase().trim();
@@ -47,7 +97,11 @@ const requireAuth = async (req, res, next) => {
                     phone: memUser?.phone || tm?.phone || '',
                     role: memUser?.role || (tm ? 'trust_member' : decoded.role || 'donor'),
                     address: memUser?.address || tm?.address || '',
-                    avatar: memUser?.avatar || tm?.profile_photo || tm?.profilePhoto || ''
+                    avatar: memUser?.avatar || tm?.profile_photo || tm?.profilePhoto || '',
+                    aadharNumber: memUser?.aadharNumber || tm?.aadharNumber || tm?.aadhar_number || '',
+                    panNumber: memUser?.panNumber || tm?.panNumber || tm?.pan_number || '',
+                    trustMemberId: tm?.member_id || tm?.memberId || 'KCT-MEM-1007',
+                    memberId: tm?.member_id || tm?.memberId || 'KCT-MEM-1007'
                 };
             }
         }

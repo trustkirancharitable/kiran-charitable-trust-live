@@ -121,7 +121,7 @@ export default function PortalProfile() {
         {
             id: 'notif-2',
             title: 'Verified Supporter & Member Account',
-            desc: 'Your supporter profile is active and verified under Kiran Charitable Trust (Regd. No. 462/2004). Thank you for sustaining daily education and nutrition programs.',
+            desc: 'Your supporter profile is active and verified under Kiran Charitable Trust (Regd. No. 3/2026). Thank you for sustaining daily education and nutrition programs.',
             time: 'Updated Today',
             icon: 'blue',
             read: false
@@ -182,15 +182,21 @@ export default function PortalProfile() {
 
     const loadUserData = async () => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/auth/me`);
+            const tokenToUse = searchParams.get('auth_token') || searchParams.get('token') || localStorage.getItem('kct_token') || localStorage.getItem('token');
+            if (tokenToUse) {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${tokenToUse}`;
+            }
+            const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+                headers: tokenToUse ? { 'Authorization': `Bearer ${tokenToUse}` } : {}
+            });
             if (res.data?.success && res.data.user) {
                 const u = res.data.user;
                 setProfileData(u);
-                const resolvedName = u.name || user?.name || '';
+                const resolvedName = u.name || u.trustMember?.name || user?.name || '';
                 setName(resolvedName);
-                const resolvedPhone = u.phone || user?.phone || '';
+                const resolvedPhone = u.phone || u.trustMember?.phone || user?.phone || '';
                 setPhone(resolvedPhone);
-                const resolvedAddress = u.address || user?.address || '';
+                const resolvedAddress = u.address || u.trustMember?.address || user?.address || '';
                 setAddress(resolvedAddress);
                 const resolvedPan = u.panNumber || u.trustMember?.panNumber || u.trustMember?.pan_number || '';
                 setPanNumber(resolvedPan);
@@ -218,7 +224,10 @@ export default function PortalProfile() {
             axios.defaults.headers.common['Authorization'] = `Bearer ${urlToken}`;
         }
 
-        const activeToken = urlToken || localStorage.getItem('kct_token');
+        const activeToken = urlToken || localStorage.getItem('kct_token') || localStorage.getItem('token');
+        if (activeToken) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${activeToken}`;
+        }
         if (!isAuthenticated && !activeToken) {
             navigate('/portal/login', { replace: true });
             return;
@@ -397,6 +406,7 @@ export default function PortalProfile() {
 
             const cleanPan = panNumber ? panNumber.toUpperCase().trim() : '';
 
+            const tokenToUse = localStorage.getItem('kct_token') || localStorage.getItem('token');
             const res = await axios.put(`${API_BASE_URL}/auth/profile`, {
                 name,
                 phone,
@@ -404,11 +414,13 @@ export default function PortalProfile() {
                 panNumber: cleanPan,
                 aadharNumber: cleanAadhar,
                 avatar: avatarPreview || undefined
+            }, {
+                headers: tokenToUse ? { 'Authorization': `Bearer ${tokenToUse}` } : {}
             });
             if (res.data?.success) {
                 toast.success('Profile details saved successfully.');
-                refreshUser();
-                loadUserData();
+                if (refreshUser) refreshUser();
+                await loadUserData();
             } else {
                 toast.error(res.data?.message || 'Failed to update profile');
             }
@@ -610,11 +622,16 @@ export default function PortalProfile() {
         </div>
     );
 
-    // Calculations
-    const totalDonated = donations.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
-    const successfulDonations = donations.filter(d => d.status === 'completed' || d.status === 'SUCCESS' || d.status === 'success' || !d.status);
-    const effectiveMemberId = trustMember?.memberId || user?.trustMemberId || user?.memberId || 'KCT-MBR-0428';
-    const monthlyPledgeAmt = trustMember?.donationAmount || 500;
+    // Calculations - Accurate separation of Verified vs Pending/Failed transactions
+    const successfulDonations = donations.filter(d => {
+        const s = (d.status || '').toLowerCase();
+        return s === 'completed' || s === 'success';
+    });
+    const totalVerifiedAmount = successfulDonations.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+    const effectiveMemberId = trustMember?.memberId || user?.trustMemberId || user?.memberId || 'KCT-MEM-1007';
+    const monthlyPledgeAmt = (trustMember?.donationAmount && Number(trustMember.donationAmount) >= 500)
+        ? Number(trustMember.donationAmount)
+        : 500;
     const memberSinceDate = trustMember?.createdAt || user?.createdAt || new Date();
     const memberSinceStr = new Date(memberSinceDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
@@ -689,7 +706,7 @@ export default function PortalProfile() {
                                     Total Contributed
                                 </div>
                                 <div style={{ fontSize: 26, fontWeight: 800, color: '#059669', marginBottom: 4 }}>
-                                    ₹{Number(totalDonated || monthlyPledgeAmt).toLocaleString('en-IN')}
+                                    ₹{Number(totalVerifiedAmount).toLocaleString('en-IN')}
                                 </div>
                                 <div style={{ fontSize: 12, color: '#94a3b8' }}>Direct community welfare</div>
                             </div>
@@ -709,7 +726,7 @@ export default function PortalProfile() {
                                     Receipts
                                 </div>
                                 <div style={{ fontSize: 26, fontWeight: 800, color: '#7c3aed', marginBottom: 4 }}>
-                                    {successfulDonations.length || donations.length || 1}
+                                    {successfulDonations.length}
                                 </div>
                                 <div style={{ fontSize: 12, color: '#94a3b8' }}>80G Tax Deductible</div>
                             </div>
@@ -721,7 +738,7 @@ export default function PortalProfile() {
                                 <div style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
                                     {memberSinceStr}
                                 </div>
-                                <div style={{ fontSize: 12, color: '#94a3b8' }}>Regd. No. 462/2004</div>
+                                <div style={{ fontSize: 12, color: '#94a3b8' }}>Regd. No. 3/2026</div>
                             </div>
                         </div>
 
@@ -807,35 +824,52 @@ export default function PortalProfile() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {donations.slice(0, 3).map((d, idx) => (
-                                                    <tr key={d._id || idx}>
-                                                        <td style={{ fontSize: 12, color: '#64748b' }}>
-                                                            {new Date(d.createdAt || Date.now()).toLocaleDateString('en-IN')}
-                                                        </td>
-                                                        <td style={{ fontWeight: 700, color: '#2563eb', fontFamily: 'monospace' }}>
-                                                            {d.receiptNumber || `KCT-REC-${idx + 1042}`}
-                                                        </td>
-                                                        <td style={{ fontSize: 13 }}>{d.purpose || 'Trust Sustaining Contribution'}</td>
-                                                        <td style={{ fontWeight: 800, color: '#059669' }}>
-                                                            ₹{Number(d.amount).toLocaleString('en-IN')}
-                                                        </td>
-                                                        <td>
-                                                            <span className="user-pill green">Verified</span>
-                                                        </td>
-                                                        <td>
-                                                            <button
-                                                                type="button"
-                                                                className="user-btn-secondary"
-                                                                onClick={() => {
-                                                                    setSelectedReceipt(d);
-                                                                }}
-                                                                style={{ padding: '4px 10px', fontSize: 11.5 }}
-                                                            >
-                                                                <FaDownload /> Receipt
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                {donations.slice(0, 5).map((d, idx) => {
+                                                    const sLower = (d.status || '').toLowerCase();
+                                                    const isSuccess = sLower === 'completed' || sLower === 'success';
+                                                    const isPending = sLower === 'pending';
+                                                    return (
+                                                        <tr key={d._id || idx}>
+                                                            <td style={{ fontSize: 12, color: '#64748b' }}>
+                                                                {new Date(d.createdAt || Date.now()).toLocaleDateString('en-IN')}
+                                                            </td>
+                                                            <td style={{ fontWeight: 700, color: '#2563eb', fontFamily: 'monospace' }}>
+                                                                {d.receiptNumber || `KCT-REC-${idx + 1042}`}
+                                                            </td>
+                                                            <td style={{ fontSize: 13 }}>{d.purpose || 'Trust Sustaining Contribution'}</td>
+                                                            <td style={{ fontWeight: 800, color: isSuccess ? '#059669' : isPending ? '#d97706' : '#dc2626' }}>
+                                                                ₹{Number(d.amount).toLocaleString('en-IN')}
+                                                            </td>
+                                                            <td>
+                                                                {isSuccess ? (
+                                                                    <span className="user-pill green">Verified</span>
+                                                                ) : isPending ? (
+                                                                    <span className="user-pill yellow" style={{ background: '#fef3c7', color: '#b45309' }}>Pending</span>
+                                                                ) : (
+                                                                    <span className="user-pill red" style={{ background: '#fee2e2', color: '#dc2626' }}>Failed</span>
+                                                                )}
+                                                            </td>
+                                                            <td>
+                                                                {isSuccess ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="user-btn-secondary"
+                                                                        onClick={() => {
+                                                                            setSelectedReceipt(d);
+                                                                        }}
+                                                                        style={{ padding: '4px 10px', fontSize: 11.5 }}
+                                                                    >
+                                                                        <FaDownload /> Receipt
+                                                                    </button>
+                                                                ) : isPending ? (
+                                                                    <span style={{ fontSize: 12, color: '#64748b' }}>Awaiting Confirmation</span>
+                                                                ) : (
+                                                                    <span style={{ fontSize: 12, color: '#94a3b8' }}>—</span>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
                                             </tbody>
                                         </table>
                                     </div>
@@ -953,7 +987,7 @@ export default function PortalProfile() {
                                                 <input
                                                     type="text"
                                                     className="user-input"
-                                                    placeholder="e.g. Shaik Fayaz"
+                                                    placeholder="Enter your full legal name"
                                                     value={name}
                                                     onChange={e => setName(e.target.value)}
                                                     required
@@ -1294,18 +1328,41 @@ export default function PortalProfile() {
                                                             ₹{Number(d.amount || 0).toLocaleString('en-IN')}
                                                         </td>
                                                         <td>
-                                                            <span className="user-badge user-badge-success">
-                                                                <FaCheckCircle style={{ fontSize: 10 }} /> {d.status?.toUpperCase() || 'SUCCESS'}
-                                                            </span>
+                                                            {(() => {
+                                                                const s = (d.status || '').toLowerCase();
+                                                                if (s === 'completed' || s === 'success') {
+                                                                    return (
+                                                                        <span className="user-badge user-badge-success">
+                                                                            <FaCheckCircle style={{ fontSize: 10 }} /> COMPLETED
+                                                                        </span>
+                                                                    );
+                                                                } else if (s === 'pending') {
+                                                                    return (
+                                                                        <span className="user-badge" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                                                                            ⏳ PENDING
+                                                                        </span>
+                                                                    );
+                                                                } else {
+                                                                    return (
+                                                                        <span className="user-badge" style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>
+                                                                            ❌ FAILED
+                                                                        </span>
+                                                                    );
+                                                                }
+                                                            })()}
                                                         </td>
                                                         <td style={{ textAlign: 'right' }}>
-                                                            <button
-                                                                className="user-btn-secondary"
-                                                                onClick={() => setSelectedReceipt(d)}
-                                                                style={{ padding: '5px 12px', fontSize: 11.5 }}
-                                                            >
-                                                                <FaPrint /> Print 80G Form
-                                                            </button>
+                                                            {((d.status || '').toLowerCase() === 'completed' || (d.status || '').toLowerCase() === 'success') ? (
+                                                                <button
+                                                                    className="user-btn-secondary"
+                                                                    onClick={() => setSelectedReceipt(d)}
+                                                                    style={{ padding: '5px 12px', fontSize: 11.5 }}
+                                                                >
+                                                                    <FaPrint /> Print 80G Form
+                                                                </button>
+                                                            ) : (
+                                                                <span style={{ fontSize: 12, color: '#94a3b8' }}>—</span>
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 ))
@@ -1481,7 +1538,7 @@ export default function PortalProfile() {
                                     </div>
                                 </div>
                                 <div className="receipt-reg-badge">
-                                    Regd. No. 462/2004
+                                    Regd. No. 3/2026
                                 </div>
                             </div>
 

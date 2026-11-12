@@ -14,10 +14,10 @@ import {
     FaUserPlus
 } from 'react-icons/fa';
 import './TrustMembers.css';
-import ChairmanImg from '../assets/Pallepogu Kiranbabu Chairman.jpeg';
-import TreasurerImg from '../assets/Srungarapati Rakesh Treasurer.jpeg';
-import ViceChairmanImg from '../assets/Konda Ravi Teja Vice Chairman.png';
-import ExecutiveImg from '../assets/Konda Ravi Bharath Executive.png';
+const ChairmanImg = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/chairman_kiranbabu.jpeg';
+const TreasurerImg = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/treasurer_rakesh.jpeg';
+const ViceChairmanImg = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/vice_chairman_raviteja.png';
+const ExecutiveImg = 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/executive_ravibharath.png';
 
 export default function TrustMembers() {
     const [boardOfTrustees, setBoardOfTrustees] = useState([]);
@@ -55,6 +55,18 @@ export default function TrustMembers() {
     // Filtered & Sorted Members
     const filteredMembers = useMemo(() => {
         let list = [...allMembers];
+
+        // Filter out leadership trustees already featured in the Board of Trustees above
+        const boardNames = [
+            'pallepogu kiranbabu',
+            'konda ravi teja',
+            'konda ravi bharath',
+            'srungarapati rakesh'
+        ];
+        list = list.filter(m => {
+            const nameLower = (m.name || '').toLowerCase().trim();
+            return !boardNames.some(bn => nameLower.includes(bn));
+        });
 
         // 1. Search Query
         if (searchQuery.trim()) {
@@ -184,15 +196,23 @@ export default function TrustMembers() {
                                     <div className="tm-laurel-branch left">
                                         <FaAward className="tm-laurel-icon" />
                                     </div>
-                                    <div className="tm-trustee-avatar">
+                                    <div className="tm-trustee-avatar" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         {trustee.photo ? (
                                             <img
                                                 src={trustee.photo}
                                                 alt={trustee.name}
                                                 className="tm-trustee-avatar-img"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={(e) => {
+                                                    const initials = (trustee.name || 'Member').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.parentElement.innerHTML = `<span style="font-weight: 800; font-size: 16px; color: #1e3a8a;">${initials}</span>`;
+                                                }}
                                             />
                                         ) : (
-                                            <FaUser />
+                                            <span style={{ fontWeight: 800, fontSize: 16, color: '#1e3a8a' }}>
+                                                {(trustee.name || 'Member').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || <FaUser />}
+                                            </span>
                                         )}
                                     </div>
                                     <div className="tm-laurel-branch right">
@@ -300,12 +320,16 @@ export default function TrustMembers() {
                         return (
                             <div key={member.memberId || idx} className="tm-member-card">
                                 {/* Left: Circular Avatar with Gold Ring Border */}
-                                <div className="tm-member-avatar-gold-ring" style={{ overflow: 'hidden' }}>
+                                <div className="tm-member-avatar-gold-ring" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {photo ? (
                                         <img
                                             src={photo}
                                             alt={member.name || 'Member'}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                e.currentTarget.parentElement.innerHTML = `<span style="font-weight: 800; font-size: 16px; color: #1e3a8a;">${initials}</span>`;
+                                            }}
                                         />
                                     ) : (
                                         <span style={{ fontWeight: 800, fontSize: 16, color: '#1e3a8a' }}>

@@ -52,6 +52,46 @@ const CAPTCHA_SECRET = process.env.JWT_SECRET || DEFAULT_SECRET_KEY || 'kiran_ca
 // In-memory payment session registry for guaranteed instant email receipts
 const pendingPaymentSessions = new Map();
 
+// Automatically check and sweep timed-out payment sessions (>5 mins) and send failure notice emails
+setInterval(async () => {
+    try {
+        const now = Date.now();
+        const timeoutThreshold = 5 * 60 * 1000; // 5 minutes
+        for (const [clientTxnId, session] of pendingPaymentSessions.entries()) {
+            if (session.timestamp && (now - session.timestamp > timeoutThreshold)) {
+                if (!session.resolved && !session.timeoutNotified) {
+                    session.timeoutNotified = true;
+                    if (session.email) {
+                        const isMonthly = session.isMonthlySubscription || (session.purpose || '').toLowerCase().includes('monthly');
+                        const retryUrl = isMonthly
+                            ? 'https://kiran-charitable-trust-copy.vercel.app/portal/profile?tab=payments'
+                            : 'https://kiran-charitable-trust-copy.vercel.app/donate';
+                        sendPaymentFailureEmail({
+                            name: session.fullName,
+                            email: session.email,
+                            amount: session.amount,
+                            reason: 'Payment session timed out (5-minute window expired)',
+                            transactionId: clientTxnId,
+                            retryUrl
+                        }).catch(e => console.warn('Timeout failure email error:', e.message));
+                    }
+                    try {
+                        await Donation.updateOne(
+                            { transactionId: clientTxnId, status: { $regex: /^pending$/i } },
+                            { $set: { status: 'failed', failureReason: 'Payment session timed out (5-minute window expired)', failureNotificationSent: true } }
+                        );
+                    } catch (e) {}
+                }
+                if (now - session.timestamp > 15 * 60 * 1000) {
+                    pendingPaymentSessions.delete(clientTxnId);
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('Session timeout sweep error:', err.message);
+    }
+}, 60000);
+
 // Helper: Generate SabPaisa PG 3.0 Checksum (HMAC SHA-256)
 function generateSabpaisaChecksum(merchantId, merchantTxnId, amountInPaise, timestamp, secretKey) {
     const rawString = `${merchantId}|${merchantTxnId}|${amountInPaise}|INR|${timestamp}`;
@@ -314,21 +354,12 @@ router.post(['/initiate-sabpaisa', '/initiate'], paymentLimiter, async (req, res
             checksum
         };
 
-        // Attach SabPaisa PG 3.0 AutoPay Mandate & recurring subscription parameters
+        // Attach SabPaisa PG 3.0 Monthly Subscription parameters (enables seamless Dynamic UPI QR generation)
         if (isMonthlySubscription) {
-            const mandateChannel = (req.body.autopayMethod || 'UPI_AUTOPAY').toUpperCase();
-            payload.description = `AutoPay Mandate Setup - ${purpose || 'Monthly Pillar'}`;
-            payload.udf1 = 'AUTOPAY_MANDATE';
-            payload.udf2 = mandateChannel;
+            payload.description = `Monthly Contribution - ${purpose || 'Monthly Philanthropic Pillar'}`;
+            payload.udf1 = 'MONTHLY_CONTRIBUTION';
+            payload.udf2 = 'ALL';
             payload.udf3 = clientTxnId;
-            payload.metadata = {
-                mandateType: 'AUTOPAY',
-                mandateChannel: mandateChannel,
-                subscriptionType: 'MONTHLY',
-                billingFrequency: 'MONTHLY',
-                recurringAmount: numAmount,
-                plan: purpose || 'Monthly Pillar'
-            };
         }
 
         console.log(`Initiating SabPaisa Payment on ${baseUrl}/api/v2/payments for ${clientCode} (${paiseAmount} paise / ₹${numAmount})...`);

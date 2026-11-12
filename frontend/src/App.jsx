@@ -74,8 +74,8 @@ function App() {
           <Route path="/portal" element={<PortalLayout />}>
             <Route index element={<PortalProfile />} />
             <Route path="overview" element={<PortalHome />} />
-            <Route path="join" element={<PortalJoin />} />
-            <Route path="become-a-member" element={<PortalJoin />} />
+            <Route path="join" element={<Navigate to="/login?tab=register" replace />} />
+            <Route path="become-a-member" element={<Navigate to="/login?tab=register" replace />} />
             <Route path="members" element={<PortalMembers />} />
             <Route path="trust-members" element={<PortalMembers />} />
             <Route path="donors" element={<PortalDonors />} />
@@ -86,10 +86,10 @@ function App() {
             <Route path="profile" element={<PortalProfile />} />
             <Route path="monthly-donor" element={<PortalMonthlyDonor />} />
             <Route path="subscribe" element={<PortalMonthlyDonor />} />
-            <Route path="login" element={<PortalLogin />} />
-            <Route path="signin" element={<PortalLogin />} />
-            <Route path="signup" element={<PortalSignup />} />
-            <Route path="register" element={<PortalSignup />} />
+            <Route path="login" element={<Navigate to="/login?tab=login" replace />} />
+            <Route path="signin" element={<Navigate to="/login?tab=login" replace />} />
+            <Route path="signup" element={<Navigate to="/login?tab=register" replace />} />
+            <Route path="register" element={<Navigate to="/login?tab=register" replace />} />
             <Route path="forgot-password" element={<PortalForgotPassword />} />
           </Route>
           <Route path="/portal/*" element={<Navigate to="/portal/profile" replace />} />

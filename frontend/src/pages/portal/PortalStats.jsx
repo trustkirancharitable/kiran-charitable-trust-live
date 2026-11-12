@@ -142,7 +142,7 @@ export default function PortalStats() {
 
           <div style={{ background: '#F8FAFC', padding: '1.8rem', borderRadius: 16, border: '1.5px solid var(--pt-border)' }}>
             <h4 style={{ color: 'var(--pt-secondary)', fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <FaUniversity style={{ color: '#2563EB' }} /> Regd. No. 462/2004
+              <FaUniversity style={{ color: '#2563EB' }} /> Regd. No. 3/2026
             </h4>
             <p style={{ color: 'var(--pt-text-gray)', fontSize: '0.88rem', lineHeight: 1.6 }}>
               Registered non-profit society operating with audited accounts and regular regulatory filings for over 20 years.

@@ -2901,3 +2901,288 @@ input.admin-topbar-search-input {
         margin: 6mm;
     }
 }
+
+/* ========================================================
+   ADMIN STATUS PILLS & FILTER TOOLBARS (DESKTOP ROW & MOBILE GRID)
+   ======================================================== */
+.admin-pill-group {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 16px !important;
+}
+
+.admin-pill-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    padding: 7px 15px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 9999px !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    white-space: nowrap !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    text-decoration: none !important;
+}
+
+.admin-pill-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+    transform: translateY(-1px) !important;
+}
+
+.admin-pill-btn.active-all,
+.admin-pill-btn.active {
+    background: #0f172a !important;
+    border-color: #0f172a !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25) !important;
+}
+
+.admin-pill-btn.active-active {
+    background: #059669 !important;
+    border-color: #059669 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25) !important;
+}
+
+.admin-pill-btn.active-suspended {
+    background: #d97706 !important;
+    border-color: #d97706 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25) !important;
+}
+
+.admin-pill-btn.active-trash {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* Toolbar & Filters (Always Row in Desktop, Grid in Mobile) */
+.admin-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    padding: 12px 16px !important;
+    margin-bottom: 16px !important;
+}
+
+.admin-toolbar-left {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+    flex: 1 1 auto !important;
+    width: auto !important;
+}
+
+.admin-select {
+    display: inline-block !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    color: #334155 !important;
+    outline: none !important;
+    cursor: pointer !important;
+    min-width: 150px !important;
+    max-width: 240px !important;
+    flex: 0 1 auto !important;
+    height: 38px !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.admin-select:focus,
+.admin-select:hover {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}
+
+.admin-search-box {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 260px !important;
+    max-width: 440px !important;
+    flex: 1 1 260px !important;
+    height: 38px !important;
+}
+
+.admin-search-input {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 7px 12px 7px 34px !important;
+    font-size: 13px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    outline: none !important;
+    box-sizing: border-box !important;
+}
+
+.admin-search-icon {
+    position: absolute !important;
+    left: 11px !important;
+    color: #94a3b8 !important;
+    font-size: 14px !important;
+    pointer-events: none !important;
+}
+
+.admin-quick-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 14px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    cursor: pointer !important;
+    height: 38px !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+}
+
+.admin-quick-btn:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+/* Desktop: Strict Row Layout for Toolbar Filters */
+.admin-toolbar-flex-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: thin !important;
+}
+
+.admin-filter-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    flex: 1 1 auto !important;
+    overflow-x: auto !important;
+    scrollbar-width: thin !important;
+}
+
+.admin-filter-row .admin-search-box {
+    min-width: 200px !important;
+    max-width: 280px !important;
+    flex: 1 1 200px !important;
+    height: 38px !important;
+}
+
+.admin-filter-row .admin-select {
+    min-width: 130px !important;
+    max-width: 185px !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
+    height: 38px !important;
+    font-size: 12.5px !important;
+    padding: 6px 10px !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+}
+
+.admin-action-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+/* Mobile View: Grid Layout */
+@media (max-width: 768px) {
+    .admin-pill-group {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .admin-pill-btn {
+        justify-content: center !important;
+        width: 100% !important;
+        text-align: center !important;
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+    }
+
+    .admin-toolbar,
+    .admin-toolbar-flex-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 12px !important;
+        overflow-x: visible !important;
+    }
+
+    .admin-toolbar-left,
+    .admin-filter-row {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+    }
+
+    .admin-search-box,
+    .admin-filter-row .admin-search-box {
+        grid-column: 1 / -1 !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .admin-select,
+    .admin-filter-row .admin-select {
+        min-width: 100% !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 40px !important;
+        font-size: 12px !important;
+    }
+
+    .admin-action-row {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .admin-quick-btn,
+    .admin-action-row .admin-quick-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        height: 40px !important;
+    }
+}

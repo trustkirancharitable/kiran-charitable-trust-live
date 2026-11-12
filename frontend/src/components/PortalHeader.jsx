@@ -45,12 +45,12 @@ export default function PortalHeader() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
-        window.location.href = '/portal/login';
+        window.location.href = '/login?tab=login';
     };
 
     const userName = user?.name || user?.fullName || 'Trust Member';
     const userRole = user?.role === 'admin' ? 'Administrator' : 'Official Trust Member';
-    const memberId = user?.memberId || user?.trustMemberId || user?.trustMember?.memberId || 'KCT-MEM-1015';
+    const memberId = user?.memberId || user?.trustMemberId || user?.trustMember?.memberId || 'KCT-MEM-1007';
     const userInitial = (userName.charAt(0) || 'M').toUpperCase();
     const avatarUrl = user?.avatar || user?.profilePhoto || user?.trustMember?.profilePhoto || null;
 
@@ -79,7 +79,7 @@ export default function PortalHeader() {
             }}>
                 {/* Left: Kiran Logo & Official Portal Badge */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <Link to={isAuthenticated ? "/portal/profile" : "/portal/join"} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }} title="Kiran Charitable Trust">
+                    <Link to={isAuthenticated ? "/portal/profile" : "/login?tab=register"} style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }} title="Kiran Charitable Trust">
                         <div style={{
                             height: '46px',
                             width: '70px',
@@ -111,7 +111,7 @@ export default function PortalHeader() {
                                 Member Portal
                             </span>
                             <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
-                                Regd. No. 462/2004
+                                Regd. No. 3/2026
                             </span>
                         </div>
                         <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
@@ -298,7 +298,7 @@ export default function PortalHeader() {
                         /* If not logged in and not on login page, offer Sign In or Join */
                         location.pathname !== '/portal/login' && location.pathname !== '/portal/signin' ? (
                             <Link
-                                to="/portal/login"
+                                to="/login?tab=login"
                                 style={{
                                     fontSize: '13px',
                                     fontWeight: 700,
@@ -316,7 +316,7 @@ export default function PortalHeader() {
                             </Link>
                         ) : (
                             <Link
-                                to="/portal/join"
+                                to="/login?tab=register"
                                 style={{
                                     fontSize: '13px',
                                     fontWeight: 700,

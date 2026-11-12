@@ -102,6 +102,18 @@ export default function PortalMembers() {
     const filteredMembers = useMemo(() => {
         let list = [...allMembers];
 
+        // Filter out leadership trustees already featured in the Board of Trustees above
+        const boardNames = [
+            'pallepogu kiranbabu',
+            'konda ravi teja',
+            'konda ravi bharath',
+            'srungarapati rakesh'
+        ];
+        list = list.filter(m => {
+            const nameLower = (m.name || '').toLowerCase().trim();
+            return !boardNames.some(bn => nameLower.includes(bn));
+        });
+
         // 1. Search Query
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase().trim();
@@ -143,13 +155,47 @@ export default function PortalMembers() {
     }, [filteredMembers, currentPage, pageSize]);
 
     // Default board of 5 trustees if API is still loading
-    const displayBoard = boardOfTrustees.length > 0 ? boardOfTrustees : [
-        { roleLabel: 'President', name: 'Sri P. Subba Rao', highlight: false },
-        { roleLabel: 'Vice Chairperson', name: 'Konda Ravi Teja', highlight: false },
-        { roleLabel: 'Chairperson', name: 'Pallepogu Kiranbabu', highlight: true },
-        { roleLabel: 'Secretary', name: 'Smt. P. Lakshmi Devi', highlight: false },
-        { roleLabel: 'Treasurer', name: 'Srungarapati Rakesh', highlight: false },
-    ];
+    const displayBoard = useMemo(() => {
+        const base = boardOfTrustees.length > 0 ? [...boardOfTrustees] : [
+            { roleKey: 'president', roleLabel: 'President', name: 'Sri P. Subba Rao', highlight: false, photo: '' },
+            { roleKey: 'vice_chairperson', roleLabel: 'Vice Chairperson', name: 'Konda Ravi Teja', highlight: false, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/vice_chairman_raviteja.png' },
+            { roleKey: 'chairperson', roleLabel: 'Chairperson', name: 'Pallepogu Kiranbabu', highlight: true, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/chairman_kiranbabu.jpeg' },
+            { roleKey: 'executive_member', roleLabel: 'Executive Member', name: 'Konda Ravi Bharath', highlight: false, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/executive_ravibharath.png' },
+            { roleKey: 'treasurer', roleLabel: 'Treasurer', name: 'Srungarapati Rakesh', highlight: false, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/treasurer_rakesh.jpeg' },
+        ];
+
+        // Check authentication from hook or local storage
+        let effectiveUser = user;
+        if (!effectiveUser) {
+            try {
+                effectiveUser = JSON.parse(localStorage.getItem('user') || 'null');
+            } catch (e) {}
+        }
+        const hasAuth = isAuthenticated || !!localStorage.getItem('token') || !!effectiveUser?.email;
+
+        // In user logged-in portal: Replace President / Sri P. Subba Rao with the logged-in user themselves
+        if (hasAuth) {
+            const presIdx = base.findIndex(b => (b.roleKey === 'president' || b.roleLabel === 'President' || (b.name && b.name.toLowerCase().includes('subba rao'))));
+            const activeUserName = effectiveUser?.name || effectiveUser?.fullName || userName || 'SHAIK FAYAZ';
+            const activeUserPhoto = avatarUrl || effectiveUser?.avatar || effectiveUser?.profilePhoto || null;
+            const userCard = {
+                roleKey: 'active_member',
+                roleLabel: 'Active Trust Member',
+                name: activeUserName,
+                city: effectiveUser?.city || 'Guntur',
+                state: effectiveUser?.state || 'AP',
+                photo: activeUserPhoto,
+                isCurrentUser: true,
+                highlight: false
+            };
+            if (presIdx >= 0) {
+                base[presIdx] = userCard;
+            } else {
+                base[0] = userCard;
+            }
+        }
+        return base;
+    }, [boardOfTrustees, isAuthenticated, user, userName, avatarUrl]);
 
     return (
         <div className="tm-template-container" style={{ maxWidth: '100%', padding: '0 4px' }}>
@@ -176,28 +222,73 @@ export default function PortalMembers() {
                         )}
                     </p>
                 </div>
-                <div className="tm-top-join-right" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="tm-top-join-right" style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: 8,
+                    alignItems: 'center',
+                    marginTop: 12
+                }}>
                     <button
                         type="button"
                         onClick={handleShareInvite}
                         className="tm-banner-join-btn"
-                        style={{ background: '#2563EB', borderColor: '#3B82F6', cursor: 'pointer', justifyContent: 'center' }}
+                        style={{
+                            background: '#2563EB',
+                            borderColor: '#3B82F6',
+                            cursor: 'pointer',
+                            justifyContent: 'center',
+                            padding: '6px 12px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            borderRadius: 6,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6
+                        }}
                     >
-                        <FaShareAlt /> {copiedInvite ? 'Link Copied! ✓' : 'Join Others'}
+                        <FaShareAlt /> {copiedInvite ? 'Link Copied!' : 'Join Others'}
                     </button>
                     <button
                         type="button"
                         onClick={handleWhatsAppShare}
                         className="tm-banner-join-btn"
-                        style={{ background: '#25D366', borderColor: '#22c55e', cursor: 'pointer', justifyContent: 'center' }}
+                        style={{
+                            background: '#25D366',
+                            borderColor: '#22c55e',
+                            cursor: 'pointer',
+                            justifyContent: 'center',
+                            padding: '6px 12px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            borderRadius: 6,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6
+                        }}
                     >
                         <FaWhatsapp /> Share on WhatsApp
                     </button>
-                    {isAuthenticated && (
-                        <Link to="/portal/profile?tab=dashboard" className="tm-banner-join-btn" style={{ background: 'rgba(255, 255, 255, 0.12)', borderColor: 'rgba(255, 255, 255, 0.3)', justifyContent: 'center' }}>
-                            <FaIdCard /> View Your Member ID →
-                        </Link>
-                    )}
+                    <Link
+                        to="/portal/profile?tab=dashboard"
+                        className="tm-banner-join-btn"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.12)',
+                            borderColor: 'rgba(255, 255, 255, 0.3)',
+                            justifyContent: 'center',
+                            padding: '6px 12px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            borderRadius: 6,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            textDecoration: 'none'
+                        }}
+                    >
+                        <FaIdCard /> View Your Member ID →
+                    </Link>
                 </div>
             </div>
 
@@ -248,7 +339,7 @@ export default function PortalMembers() {
                                 </span>
                             </div>
                             <div style={{ fontSize: 12.5, color: '#475569', marginTop: 3 }}>
-                                Membership ID: <strong style={{ color: '#2563EB', letterSpacing: 0.5 }}>{userMemberId || 'KCT-MEM-1015'}</strong> • Standing: <strong style={{ color: '#D97706' }}>{userTier}</strong> • Recognized on Official Member Wall
+                                Membership ID: <strong style={{ color: '#2563EB', letterSpacing: 0.5 }}>{userMemberId || 'KCT-MEM-1007'}</strong> • Standing: <strong style={{ color: '#D97706' }}>{userTier}</strong> • Recognized on Official Member Wall
                             </div>
                         </div>
                     </div>
@@ -305,35 +396,67 @@ export default function PortalMembers() {
                 <div className="tm-board-grid">
                     {displayBoard.map((trustee, idx) => {
                         const isChairperson = trustee.highlight || trustee.roleLabel === 'Chairperson';
+                        const isCurrUser = Boolean(trustee.isCurrentUser);
+                        const initials = (trustee.name || 'Member').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
                         return (
                             <div
                                 key={idx}
-                                className={`tm-trustee-card ${isChairperson ? 'tm-card-chairperson' : ''}`}
+                                className={`tm-trustee-card ${isChairperson ? 'tm-card-chairperson' : ''} ${isCurrUser ? 'tm-card-current-user' : ''}`}
+                                style={isCurrUser ? {
+                                    border: '2px solid #2563EB',
+                                    background: 'linear-gradient(180deg, #EFF6FF 0%, #FFFFFF 100%)',
+                                    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.18)',
+                                    transform: 'scale(1.02)'
+                                } : undefined}
                             >
-                                {/* Circular Avatar with Laurel Wreath */}
+                                {/* Circular Avatar with Laurel Wreath and Stars on 2 sides for Active Member */}
                                 <div className={`tm-wreath-wrap ${isChairperson ? 'tm-wreath-chair' : ''}`}>
                                     <div className="tm-laurel-branch left">
-                                        <FaAward className="tm-laurel-icon" />
+                                        {isCurrUser ? (
+                                            <FaStar className="tm-laurel-icon" style={{ color: '#FBBF24', fontSize: 16 }} />
+                                        ) : (
+                                            <FaAward className="tm-laurel-icon" />
+                                        )}
                                     </div>
-                                    <div className="tm-trustee-avatar">
-                                        <FaUser />
+                                    <div className="tm-trustee-avatar" style={{ overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: isCurrUser ? '2px solid #2563EB' : undefined }}>
+                                        {trustee.photo ? (
+                                            <img
+                                                src={trustee.photo}
+                                                alt={trustee.name}
+                                                className="tm-trustee-avatar-img"
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.parentElement.innerHTML = `<span style="font-weight: 800; font-size: 16px; color: #1e3a8a;">${initials}</span>`;
+                                                }}
+                                            />
+                                        ) : (
+                                            <span style={{ fontWeight: 800, fontSize: 16, color: '#1e3a8a' }}>
+                                                {initials || <FaUser />}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="tm-laurel-branch right">
-                                        <FaAward className="tm-laurel-icon" />
+                                        {isCurrUser ? (
+                                            <FaStar className="tm-laurel-icon" style={{ color: '#FBBF24', fontSize: 16 }} />
+                                        ) : (
+                                            <FaAward className="tm-laurel-icon" />
+                                        )}
                                     </div>
                                 </div>
 
                                 {/* Ribbon Title Badge */}
-                                <div className={`tm-ribbon-badge ${isChairperson ? 'tm-ribbon-gold' : 'tm-ribbon-navy'}`}>
+                                <div className={`tm-ribbon-badge ${isChairperson ? 'tm-ribbon-gold' : isCurrUser ? 'tm-ribbon-blue' : 'tm-ribbon-navy'}`} style={isCurrUser ? { background: '#2563EB' } : undefined}>
                                     <span className="tm-ribbon-point left"></span>
                                     <span className="tm-ribbon-text">{trustee.roleLabel}</span>
                                     <span className="tm-ribbon-point right"></span>
                                 </div>
 
                                 {/* Member Name */}
-                                <div className={`tm-trustee-name ${isChairperson ? 'tm-name-chair' : ''}`}>
+                                <div className={`tm-trustee-name ${isChairperson ? 'tm-name-chair' : ''}`} style={isCurrUser ? { color: '#1D4ED8', fontWeight: 800 } : undefined}>
                                     {trustee.name}
+                                    {isCurrUser && <span style={{ display: 'block', fontSize: 11, color: '#2563EB', fontWeight: 700 }}>(You • Honored Active Member)</span>}
                                 </div>
                             </div>
                         );
@@ -475,6 +598,10 @@ export default function PortalMembers() {
                                                 src={photo}
                                                 alt={member.name || 'Member'}
                                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    e.currentTarget.parentElement.innerHTML = `<span style="font-weight: 800; font-size: 16px; color: #1e3a8a;">${initials}</span>`;
+                                                }}
                                             />
                                         ) : (
                                             <span style={{ fontWeight: 800, fontSize: 16, color: '#1e3a8a' }}>
@@ -536,34 +663,18 @@ export default function PortalMembers() {
                 )}
 
                 {/* Bottom Appreciation Card for Members */}
-                <div className="tm-bottom-join-card" style={{ background: 'linear-gradient(135deg, #0B192C 0%, #1E3A8A 100%)', border: '1.5px solid #3B82F6' }}>
-                    <div className="tm-bottom-join-text">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#FBBF24', fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>
+                <div className="tm-bottom-join-card" style={{ background: 'linear-gradient(135deg, #0B192C 0%, #1E3A8A 100%)', border: '1.5px solid #3B82F6', padding: '14px 20px', borderRadius: 12, margin: '20px 0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+                    <div className="tm-bottom-join-text" style={{ flex: '1 1 320px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#FBBF24', fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
                             <FaAward /> Pillar of Community Upliftment
                         </div>
-                        <h3 style={{ color: '#FFFFFF' }}>Thank You for Being a Respected Trust Member!</h3>
-                        <p style={{ color: '#CBD5E1' }}>
-                            Your dedication, counsel, and sustained membership support make every grain of food, medical camp, and school kit possible. Invite your peers and family to join our noble cause as verified Trust Members.
+                        <h3 style={{ color: '#FFFFFF', fontSize: 16, fontWeight: 800, margin: '0 0 4px' }}>Thank You for Being a Respected Trust Member!</h3>
+                        <p style={{ color: '#CBD5E1', fontSize: 12.5, lineHeight: 1.4, margin: 0 }}>
+                            Your dedication, counsel, and sustained membership support make every grain of food, medical camp, and school kit possible.
                         </p>
                     </div>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <button
-                            type="button"
-                            onClick={handleShareInvite}
-                            className="tm-bottom-join-btn"
-                            style={{ background: '#2563EB', border: '1.5px solid #60A5FA', color: '#FFFFFF', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        >
-                            <FaShareAlt /> {copiedInvite ? 'Link Copied! ✓' : 'Join Others'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleWhatsAppShare}
-                            className="tm-bottom-join-btn"
-                            style={{ background: '#25D366', border: '1.5px solid #22c55e', color: '#FFFFFF', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                        >
-                            <FaWhatsapp /> Share on WhatsApp
-                        </button>
-                        <Link to="/portal/profile?tab=payments&action=contribute#contribute" className="tm-bottom-join-btn" style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <Link to="/portal/profile?tab=payments&action=contribute#contribute" className="tm-bottom-join-btn" style={{ background: 'linear-gradient(135deg, #059669, #10B981)', padding: '9px 18px', fontSize: 13, fontWeight: 700, borderRadius: 8, color: '#ffffff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}>
                             <FaHeart /> Contribute to Welfare
                         </Link>
                     </div>

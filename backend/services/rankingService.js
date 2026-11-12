@@ -42,12 +42,12 @@ async function autoRankDonors() {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const currentMonthName = now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
 
-        // Map of aggregated donors by unique key (email or normalized name)
         const donorMap = new Map();
         const monthlyDonorMap = new Map();
+        const processedReceipts = new Set();
         let dbSourceUsed = false;
 
-        // 1. Ingest Supabase completed payments & verified members (Live Primary Database)
+        // 1. Ingest Supabase completed payments (Live Primary Database)
         try {
             const sbPayments = await fetchSupabasePayments();
             if (sbPayments && sbPayments.length > 0) {
@@ -55,6 +55,10 @@ async function autoRankDonors() {
                 sbPayments.forEach(p => {
                     const rawStatus = (p.status || '').toLowerCase();
                     if (rawStatus === 'completed' || rawStatus === 'success') {
+                        const recKey = p.receipt_number || p.client_txn_id || p.transaction_id || p.id;
+                        if (recKey && processedReceipts.has(recKey)) return;
+                        if (recKey) processedReceipts.add(recKey);
+
                         const key = getDonorKey({
                             fullName: p.full_name,
                             email: p.email,
@@ -85,7 +89,7 @@ async function autoRankDonors() {
                             });
                         }
                         const record = donorMap.get(key);
-                        record.totalDonated += amt; 
+                        record.totalDonated += amt;
                         record.count += 1;
                         if (photo && !record.photo) record.photo = photo;
                         if (new Date(createdAt) > new Date(record.lastDonatedAt)) {
@@ -145,14 +149,19 @@ async function autoRankDonors() {
             console.warn('Supabase ranking ingest notice:', sbRankErr.message);
         }
 
-        // 2. Ingest MongoDB completed donations
+        // 2. Ingest MongoDB completed donations (Deduplicated against Supabase)
         if (mongoose.connection.readyState >= 1) {
             try {
                 const donations = await Donation.find({ status: 'completed' })
-                    .select('fullName email phone amount profilePhoto isAnonymous createdAt address city state purpose receiptNumber')
+                    .select('fullName email phone mobile amount profilePhoto isAnonymous createdAt address city state purpose receiptNumber transactionId clientTxnId')
                     .lean();
 
                 donations.forEach(d => {
+                    const recKey = d.receiptNumber || d.transactionId || d.clientTxnId || String(d._id);
+                    if (recKey && processedReceipts.has(recKey)) return; // Skip if already counted from Supabase!
+                    if (recKey) processedReceipts.add(recKey);
+
+                    dbSourceUsed = true;
                     const key = getDonorKey(d);
                     const name = (d.isAnonymous || d.is_anonymous) ? 'Anonymous Well-Wisher' : (d.fullName || d.full_name || 'Valued Contributor');
                     const photo = d.profilePhoto || d.profile_photo || '';
@@ -162,7 +171,6 @@ async function autoRankDonors() {
                     const purpose = d.purpose || 'General Trust Welfare';
                     const createdAt = d.createdAt || new Date();
 
-                    // All-Time
                     if (!donorMap.has(key)) {
                         donorMap.set(key, { 
                             name, 
@@ -193,8 +201,8 @@ async function autoRankDonors() {
                             monthlyDonorMap.set(key, { 
                                 name, 
                                 photo, 
-                                city,
-                                state,
+                                city, 
+                                state, 
                                 purpose,
                                 lastDonatedAt: createdAt,
                                 totalDonated: 0, 
@@ -207,39 +215,19 @@ async function autoRankDonors() {
                         mRec.count += 1;
                     }
                 });
-
-                // Ingest active Trust Members (as fallbacks if not already counted in donations)
-                const members = await TrustMember.find({ approvalStatus: 'active' })
-                    .select('name email phone totalDonated donationAmount profilePhoto address city state subscriptionTier createdAt')
-                    .lean();
-
-                members.forEach(m => {
-                    const key = getDonorKey(m);
-                    const amt = Number(m.totalDonated) || Number(m.donationAmount) || 0;
-                    if (amt > 0 && !donorMap.has(key)) {
-                        donorMap.set(key, { 
-                            name: m.name, 
-                            email: m.email || '',
-                            phone: m.phone || '',
-                            photo: m.profilePhoto || '', 
-                            city: m.city || 'Guntur',
-                            state: m.state || 'Andhra Pradesh',
-                            purpose: 'Trust Membership',
-                            lastDonatedAt: m.createdAt || new Date(),
-                            totalDonated: amt, 
-                            count: 1 
-                        });
-                    }
-                });
             } catch (dbErr) {
-                console.warn('Auto-rank DB read notice:', dbErr.message);
+                console.warn('Auto-rank MongoDB read notice:', dbErr.message);
             }
         }
 
-        // 3. Fallback to Memory Store ONLY if live databases returned no data
+        // 3. Fallback to Memory Store ONLY if live databases returned 0 records
         if (!dbSourceUsed && memoryStore && Array.isArray(memoryStore.payments)) {
             memoryStore.payments.forEach(p => {
                 if (p.status === 'completed') {
+                    const recKey = p.receiptNumber || p.receipt_number || p.transactionId || p.transaction_id || p.clientTxnId;
+                    if (recKey && processedReceipts.has(recKey)) return;
+                    if (recKey) processedReceipts.add(recKey);
+
                     const key = getDonorKey(p);
                     const name = (p.isAnonymous || p.is_anonymous) ? 'Anonymous Well-Wisher' : (p.fullName || p.full_name || 'Valued Contributor');
                     const amt = Number(p.amount) || 0;
@@ -270,49 +258,6 @@ async function autoRankDonors() {
                     if (new Date(createdAt) > new Date(r.lastDonatedAt)) {
                         r.lastDonatedAt = createdAt;
                         if (purpose) r.purpose = purpose;
-                    }
-
-                    // Monthly
-                    if (new Date(createdAt) >= startOfMonth) {
-                        if (!monthlyDonorMap.has(key)) {
-                            monthlyDonorMap.set(key, { 
-                                name, 
-                                photo, 
-                                city,
-                                state,
-                                purpose,
-                                lastDonatedAt: createdAt,
-                                totalDonated: 0, 
-                                count: 0 
-                            });
-                        }
-                        const mRec = monthlyDonorMap.get(key);
-                        mRec.totalDonated += amt;
-                        mRec.count += 1;
-                    }
-                }
-            });
-        }
-
-        // 3b. Fallback to Memory Store Trust Members ONLY if live databases returned no data
-        if (!dbSourceUsed && memoryStore && Array.isArray(memoryStore.trust_members)) {
-            memoryStore.trust_members.forEach(m => {
-                if (m.approvalStatus === 'active' && !m.isDeleted) {
-                    const key = getDonorKey(m);
-                    const amt = Number(m.totalDonated) || Number(m.donationAmount) || 0;
-                    if (amt > 0 && !donorMap.has(key)) {
-                        donorMap.set(key, { 
-                            name: m.name, 
-                            email: m.email || '',
-                            phone: m.phone || '',
-                            photo: m.profilePhoto || '', 
-                            city: m.city || 'Guntur',
-                            state: m.state || 'Andhra Pradesh',
-                            purpose: 'Trust Membership',
-                            lastDonatedAt: m.createdAt || new Date(),
-                            totalDonated: amt, 
-                            count: 1 
-                        });
                     }
                 }
             });
@@ -430,9 +375,14 @@ async function autoRankDonors() {
     }
 }
 
-function getCachedLeaderboard() {
-    if (!cachedLeaderboard.lastUpdated) {
-        autoRankDonors();
+async function getCachedLeaderboard(forceRefresh = false) {
+    const now = Date.now();
+    const lastTime = cachedLeaderboard.lastUpdated ? new Date(cachedLeaderboard.lastUpdated).getTime() : 0;
+    const ageMs = now - lastTime;
+    
+    // Refresh if forced, empty, or older than 10 seconds
+    if (forceRefresh || !cachedLeaderboard.lastUpdated || !cachedLeaderboard.allTimeTop?.length || ageMs > 10000) {
+        return await autoRankDonors();
     }
     return cachedLeaderboard;
 }

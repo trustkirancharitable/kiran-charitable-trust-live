@@ -33,9 +33,7 @@ export function AuthProvider({ children }) {
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             localStorage.setItem('kct_token', token);
-            if (!user) {
-                refreshUser();
-            }
+            refreshUser();
         } else {
             delete axios.defaults.headers.common['Authorization'];
             localStorage.removeItem('kct_token');
@@ -278,11 +276,15 @@ export function AuthProvider({ children }) {
     }, [token]);
 
     const refreshUser = async () => {
-        if (!token) return;
+        const activeTok = token || localStorage.getItem('kct_token') || localStorage.getItem('token');
+        if (!activeTok) return;
         try {
-            const res = await axios.get(`${API_BASE_URL}/auth/me`);
+            const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${activeTok}` }
+            });
             if (res.data?.success && res.data.user) {
-                setUser(prev => ({ ...prev, ...res.data.user }));
+                setUser(res.data.user);
+                localStorage.setItem('kct_user', JSON.stringify(res.data.user));
             }
         } catch (e) {
             console.warn('Refresh user notice:', e.message);

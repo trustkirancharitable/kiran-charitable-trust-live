@@ -89,6 +89,14 @@ const donationSchema = new mongoose.Schema({
         default: 'pending',
         index: true 
     },
+    failureReason: {
+        type: String,
+        default: ''
+    },
+    failureNotificationSent: {
+        type: Boolean,
+        default: false
+    },
     createdAt: { 
         type: Date, 
         default: Date.now,

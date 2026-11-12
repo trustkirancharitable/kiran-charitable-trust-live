@@ -9,7 +9,10 @@ const { requireAuth, requireAdmin } = require('../middleware/authMiddleware');
 // GET /api/donors/ticker — Lightweight endpoint for real-time scrolling marquee
 router.get('/ticker', async (req, res) => {
     try {
-        const leaderboard = getCachedLeaderboard();
+        let leaderboard = getCachedLeaderboard();
+        if (!leaderboard.lastUpdated || !leaderboard.allTimeTop || leaderboard.allTimeTop.length === 0) {
+            leaderboard = await autoRankDonors();
+        }
         const tickerItems = (leaderboard.allTimeTop || []).map(d => ({
             name: d.name,
             photo: d.photo || '',
@@ -33,7 +36,8 @@ router.get('/ticker', async (req, res) => {
 // GET /api/donors/leaderboard — Comprehensive Auto-Ranked Leaderboard & Full Directory
 router.get('/leaderboard', async (req, res) => {
     try {
-        const leaderboard = getCachedLeaderboard();
+        const force = req.query.refresh === 'true';
+        const leaderboard = await getCachedLeaderboard(force);
         let trustMembersWall = [];
 
         try {
