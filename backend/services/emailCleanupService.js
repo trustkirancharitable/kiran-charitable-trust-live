@@ -2,8 +2,8 @@ const tls = require('tls');
 
 const IMAP_HOST = process.env.IMAP_HOST || 'imap.secureserver.net';
 const IMAP_PORT = parseInt(process.env.IMAP_PORT || '993', 10);
-const EMAIL_USER = process.env.EMAIL_USER || 'contact@kirancharitabletrust.org';
-const EMAIL_PASS = process.env.EMAIL_PASS || 'Kir@n_Charity@1988';
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
 
 /**
  * Automatically purges sent OTP / Verification Code emails older than `daysOld` (default 3 days)

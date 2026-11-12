@@ -24,11 +24,11 @@ const { cleanExpiredSentOtpEmails } = require('./emailCleanupService');
 // Ultra-lightweight low-bandwidth 2.66 KB logo optimized specifically for email delivery
 const EMAIL_LOGO_PATH = path.join(__dirname, '../assets/email-logo-low.jpg');
 
-const SMTP_HOST = process.env.SMTP_HOST || 'smtpout.secureserver.net';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
-const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
-const EMAIL_USER = process.env.EMAIL_USER || 'contact@kirancharitabletrust.org';
-const EMAIL_PASS = process.env.EMAIL_PASS || 'Kir@n_Charity@1988';
+const SMTP_HOST = process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtpout.secureserver.net';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '465', 10);
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || process.env.EMAIL_SECURE === 'true' || SMTP_PORT === 465;
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
 
 let transporter = null;
 
