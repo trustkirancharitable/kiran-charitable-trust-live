@@ -45,6 +45,7 @@ export default function PortalLogin() {
   const [regOtpSent, setRegOtpSent] = useState(false);
   const [regOtpCountdown, setRegOtpCountdown] = useState(0);
   const [regEmailVerified, setRegEmailVerified] = useState(false);
+  const [agreeRegistrationTerms, setAgreeRegistrationTerms] = useState(false);
   const [regAuthToken, setRegAuthToken] = useState('');
 
   // Step 2 KYC State
@@ -193,6 +194,7 @@ export default function PortalLogin() {
     if (!regEmail || !regEmail.includes('@')) return setError('Enter a valid email address.');
     if (!regPhone || regPhone.replace(/\D/g, '').length < 10) return setError('Enter a valid 10-digit mobile number.');
     if (!regPassword || regPassword.length < 6) return setError('Password must be at least 6 characters.');
+    if (!agreeRegistrationTerms) return setError('Please accept the Terms & Conditions and Data Privacy Consent to proceed.');
 
     setError(''); setSuccess(''); setLoading(true);
     try {
@@ -831,6 +833,21 @@ export default function PortalLogin() {
                         onChange={e => setRegPassword(e.target.value)}
                         required
                       />
+                    </div>
+
+                    {/* Mandatory Terms & Conditions, Data Privacy & Communication Consent Checkbox */}
+                    <div style={{ marginTop: 14, marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10, background: '#f8fafc', padding: '12px 14px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                      <input
+                        type="checkbox"
+                        id="portalRegAgreeTerms"
+                        checked={agreeRegistrationTerms}
+                        onChange={e => setAgreeRegistrationTerms(e.target.checked)}
+                        style={{ marginTop: 3, width: 17, height: 17, cursor: 'pointer', accentColor: '#2563eb' }}
+                        required
+                      />
+                      <label htmlFor="portalRegAgreeTerms" style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.5, cursor: 'pointer' }}>
+                        I accept and agree to the <Link to="/terms-conditions" target="_blank" style={{ color: '#2563eb', fontWeight: 700, textDecoration: 'underline' }}>Terms &amp; Conditions</Link> and <Link to="/privacy-policy" target="_blank" style={{ color: '#2563eb', fontWeight: 700, textDecoration: 'underline' }}>Privacy Policy</Link>. I consent to the collection, secure processing, and statutory compliance storage of my registration, KYC, and payment data. I authorize Kiran Charitable Trust to display my profile in public member/donor listings according to my selected privacy preference, and grant explicit consent to receive official updates, receipts, notices, and communications via <strong>Email, WhatsApp, SMS, and Phone calls</strong>.
+                      </label>
                     </div>
 
                     {!regOtpSent ? (

@@ -11,7 +11,7 @@ import {
     FaCalendarAlt, FaRupeeSign, FaHeart, FaIdCard, FaExclamationCircle,
     FaLock, FaCheck, FaTrashAlt, FaCheckDouble, FaUniversity, FaQrcode,
     FaCreditCard, FaCopy, FaTimes, FaExclamationTriangle, FaThLarge, FaBolt,
-    FaChevronDown
+    FaChevronDown, FaCoins, FaUsers, FaGraduationCap, FaInfoCircle, FaCog, FaArrowRight
 } from 'react-icons/fa';
 import KLogo from '../../assets/Klogo.jpeg';
 import { numberToWordsIndian } from '../../utils/numberToWords';
@@ -644,31 +644,31 @@ export default function PortalProfile() {
                    ======================================================== */}
                 {activeTab === 'dashboard' && (
                     <div>
-                        {/* Welcome Banner */}
+                        {/* Welcome Banner - High-contrast, clean & accessible */}
                         <div style={{
-                            background: 'linear-gradient(135deg, #0b132b, #1c2541, #1e3a8a)',
-                            borderRadius: 14,
+                            background: '#ffffff',
+                            borderRadius: 16,
                             padding: '24px 28px',
-                            color: '#ffffff',
+                            color: '#0f172a',
                             marginBottom: 24,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             flexWrap: 'wrap',
                             gap: 16,
-                            boxShadow: '0 10px 25px rgba(15, 23, 42, 0.15)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)'
+                            boxShadow: '0 4px 18px rgba(15, 23, 42, 0.04)',
+                            border: '1px solid #e2e8f0'
                         }}>
                             <div>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
+                                <div style={{ fontSize: 11.5, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
                                     Official Trust Member Workspace
                                 </div>
-                                <h2 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 800 }}>
-                                    Welcome back, {name || user?.name || 'Valued Member'} 👋
+                                <h2 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                                    Welcome back, <span style={{ color: '#2563eb' }}>{name || user?.name || 'Kiran'}</span> 👋
                                 </h2>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                                    <span style={{ fontSize: 13, color: '#cbd5e1' }}>
-                                        Trust Member ID: <strong style={{ color: '#ffffff', fontFamily: 'monospace' }}>{effectiveMemberId}</strong>
+                                    <span style={{ fontSize: 13, color: '#64748b' }}>
+                                        Trust Member ID: <strong style={{ color: '#0f172a', fontFamily: 'monospace', background: '#f1f5f9', padding: '2px 8px', borderRadius: 6, border: '1px solid #e2e8f0' }}>{effectiveMemberId}</strong>
                                     </span>
                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 12px', borderRadius: 20, background: '#dcfce7', color: '#15803d', fontSize: 12, fontWeight: 800 }}>
                                         ● Active Member
@@ -681,7 +681,7 @@ export default function PortalProfile() {
                                 height: 56,
                                 borderRadius: '50%',
                                 overflow: 'hidden',
-                                border: '3px solid rgba(255, 255, 255, 0.25)',
+                                border: '3px solid #e2e8f0',
                                 background: 'linear-gradient(135deg, #2563eb, #38bdf8)',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -689,7 +689,8 @@ export default function PortalProfile() {
                                 fontSize: 22,
                                 fontWeight: 800,
                                 color: '#ffffff',
-                                flexShrink: 0
+                                flexShrink: 0,
+                                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.2)'
                             }}>
                                 {avatarPreview && avatarPreview !== 'undefined' && !avatarLoadError ? (
                                     <img src={avatarPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setAvatarLoadError(true)} />
@@ -700,127 +701,258 @@ export default function PortalProfile() {
                         </div>
 
                         {/* 4 KPI Metrics Cards */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 24 }}>
-                            <div className="user-stat-card" style={{ background: '#ffffff', padding: '20px', borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-                                    Total Contributed
-                                </div>
-                                <div style={{ fontSize: 26, fontWeight: 800, color: '#059669', marginBottom: 4 }}>
-                                    ₹{Number(totalVerifiedAmount).toLocaleString('en-IN')}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 16, marginBottom: 24 }}>
+                            {/* Card 1: Total Contributed */}
+                            <div className="user-stat-card" style={{
+                                background: '#ffffff',
+                                padding: '22px 24px',
+                                borderRadius: 16,
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ position: 'absolute', bottom: -20, right: -20, width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                                        <FaCoins />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+                                            Total Contributed
+                                        </div>
+                                        <div style={{ fontSize: 28, fontWeight: 800, color: '#059669', lineHeight: 1.15 }}>
+                                            ₹{Number(totalVerifiedAmount).toLocaleString('en-IN')}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div style={{ fontSize: 12, color: '#94a3b8' }}>Direct community welfare</div>
                             </div>
 
-                            <div className="user-stat-card" style={{ background: '#ffffff', padding: '20px', borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-                                    Monthly Contribution
-                                </div>
-                                <div style={{ fontSize: 26, fontWeight: 800, color: '#2563eb', marginBottom: 4 }}>
-                                    ₹{Number(monthlyPledgeAmt).toLocaleString('en-IN')}
+                            {/* Card 2: Monthly Contribution */}
+                            <div className="user-stat-card" style={{
+                                background: '#ffffff',
+                                padding: '22px 24px',
+                                borderRadius: 16,
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ position: 'absolute', bottom: -20, right: -20, width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#dbeafe', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                                        <FaCalendarAlt />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+                                            Monthly Contribution
+                                        </div>
+                                        <div style={{ fontSize: 28, fontWeight: 800, color: '#2563eb', lineHeight: 1.15 }}>
+                                            ₹{Number(monthlyPledgeAmt).toLocaleString('en-IN')}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div style={{ fontSize: 12, color: '#94a3b8' }}>Active Sustaining AutoPay</div>
                             </div>
 
-                            <div className="user-stat-card" style={{ background: '#ffffff', padding: '20px', borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-                                    Receipts
-                                </div>
-                                <div style={{ fontSize: 26, fontWeight: 800, color: '#7c3aed', marginBottom: 4 }}>
-                                    {successfulDonations.length}
+                            {/* Card 3: Receipts */}
+                            <div className="user-stat-card" style={{
+                                background: '#ffffff',
+                                padding: '22px 24px',
+                                borderRadius: 16,
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ position: 'absolute', bottom: -20, right: -20, width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                                        <FaReceipt />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+                                            Receipts
+                                        </div>
+                                        <div style={{ fontSize: 28, fontWeight: 800, color: '#7c3aed', lineHeight: 1.15 }}>
+                                            {successfulDonations.length}
+                                        </div>
+                                    </div>
                                 </div>
                                 <div style={{ fontSize: 12, color: '#94a3b8' }}>80G Tax Deductible</div>
                             </div>
 
-                            <div className="user-stat-card" style={{ background: '#ffffff', padding: '20px', borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-                                    Member Since
+                            {/* Card 4: Member Since */}
+                            <div className="user-stat-card" style={{
+                                background: '#ffffff',
+                                padding: '22px 24px',
+                                borderRadius: 16,
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ position: 'absolute', bottom: -20, right: -20, width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(234, 88, 12, 0.15) 0%, transparent 70%)', pointerEvents: 'none' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 10 }}>
+                                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#ffedd5', color: '#ea580c', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                                        <FaUsers />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+                                            Member Since
+                                        </div>
+                                        <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', lineHeight: 1.15 }}>
+                                            {memberSinceStr}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>
-                                    {memberSinceStr}
-                                </div>
-                                <div style={{ fontSize: 12, color: '#94a3b8' }}>Regd. No. 3/2026</div>
+                                <div style={{ fontSize: 12, color: '#94a3b8' }}>Regd. No. 2/2026</div>
                             </div>
                         </div>
 
                         {/* Quick Actions Panel */}
-                        <div className="user-card" style={{ marginBottom: 24 }}>
-                            <div className="user-card-header">
-                                <h3 className="user-card-title" style={{ fontSize: 16 }}>
-                                    <FaBolt style={{ color: '#d97706' }} /> Quick Actions
-                                </h3>
+                        <div style={{
+                            background: '#ffffff',
+                            borderRadius: 16,
+                            padding: '20px 24px',
+                            border: '1px solid #e2e8f0',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                            marginBottom: 24
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800, color: '#0f172a', marginBottom: 16 }}>
+                                <FaBolt style={{ color: '#f59e0b' }} /> Quick Actions
                             </div>
-                            <div className="user-card-body" style={{ padding: '20px' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTabSwitch('profile')}
-                                        className="user-btn-primary"
-                                        style={{ justifyContent: 'center', padding: '12px 18px', background: '#0f172a' }}
-                                    >
-                                        <FaIdCard /> View ID Card
-                                    </button>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTabSwitch('profile')}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 8,
+                                        padding: '12px 18px',
+                                        borderRadius: 10,
+                                        background: '#0b1e4f',
+                                        color: '#ffffff',
+                                        fontSize: 13.5,
+                                        fontWeight: 700,
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 12px rgba(11, 30, 79, 0.25)',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <FaIdCard /> View ID Card
+                                </button>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTabSwitch('profile')}
-                                        className="user-btn-secondary"
-                                        style={{ justifyContent: 'center', padding: '12px 18px' }}
-                                    >
-                                        <FaUser /> Update Profile
-                                    </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTabSwitch('profile')}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 8,
+                                        padding: '12px 18px',
+                                        borderRadius: 10,
+                                        background: '#ffffff',
+                                        color: '#1e293b',
+                                        fontSize: 13.5,
+                                        fontWeight: 700,
+                                        border: '1px solid #e2e8f0',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <FaUser style={{ color: '#64748b' }} /> Update Profile
+                                </button>
 
-                                    <Link
-                                        to="/portal/monthly-donor"
-                                        className="user-btn-secondary"
-                                        style={{ justifyContent: 'center', padding: '12px 18px', textDecoration: 'none' }}
-                                    >
-                                        <FaCreditCard /> Manage AutoPay
-                                    </Link>
+                                <Link
+                                    to="/portal/monthly-donor"
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 8,
+                                        padding: '12px 18px',
+                                        borderRadius: 10,
+                                        background: '#ffffff',
+                                        color: '#1e293b',
+                                        fontSize: 13.5,
+                                        fontWeight: 700,
+                                        border: '1px solid #e2e8f0',
+                                        textDecoration: 'none',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <FaCreditCard style={{ color: '#64748b' }} /> Manage AutoPay
+                                </Link>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTabSwitch('payments')}
-                                        className="user-btn-secondary"
-                                        style={{ justifyContent: 'center', padding: '12px 18px' }}
-                                    >
-                                        <FaDownload /> Download Receipts
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleTabSwitch('payments')}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 8,
+                                        padding: '12px 18px',
+                                        borderRadius: 10,
+                                        background: '#ffffff',
+                                        color: '#1e293b',
+                                        fontSize: 13.5,
+                                        fontWeight: 700,
+                                        border: '1px solid #e2e8f0',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <FaDownload style={{ color: '#64748b' }} /> Download Receipts
+                                </button>
                             </div>
                         </div>
 
                         {/* Recent Activity Snapshot */}
-                        <div className="user-card">
-                            <div className="user-card-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <h3 className="user-card-title" style={{ fontSize: 16 }}>
+                        <div style={{
+                            background: '#ffffff',
+                            borderRadius: 16,
+                            border: '1px solid #e2e8f0',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
                                     <FaReceipt style={{ color: '#2563eb' }} /> Recent Contributions &amp; Receipts
-                                </h3>
+                                </div>
                                 <button
                                     type="button"
                                     onClick={() => handleTabSwitch('payments')}
-                                    style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                                    style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                                 >
                                     View All History →
                                 </button>
                             </div>
-                            <div className="user-card-body" style={{ padding: '0' }}>
+                            <div style={{ padding: 0 }}>
                                 {donations.length === 0 ? (
-                                    <div style={{ padding: '32px 20px', textAlign: 'center', color: '#64748b' }}>
+                                    <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748b' }}>
                                         <FaCheckCircle style={{ color: '#059669', fontSize: 32, marginBottom: 8 }} />
                                         <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#0f172a' }}>Your membership contribution is verified</p>
                                         <p style={{ margin: 0, fontSize: 13 }}>Official 80G Tax Exemption receipts are generated instantly for every contribution.</p>
                                     </div>
                                 ) : (
                                     <div className="user-table-wrap">
-                                        <table className="user-table">
+                                        <table className="user-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Receipt #</th>
-                                                    <th>Purpose</th>
-                                                    <th>Amount</th>
-                                                    <th>Status</th>
-                                                    <th>Action</th>
+                                                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaCalendarAlt style={{ marginRight: 6, color: '#94a3b8' }} />Date</th>
+                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}># Receipt #</th>
+                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}>Purpose</th>
+                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaCoins style={{ marginRight: 6, color: '#94a3b8' }} />Amount</th>
+                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaInfoCircle style={{ marginRight: 6, color: '#94a3b8' }} />Status</th>
+                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaCog style={{ marginRight: 6, color: '#94a3b8' }} />Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -828,38 +960,73 @@ export default function PortalProfile() {
                                                     const sLower = (d.status || '').toLowerCase();
                                                     const isSuccess = sLower === 'completed' || sLower === 'success';
                                                     const isPending = sLower === 'pending';
+                                                    const purposeText = d.purpose || 'Trust Sustaining Contribution';
+                                                    const isEducation = purposeText.toLowerCase().includes('education') || purposeText.toLowerCase().includes('scholarship');
+                                                    const isAutoPay = purposeText.toLowerCase().includes('autopay') || purposeText.toLowerCase().includes('subscription') || purposeText.toLowerCase().includes('monthly');
+
                                                     return (
-                                                        <tr key={d._id || idx}>
-                                                            <td style={{ fontSize: 12, color: '#64748b' }}>
-                                                                {new Date(d.createdAt || Date.now()).toLocaleDateString('en-IN')}
+                                                        <tr key={d._id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                            <td style={{ padding: '14px 18px', fontSize: 12.5, color: '#64748b', whiteSpace: 'nowrap' }}>
+                                                                <FaCalendarAlt style={{ marginRight: 6, color: '#cbd5e1' }} />
+                                                                {new Date(d.createdAt || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                             </td>
-                                                            <td style={{ fontWeight: 700, color: '#2563eb', fontFamily: 'monospace' }}>
-                                                                {d.receiptNumber || `KCT-REC-${idx + 1042}`}
+                                                            <td style={{ padding: '14px 18px', fontWeight: 700, color: '#2563eb', fontFamily: 'monospace', fontSize: 12.5 }}>
+                                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                                                    {d.receiptNumber || `KCT-REC-${idx + 1042}`}
+                                                                    <FaExternalLinkAlt style={{ fontSize: 10, opacity: 0.7 }} />
+                                                                </span>
                                                             </td>
-                                                            <td style={{ fontSize: 13 }}>{d.purpose || 'Trust Sustaining Contribution'}</td>
-                                                            <td style={{ fontWeight: 800, color: isSuccess ? '#059669' : isPending ? '#d97706' : '#dc2626' }}>
+                                                            <td style={{ padding: '14px 18px', fontSize: 13, color: '#1e293b' }}>
+                                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                                    {isEducation ? (
+                                                                        <FaGraduationCap style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                    ) : isAutoPay ? (
+                                                                        <FaCalendarAlt style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                    ) : (
+                                                                        <FaUsers style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                    )}
+                                                                    <span>{purposeText}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td style={{ padding: '14px 18px', fontWeight: 800, fontSize: 14, color: isSuccess ? '#059669' : isPending ? '#d97706' : '#dc2626', whiteSpace: 'nowrap' }}>
                                                                 ₹{Number(d.amount).toLocaleString('en-IN')}
                                                             </td>
-                                                            <td>
+                                                            <td style={{ padding: '14px 18px' }}>
                                                                 {isSuccess ? (
-                                                                    <span className="user-pill green">Verified</span>
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 20, background: '#dcfce7', color: '#16a34a', fontSize: 12, fontWeight: 700 }}>
+                                                                        ✓ Verified
+                                                                    </span>
                                                                 ) : isPending ? (
-                                                                    <span className="user-pill yellow" style={{ background: '#fef3c7', color: '#b45309' }}>Pending</span>
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 20, background: '#fef3c7', color: '#d97706', fontSize: 12, fontWeight: 700 }}>
+                                                                        ⏳ Pending
+                                                                    </span>
                                                                 ) : (
-                                                                    <span className="user-pill red" style={{ background: '#fee2e2', color: '#dc2626' }}>Failed</span>
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px', borderRadius: 20, background: '#fee2e2', color: '#dc2626', fontSize: 12, fontWeight: 700 }}>
+                                                                        ✕ Failed
+                                                                    </span>
                                                                 )}
                                                             </td>
-                                                            <td>
+                                                            <td style={{ padding: '14px 18px' }}>
                                                                 {isSuccess ? (
                                                                     <button
                                                                         type="button"
-                                                                        className="user-btn-secondary"
-                                                                        onClick={() => {
-                                                                            setSelectedReceipt(d);
+                                                                        onClick={() => setSelectedReceipt(d)}
+                                                                        style={{
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: 6,
+                                                                            padding: '5px 14px',
+                                                                            borderRadius: 20,
+                                                                            background: '#ffffff',
+                                                                            border: '1px solid #cbd5e1',
+                                                                            color: '#0f172a',
+                                                                            fontSize: 12,
+                                                                            fontWeight: 700,
+                                                                            cursor: 'pointer',
+                                                                            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                                                                         }}
-                                                                        style={{ padding: '4px 10px', fontSize: 11.5 }}
                                                                     >
-                                                                        <FaDownload /> Receipt
+                                                                        <FaDownload style={{ fontSize: 10, color: '#64748b' }} /> Receipt
                                                                     </button>
                                                                 ) : isPending ? (
                                                                     <span style={{ fontSize: 12, color: '#64748b' }}>Awaiting Confirmation</span>
@@ -1322,7 +1489,16 @@ export default function PortalProfile() {
                                                             })}
                                                         </td>
                                                         <td style={{ fontWeight: 600 }}>
-                                                            {d.campaignTitle || d.purpose || 'General Trust Welfare & Education'}
+                                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                                {((d.campaignTitle || d.purpose || '').toLowerCase().includes('education') || (d.campaignTitle || d.purpose || '').toLowerCase().includes('scholarship')) ? (
+                                                                    <FaGraduationCap style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                ) : ((d.campaignTitle || d.purpose || '').toLowerCase().includes('autopay') || (d.campaignTitle || d.purpose || '').toLowerCase().includes('subscription') || (d.campaignTitle || d.purpose || '').toLowerCase().includes('monthly')) ? (
+                                                                    <FaCalendarAlt style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                ) : (
+                                                                    <FaUsers style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                )}
+                                                                <span>{d.campaignTitle || d.purpose || 'General Trust Welfare & Education'}</span>
+                                                            </div>
                                                         </td>
                                                         <td style={{ fontWeight: 800, color: '#059669', fontSize: 14 }}>
                                                             ₹{Number(d.amount || 0).toLocaleString('en-IN')}

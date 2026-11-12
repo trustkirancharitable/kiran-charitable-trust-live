@@ -200,50 +200,48 @@ export default function PortalDonors() {
                 </div>
             )}
 
-            {/* Filter & Controls */}
-            <div className="lb-controls-card" style={{ background: '#FFFFFF', padding: '16px 20px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 20 }}>
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', gap: 10, flex: 1, minWidth: 260, flexWrap: 'wrap' }}>
-                        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-                            <FaSearch style={{ position: 'absolute', left: 12, top: 12, color: '#94A3B8' }} />
-                            <input
-                                type="text"
-                                placeholder="Search donors by name, city, or cause..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13 }}
-                            />
-                            {searchQuery && (
-                                <button onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: 10, top: 10, background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}>
-                                    <FaTimes />
-                                </button>
-                            )}
-                        </div>
-
-                        <select
-                            value={selectedTier}
-                            onChange={e => setSelectedTier(e.target.value)}
-                            style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, background: '#FFFFFF', fontWeight: 600 }}
-                        >
-                            <option value="ALL">All Member Tiers</option>
-                            <option value="Member">Members</option>
-                            <option value="Gold">Gold Members</option>
-                            <option value="Silver">Silver Members</option>
-                            <option value="Starter">Starter Donors</option>
-                        </select>
-
-                        <select
-                            value={sortOption}
-                            onChange={e => setSortOption(e.target.value)}
-                            style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, background: '#FFFFFF', fontWeight: 600 }}
-                        >
-                            <option value="rank">Sort: Rank (High to Low)</option>
-                            <option value="amount_desc">Sort: Highest Contribution</option>
-                            <option value="name_asc">Sort: Donor Name (A-Z)</option>
-                        </select>
+            {/* Filter & Controls - Single Row */}
+            <div className="lb-controls-card" style={{ background: '#FFFFFF', padding: '14px 18px', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: 20 }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+                    <div style={{ position: 'relative', flex: '1 1 auto', minWidth: 180 }}>
+                        <FaSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                        <input
+                            type="text"
+                            placeholder="Search donors by name, city, or cause..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, boxSizing: 'border-box' }}
+                        />
+                        {searchQuery && (
+                            <button onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}>
+                                <FaTimes />
+                            </button>
+                        )}
                     </div>
 
-                    <div style={{ fontSize: 13, color: '#64748B', fontWeight: 600 }}>
+                    <select
+                        value={selectedTier}
+                        onChange={e => setSelectedTier(e.target.value)}
+                        style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, background: '#FFFFFF', fontWeight: 600, color: '#0F172A', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                    >
+                        <option value="ALL">All Member Tiers</option>
+                        <option value="Member">Members</option>
+                        <option value="Gold">Gold Members</option>
+                        <option value="Silver">Silver Members</option>
+                        <option value="Starter">Starter Donors</option>
+                    </select>
+
+                    <select
+                        value={sortOption}
+                        onChange={e => setSortOption(e.target.value)}
+                        style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #CBD5E1', fontSize: 13, background: '#FFFFFF', fontWeight: 600, color: '#0F172A', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                    >
+                        <option value="rank">Sort: Rank (High to Low)</option>
+                        <option value="amount_desc">Sort: Highest Contribution</option>
+                        <option value="name_asc">Sort: Donor Name (A-Z)</option>
+                    </select>
+
+                    <div style={{ fontSize: 13, color: '#64748B', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0, paddingLeft: 4 }}>
                         Total Donors: <strong style={{ color: '#0F172A' }}>{filteredDonors.length}</strong>
                     </div>
                 </div>

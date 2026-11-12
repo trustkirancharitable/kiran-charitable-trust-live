@@ -198,6 +198,22 @@ async function sendTrustMemberWelcomeEmail(member) {
 
         <!-- Body -->
         <div style="padding: 28px 24px; color: #1e293b;">
+            <!-- Highlighted Welcome & Family Recognition -->
+            <div style="margin: 0 0 22px; padding: 18px 20px; background: linear-gradient(135deg, #eff6ff 0%, #fdf2f8 50%, #f0fdf4 100%); border: 2px solid #3b82f6; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);">
+                <div style="font-size: 14.5px; font-weight: 900; color: #dc2626; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    ❤️ WELCOME TO KIRAN CHARITABLE TRUST! ❤️
+                </div>
+                <div style="font-size: 17px; font-weight: 900; color: #1e3a8a; line-height: 1.35; margin-bottom: 6px;">
+                    THANK YOU FOR JOINING OUR TRUST. 🤝
+                </div>
+                <div style="font-size: 15px; font-weight: 800; color: #059669; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    YOU ARE NOW ONE OF OUR FAMILY!
+                </div>
+                <div style="font-size: 13.5px; font-weight: 800; color: #4338ca; text-transform: uppercase; letter-spacing: 0.5px;">
+                    THANK YOU FOR YOUR GENEROUS SUPPORT.
+                </div>
+            </div>
+
             <h2 style="margin-top: 0; font-size: 18px; color: #0f172a;">Dear ${memberName},</h2>
             <p style="font-size: 14.5px; line-height: 1.6; color: #334155;">
                 Welcome to <strong>Kiran Charitable Trust</strong>. Your official membership has been successfully activated.
@@ -346,6 +362,22 @@ async function sendPaymentSuccessEmail({ name, email, mobile, address, amount, r
                     <tr>
                         <td class="content-td" style="padding: 24px 22px;">
                             
+                            <!-- Highlighted Welcome & Family Recognition -->
+                            <div style="margin: 0 0 22px; padding: 18px 20px; background: linear-gradient(135deg, #eff6ff 0%, #fdf2f8 50%, #f0fdf4 100%); border: 2px solid #3b82f6; border-radius: 12px; text-align: center; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);">
+                                <div style="font-size: 14.5px; font-weight: 900; color: #dc2626; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    ❤️ WELCOME TO KIRAN CHARITABLE TRUST! ❤️
+                                </div>
+                                <div style="font-size: 17px; font-weight: 900; color: #1e3a8a; line-height: 1.35; margin-bottom: 6px;">
+                                    THANK YOU FOR JOINING OUR TRUST. 🤝
+                                </div>
+                                <div style="font-size: 15px; font-weight: 800; color: #059669; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    YOU ARE NOW ONE OF OUR FAMILY!
+                                </div>
+                                <div style="font-size: 13.5px; font-weight: 800; color: #4338ca; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    THANK YOU FOR YOUR GENEROUS SUPPORT.
+                                </div>
+                            </div>
+
                             <!-- Official Receipt Badge -->
                             <div style="text-align: center; margin-bottom: 18px;">
                                 <div style="display: inline-block; background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: 12px; font-weight: 800; padding: 6px 18px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -742,6 +774,22 @@ async function sendMonthlyReminderEmail({ name, email, amount, dueDate, paymentU
                     Complete Monthly Donation (₹${Number(amount).toLocaleString('en-IN')})
                 </a>
             </div>
+
+            <!-- Official UPI ID & Website Details -->
+            <div style="background: #f8fafc; border: 1.5px dashed #94a3b8; border-radius: 10px; padding: 16px; margin: 20px 0; text-align: center;">
+                <div style="font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">
+                    📱 Official Trust UPI ID for Direct App Payment
+                </div>
+                <div style="font-size: 16px; font-weight: 900; color: #0f172a; font-family: monospace; background: #ffffff; display: inline-block; padding: 6px 16px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 8px;">
+                    340625862653482@cnrb
+                </div>
+                <div style="font-size: 12px; color: #64748b;">
+                    Pay directly from Google Pay, PhonePe, Paytm, or any UPI App • Beneficiary: <strong>Kiran Charitable Trust</strong>
+                </div>
+                <div style="margin-top: 10px; font-size: 12.5px;">
+                    🌐 Official Website: <a href="https://www.kirancharitabletrust.org" style="color: #2563eb; font-weight: 700; text-decoration: none;">www.kirancharitabletrust.org</a>
+                </div>
+            </div>
             <p style="font-size: 13px; color: #64748b; line-height: 1.5; text-align: center;">
                 After payment, your official 80G Tax Exemption Certificate will be issued automatically and your active standing refreshed.
             </p>
@@ -834,10 +882,14 @@ async function send30DayRenewalReminderEmail({ name, email, amount, dueDate, pay
             </div>
 
             <!-- Bank / UPI Option Note -->
-            <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 14px 18px; border-radius: 6px; font-size: 13px; color: #1e3a8a; line-height: 1.5; margin-bottom: 24px;">
-                <strong>Direct Bank Transfer Option:</strong><br/>
-                Canara Bank | A/C: <strong>120038848782</strong> | IFSC: <strong>CNRB0013324</strong><br/>
-                Account Name: <strong>Kiran Charitable Trust</strong> | Branch: <strong>Mandepudi</strong>
+            <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 16px 18px; border-radius: 6px; font-size: 13px; color: #1e3a8a; line-height: 1.5; margin-bottom: 20px;">
+                <strong>Direct Bank Transfer &amp; UPI Options:</strong><br/>
+                Canara Bank | A/C: <strong>110319653482</strong> | IFSC: <strong>CNRB0013324</strong><br/>
+                Account Name: <strong>Kiran Charitable Trust</strong> | Branch: <strong>Mandepudi</strong><br/>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #bfdbfe;">
+                    📱 <strong>Official UPI ID:</strong> <span style="font-family: monospace; font-weight: 800; background: #ffffff; padding: 2px 8px; border-radius: 4px; border: 1px solid #93c5fd;">340625862653482@cnrb</span><br/>
+                    🌐 <strong>Official Website:</strong> <a href="https://www.kirancharitabletrust.org" style="color: #1d4ed8; font-weight: 700; text-decoration: underline;">www.kirancharitabletrust.org</a>
+                </div>
             </div>
 
             <!-- Help Contact -->
@@ -909,6 +961,22 @@ async function send30DayImpactUpdateEmail({ name, email, amount, paymentUrl, sch
                 <a href="${actionUrl}" style="background: #059669; color: #ffffff; padding: 14px 34px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 15px; display: inline-block;">
                     Sustain Next 30-Day Cycle (₹${formattedAmount})
                 </a>
+            </div>
+
+            <!-- Official UPI ID & Website Details -->
+            <div style="background: #f8fafc; border: 1.5px dashed #94a3b8; border-radius: 10px; padding: 16px; margin: 20px 0; text-align: center;">
+                <div style="font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px;">
+                    📱 Official Trust UPI ID for Direct App Payment
+                </div>
+                <div style="font-size: 16px; font-weight: 900; color: #0f172a; font-family: monospace; background: #ffffff; display: inline-block; padding: 6px 16px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 8px;">
+                    340625862653482@cnrb
+                </div>
+                <div style="font-size: 12px; color: #64748b;">
+                    Beneficiary: <strong>Kiran Charitable Trust</strong> • Scan or Pay via Any UPI App
+                </div>
+                <div style="margin-top: 10px; font-size: 12.5px;">
+                    🌐 Official Website: <a href="https://www.kirancharitabletrust.org" style="color: #059669; font-weight: 700; text-decoration: none;">www.kirancharitabletrust.org</a>
+                </div>
             </div>
         </div>
 

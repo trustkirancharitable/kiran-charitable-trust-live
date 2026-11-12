@@ -87,6 +87,7 @@ export default function MainLogin() {
     // Interactive reCAPTCHA Box
     const [isCaptchaChecked, setIsCaptchaChecked] = useState(false);
     const [isCaptchaSpinning, setIsCaptchaSpinning] = useState(false);
+    const [agreeRegistrationTerms, setAgreeRegistrationTerms] = useState(false);
     const captchaTimerRef = useRef(null);
 
     const handleCaptchaClick = () => {
@@ -325,6 +326,7 @@ export default function MainLogin() {
         if (!form.phone || form.phone.replace(/\D/g, '').length < 10) return setErrorMessage('Enter a valid 10-digit mobile number.');
         if (!form.password || form.password.length < 6) return setErrorMessage('Password must be at least 6 characters.');
         if (!isCaptchaChecked) return setErrorMessage('Please complete security verification by checking "I\'m not a robot".');
+        if (!agreeRegistrationTerms) return setErrorMessage('Please accept the Terms & Conditions and Data Privacy Consent to proceed.');
 
         setErrorMessage(''); setSuccessMessage(''); setLoadingLocal(true);
         try {
@@ -900,6 +902,21 @@ export default function MainLogin() {
                                                         <a href="https://www.google.com/intl/en/policies/terms/" target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Terms</a>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            {/* Mandatory Terms & Conditions, Data Privacy & Communication Consent Checkbox */}
+                                            <div style={{ marginTop: 14, marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10, background: '#f8fafc', padding: '12px 14px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    id="mainRegAgreeTerms"
+                                                    checked={agreeRegistrationTerms}
+                                                    onChange={e => setAgreeRegistrationTerms(e.target.checked)}
+                                                    style={{ marginTop: 3, width: 17, height: 17, cursor: 'pointer', accentColor: '#0F52BA' }}
+                                                    required
+                                                />
+                                                <label htmlFor="mainRegAgreeTerms" style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.5, cursor: 'pointer' }}>
+                                                    I accept and agree to the <Link to="/terms-conditions" target="_blank" style={{ color: '#0F52BA', fontWeight: 700, textDecoration: 'underline' }}>Terms &amp; Conditions</Link> and <Link to="/privacy-policy" target="_blank" style={{ color: '#0F52BA', fontWeight: 700, textDecoration: 'underline' }}>Privacy Policy</Link>. I consent to the collection, secure processing, and statutory compliance storage of my registration, KYC, and payment data. I authorize Kiran Charitable Trust to display my profile in public member/donor listings according to my selected privacy preference, and grant explicit consent to receive official updates, receipts, notices, and communications via <strong>Email, WhatsApp, SMS, and Phone calls</strong>.
+                                                </label>
                                             </div>
 
                                             {emailVerified ? (

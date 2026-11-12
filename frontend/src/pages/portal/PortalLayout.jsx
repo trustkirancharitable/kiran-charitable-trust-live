@@ -4,8 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import {
   FaThLarge,
+  FaHome,
   FaUser,
   FaReceipt,
+  FaFileAlt,
+  FaPercentage,
+  FaSyncAlt,
   FaBell,
   FaHeart,
   FaUsers,
@@ -216,15 +220,55 @@ export default function PortalLayout() {
             </div>
           </Link>
 
-          {/* Navigation Menu Items */}
+          {/* Navigation Menu Items - Clean Modern Sidebar Options */}
           <nav className="portal-sidebar-menu">
             <Link
               to="/portal/profile?tab=dashboard"
               className={`portal-sidebar-item ${isProfileRoute && currentTab === 'dashboard' ? 'active' : ''}`}
             >
               <div className="portal-sidebar-item-left">
-                <FaThLarge className="portal-sidebar-icon" />
-                <span>Member Dashboard</span>
+                <FaHome className="portal-sidebar-icon" />
+                <span>Dashboard</span>
+              </div>
+            </Link>
+
+            <Link
+              to="/portal/profile?tab=payments&action=contribute#contribute"
+              className={`portal-sidebar-item ${isProfileRoute && currentTab === 'payments' && searchParams.get('action') === 'contribute' ? 'active' : ''}`}
+            >
+              <div className="portal-sidebar-item-left">
+                <FaHeart className="portal-sidebar-icon" />
+                <span>Contributions</span>
+              </div>
+            </Link>
+
+            <Link
+              to="/portal/profile?tab=payments"
+              className={`portal-sidebar-item ${isProfileRoute && currentTab === 'payments' && searchParams.get('action') !== 'contribute' && searchParams.get('view') !== '80g' ? 'active' : ''}`}
+            >
+              <div className="portal-sidebar-item-left">
+                <FaFileAlt className="portal-sidebar-icon" />
+                <span>Receipts &amp; Certificates</span>
+              </div>
+            </Link>
+
+            <Link
+              to="/portal/profile?tab=payments&view=80g"
+              className={`portal-sidebar-item ${isProfileRoute && currentTab === 'payments' && searchParams.get('view') === '80g' ? 'active' : ''}`}
+            >
+              <div className="portal-sidebar-item-left">
+                <FaPercentage className="portal-sidebar-icon" />
+                <span>Tax Exemption (80G)</span>
+              </div>
+            </Link>
+
+            <Link
+              to="/portal/profile?tab=dashboard#autopay"
+              className="portal-sidebar-item"
+            >
+              <div className="portal-sidebar-item-left">
+                <FaSyncAlt className="portal-sidebar-icon" />
+                <span>AutoPay / Subscriptions</span>
               </div>
             </Link>
 
@@ -234,17 +278,7 @@ export default function PortalLayout() {
             >
               <div className="portal-sidebar-item-left">
                 <FaUser className="portal-sidebar-icon" />
-                <span>Profile &amp; ID Card</span>
-              </div>
-            </Link>
-
-            <Link
-              to="/portal/profile?tab=payments"
-              className={`portal-sidebar-item ${isProfileRoute && currentTab === 'payments' ? 'active' : ''}`}
-            >
-              <div className="portal-sidebar-item-left">
-                <FaReceipt className="portal-sidebar-icon" />
-                <span>Payment History &amp; 80G</span>
+                <span>Profile &amp; Settings</span>
               </div>
             </Link>
 
@@ -261,17 +295,6 @@ export default function PortalLayout() {
                   {unreadCount}
                 </span>
               )}
-            </Link>
-
-            <Link
-              to="/portal/profile?tab=payments&action=contribute#contribute"
-              className="portal-sidebar-item"
-              style={{ color: '#34D399' }}
-            >
-              <div className="portal-sidebar-item-left">
-                <FaHeart className="portal-sidebar-icon" style={{ color: '#10B981' }} />
-                <span>Make Contribution</span>
-              </div>
             </Link>
 
             <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '8px 4px' }} />
