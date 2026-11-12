@@ -27,6 +27,37 @@ function createToken(userId, role, email) {
     );
 }
 
+// Resilient Helper: Find Trust Member by Email across Supabase and MongoDB
+async function findTrustMember(email) {
+    if (!email) return null;
+    const normalized = email.toLowerCase().trim();
+
+    // 1. Live Primary Supabase Check
+    const { getSupabase } = require('../services/supabaseService');
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data } = await sb.from('trust_members').select('*').eq('email', normalized).maybeSingle();
+            if (data) return data;
+        } catch (e) {}
+    }
+
+    // 2. MongoDB Check
+    if (mongoose.connection.readyState >= 1) {
+        try {
+            const tm = await TrustMember.findOne({ email: normalized });
+            if (tm) return tm;
+        } catch (e) {}
+    }
+
+    // 3. Memory Store Fallback
+    if (memoryStore.trust_members) {
+        const tm = memoryStore.trust_members.find(m => m.email?.toLowerCase() === normalized);
+        if (tm) return tm;
+    }
+    return null;
+}
+
 // Resilient Helper: Check if email is officially registered in any trust database
 async function isEmailRegistered(email) {
     if (!email) return false;
@@ -34,7 +65,20 @@ async function isEmailRegistered(email) {
     const adminEmail = (process.env.ADMIN_EMAIL || process.env.EMAIL_USER || 'trustkirancharitable@gmail.com').toLowerCase().trim();
     if (normalized === adminEmail) return true;
 
-    // 1. Check MongoDB models
+    // 1. Live Supabase Check
+    const { getSupabase } = require('../services/supabaseService');
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const [mRes, pRes] = await Promise.all([
+                sb.from('trust_members').select('id, member_id').eq('email', normalized).maybeSingle(),
+                sb.from('profiles').select('id, role').eq('email', normalized).maybeSingle()
+            ]);
+            if (mRes.data || pRes.data) return true;
+        } catch (e) {}
+    }
+
+    // 2. Check MongoDB models
     if (mongoose.connection.readyState >= 1) {
         try {
             const [u, tm, v] = await Promise.all([
@@ -46,7 +90,7 @@ async function isEmailRegistered(email) {
         } catch (e) {}
     }
 
-    // 2. Check local persistent store
+    // 3. Check local persistent store
     if (memoryStore.profiles && memoryStore.profiles.some(p => p.email?.toLowerCase() === normalized)) return true;
     if (memoryStore.trust_members && memoryStore.trust_members.some(m => m.email?.toLowerCase() === normalized)) return true;
     if (memoryStore.volunteers && memoryStore.volunteers.some(v => v.email?.toLowerCase() === normalized)) return true;
@@ -243,12 +287,19 @@ router.post('/register', async (req, res) => {
         }
 
         const normalizedEmail = email.toLowerCase().trim();
+        const existingMember = await findTrustMember(normalizedEmail);
         const existing = await findUser(normalizedEmail);
 
-        if (existing && existing.password) {
-            return res.status(400).json({
+        if (existingMember || (existing && existing.password)) {
+            const memberId = existingMember?.member_id || existingMember?.memberId || existing?.memberId || '';
+            const msg = memberId
+                ? `An official Trust Member account is already registered with ${normalizedEmail} (Member ID: ${memberId}). Please Sign In instead of registering again.`
+                : `An account with ${normalizedEmail} already exists. Please Sign In instead of registering again.`;
+            return res.status(409).json({
                 success: false,
-                message: 'An account with this email already exists. Please log in instead.'
+                alreadyRegistered: true,
+                memberId,
+                message: msg
             });
         }
 
@@ -459,6 +510,25 @@ router.post('/send-otp', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email address is required' });
         }
         const normalizedEmail = email.toLowerCase().trim();
+
+        // Guard: Prevent duplicate registration if already registered as a Trust Member or user
+        if (req.body.type === 'register' || req.body.type === 'trust_member_register' || req.body.intent === 'register') {
+            const existingMember = await findTrustMember(normalizedEmail);
+            const existingUser = await findUser(normalizedEmail);
+            if (existingMember || (existingUser && existingUser.password)) {
+                const memberId = existingMember?.member_id || existingMember?.memberId || existingUser?.memberId || '';
+                const msg = memberId
+                    ? `An official Trust Member account is already registered with ${normalizedEmail} (Member ID: ${memberId}). Please Sign In instead of registering again.`
+                    : `An account with ${normalizedEmail} already exists. Please Sign In instead of registering again.`;
+                return res.status(409).json({
+                    success: false,
+                    alreadyRegistered: true,
+                    memberId,
+                    message: msg
+                });
+            }
+        }
+
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
         localOtpCache.set(normalizedEmail, {
@@ -570,6 +640,23 @@ router.post('/verify-otp', async (req, res) => {
                           req.body.type === 'trust_member_register' || 
                           req.body.intent === 'register' ||
                           req.body.isRegister === true;
+
+        if (isRegFlow) {
+            const existingMember = await findTrustMember(normalizedEmail);
+            const existingUser = await findUser(normalizedEmail);
+            if (existingMember || (existingUser && existingUser.password)) {
+                const memberId = existingMember?.member_id || existingMember?.memberId || existingUser?.memberId || '';
+                const msg = memberId
+                    ? `An official Trust Member account is already registered with ${normalizedEmail} (Member ID: ${memberId}). Please Sign In instead of registering again.`
+                    : `An account with ${normalizedEmail} already exists. Please Sign In instead of registering again.`;
+                return res.status(409).json({
+                    success: false,
+                    alreadyRegistered: true,
+                    memberId,
+                    message: msg
+                });
+            }
+        }
 
         if (!isRegistered && !isRegFlow) {
             return res.status(404).json({

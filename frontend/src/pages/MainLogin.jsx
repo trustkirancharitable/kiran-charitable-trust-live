@@ -505,7 +505,7 @@ export default function MainLogin() {
                         {errorMessage && (
                             <div className="alert-box alert-error">
                                 <FaExclamationTriangle className="alert-icon" />
-                                <span>{errorMessage}</span>
+                                <span style={{ fontWeight: 600 }}>{errorMessage}</span>{errorMessage.toLowerCase().includes("already registered") && (<div style={{ width: "100%", marginTop: "6px" }}><button type="button" onClick={() => { setActiveMode("login"); if (form.email) setLoginEmail(form.email); setErrorMessage(""); setSuccessMessage("Please sign in with your password or use Email OTP."); }} style={{ padding: "6px 14px", background: "#0F52BA", color: "#ffffff", border: "none", borderRadius: "6px", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer" }}>Sign In to Your Account &rarr;</button></div>)}
                             </div>
                         )}
 

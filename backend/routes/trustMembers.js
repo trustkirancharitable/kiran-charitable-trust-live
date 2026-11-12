@@ -98,6 +98,27 @@ router.post('/register', upload.single('profilePhoto'), async (req, res) => {
             existingMember = memoryStore.trust_members.find(m => m.email?.toLowerCase() === normalizedEmail);
         }
 
+        if (!existingMember) {
+            const { getSupabase } = require('../services/supabaseService');
+            const sb = getSupabase();
+            if (sb) {
+                try {
+                    const { data } = await sb.from('trust_members').select('*').eq('email', normalizedEmail).maybeSingle();
+                    if (data) existingMember = data;
+                } catch (e) {}
+            }
+        }
+
+        if (existingMember && !req.headers.authorization) {
+            const memberIdToReturn = existingMember.memberId || existingMember.member_id || 'KCT-MEM-1007';
+            return res.status(409).json({
+                success: false,
+                alreadyRegistered: true,
+                memberId: memberIdToReturn,
+                message: `An official Trust Member account is already registered with ${normalizedEmail} (Member ID: ${memberIdToReturn}). Please Sign In to access your portal.`
+            });
+        }
+
         if (existingMember) {
             // Update existing member details gracefully
             existingMember.name = name || existingMember.name;
