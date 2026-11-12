@@ -1,0 +1,11 @@
+{
+  "name": "kiran-trust-telemetry-website",
+  "version": "1.0.0",
+  "description": "Standalone Real-time System Telemetry & Health Monitoring Website for Kiran Charitable Trust",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {},
+  "private": true
+}
