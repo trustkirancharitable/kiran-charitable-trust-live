@@ -52,7 +52,7 @@
     box-shadow: 0 2px 6px rgba(9, 35, 71, 0.15);
 }
 
-/* Leadership Board Layout: Row 1 (2 cards centered), Row 2 (3 cards with Chairperson centered) */
+/* Leadership Board Layout - Public & Portal Precision Dual Grid */
 .tm-board-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -62,35 +62,67 @@
     align-items: stretch;
 }
 
-/* Row 1: President & Vice Chairperson Centered */
-.tm-board-grid > .tm-trustee-card:nth-child(1),
-.tm-board-grid > .tm-trustee-card.tm-role-president {
-    grid-column: 2 / span 2;
+/* ─────────────────────────────────────────────────────────────
+   PUBLIC MODE (/trust-members) - 4 Trustees:
+   Row 1: Center Pallepogu Kiranbabu (Cols 3 & 4)
+   Row 2: Bharath (Cols 1-2), Teja (Cols 3-4), Rakesh (Cols 5-6)
+   ───────────────────────────────────────────────────────────── */
+.tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(1),
+.tm-board-grid.tm-public-board > .tm-trustee-card.tm-role-chairperson,
+.tm-board-grid.tm-public-board > .tm-card-chairperson {
+    grid-column: 3 / span 2;
     grid-row: 1;
 }
 
-.tm-board-grid > .tm-trustee-card:nth-child(2),
-.tm-board-grid > .tm-trustee-card.tm-role-vice-chairperson {
-    grid-column: 4 / span 2;
-    grid-row: 1;
-}
-
-/* Row 2 (Next Row): Secretary, Chairperson in Center, Treasurer */
-.tm-board-grid > .tm-trustee-card:nth-child(4),
-.tm-board-grid > .tm-trustee-card.tm-role-secretary {
+.tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(2),
+.tm-board-grid.tm-public-board > .tm-trustee-card.tm-role-executive-member {
     grid-column: 1 / span 2;
     grid-row: 2;
 }
 
-.tm-board-grid > .tm-trustee-card:nth-child(3),
-.tm-board-grid > .tm-trustee-card.tm-role-chairperson,
-.tm-board-grid > .tm-card-chairperson {
+.tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(3),
+.tm-board-grid.tm-public-board > .tm-trustee-card.tm-role-vice-chairperson {
     grid-column: 3 / span 2;
     grid-row: 2;
 }
 
-.tm-board-grid > .tm-trustee-card:nth-child(5),
-.tm-board-grid > .tm-trustee-card.tm-role-treasurer {
+.tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(4),
+.tm-board-grid.tm-public-board > .tm-trustee-card.tm-role-treasurer {
+    grid-column: 5 / span 2;
+    grid-row: 2;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PORTAL MODE (/portal/members) - 5 Cards:
+   Row 1: User Card (Cols 2-3), Kiranbabu (Cols 4-5)
+   Row 2: Bharath (Cols 1-2), Teja (Cols 3-4), Rakesh (Cols 5-6)
+   ───────────────────────────────────────────────────────────── */
+.tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(1),
+.tm-board-grid.tm-portal-board > .tm-card-current-user {
+    grid-column: 2 / span 2;
+    grid-row: 1;
+}
+
+.tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(2),
+.tm-board-grid.tm-portal-board > .tm-card-chairperson {
+    grid-column: 4 / span 2;
+    grid-row: 1;
+}
+
+.tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(3),
+.tm-board-grid.tm-portal-board > .tm-role-executive-member {
+    grid-column: 1 / span 2;
+    grid-row: 2;
+}
+
+.tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(4),
+.tm-board-grid.tm-portal-board > .tm-role-vice-chairperson {
+    grid-column: 3 / span 2;
+    grid-row: 2;
+}
+
+.tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(5),
+.tm-board-grid.tm-portal-board > .tm-role-treasurer {
     grid-column: 5 / span 2;
     grid-row: 2;
 }
@@ -681,45 +713,66 @@ input.tm-search-input {
 }
 
 @media (max-width: 640px) {
-    /* Board of Trustees: Chairman in Center in Next Row on Mobile */
+    /* Board of Trustees: Responsive Grid on Mobile */
     .tm-board-grid {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 10px !important;
         max-width: 100% !important;
     }
-    .tm-board-grid > .tm-trustee-card:nth-child(1),
-    .tm-board-grid > .tm-trustee-card.tm-role-president {
-        grid-column: 1 !important;
-        grid-row: 1 !important;
-        width: 100% !important;
-    }
-    .tm-board-grid > .tm-trustee-card:nth-child(2),
-    .tm-board-grid > .tm-trustee-card.tm-role-vice-chairperson {
-        grid-column: 2 !important;
-        grid-row: 1 !important;
-        width: 100% !important;
-    }
-    /* Chairman prominently in the center in next row (Row 2) */
-    .tm-board-grid > .tm-trustee-card:nth-child(3),
-    .tm-board-grid > .tm-trustee-card.tm-role-chairperson,
-    .tm-board-grid > .tm-card-chairperson {
+    /* Public Board Mobile */
+    .tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(1),
+    .tm-board-grid.tm-public-board > .tm-card-chairperson {
         grid-column: 1 / -1 !important;
-        grid-row: 2 !important;
+        grid-row: 1 !important;
         width: 100% !important;
         max-width: 280px !important;
         margin: 0 auto !important;
     }
-    .tm-board-grid > .tm-trustee-card:nth-child(4),
-    .tm-board-grid > .tm-trustee-card.tm-role-secretary {
+    .tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(2) {
         grid-column: 1 !important;
-        grid-row: 3 !important;
+        grid-row: 2 !important;
         width: 100% !important;
     }
-    .tm-board-grid > .tm-trustee-card:nth-child(5),
-    .tm-board-grid > .tm-trustee-card.tm-role-treasurer {
+    .tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(3) {
         grid-column: 2 !important;
+        grid-row: 2 !important;
+        width: 100% !important;
+    }
+    .tm-board-grid.tm-public-board > .tm-trustee-card:nth-child(4) {
+        grid-column: 1 / -1 !important;
         grid-row: 3 !important;
         width: 100% !important;
+        max-width: 280px !important;
+        margin: 0 auto !important;
+    }
+
+    /* Portal Board Mobile */
+    .tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(1) {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        width: 100% !important;
+    }
+    .tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(2) {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        width: 100% !important;
+    }
+    .tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(3) {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+        width: 100% !important;
+    }
+    .tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(4) {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+        width: 100% !important;
+    }
+    .tm-board-grid.tm-portal-board > .tm-trustee-card:nth-child(5) {
+        grid-column: 1 / -1 !important;
+        grid-row: 3 !important;
+        width: 100% !important;
+        max-width: 280px !important;
+        margin: 0 auto !important;
     }
 
 

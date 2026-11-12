@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { toast, ToastContainer } from 'react-toastify';
@@ -58,24 +58,28 @@ export default function Admin() {
     const [forgotMsg, setForgotMsg] = useState('');
 
     // Active Menu Option State (Persistent via URL & localStorage)
-    const getInitialActiveTab = () => {
-        try {
-            const urlTab = new URLSearchParams(window.location.search).get('tab');
-            if (urlTab) return urlTab;
-            const saved = localStorage.getItem('kct_admin_active_tab');
-            if (saved) return saved;
-        } catch (e) {}
+    const [searchParams, setSearchParams] = useSearchParams();
+    const urlTabParam = searchParams.get('tab');
+    const [activeTab, setActiveTabRaw] = useState(() => {
+        const urlTab = new URLSearchParams(window.location.search).get('tab');
+        if (urlTab) return urlTab;
+        const saved = localStorage.getItem('kct_admin_active_tab');
+        if (saved) return saved;
         return 'overview';
-    };
-    const [activeTab, setActiveTabRaw] = useState(getInitialActiveTab);
+    });
+
+    useEffect(() => {
+        if (urlTabParam && urlTabParam !== activeTab) {
+            setActiveTabRaw(urlTabParam);
+            localStorage.setItem('kct_admin_active_tab', urlTabParam);
+        }
+    }, [urlTabParam]);
 
     const setActiveTab = (tab) => {
         setActiveTabRaw(tab);
         try {
             localStorage.setItem('kct_admin_active_tab', tab);
-            const url = new URL(window.location.href);
-            url.searchParams.set('tab', tab);
-            window.history.replaceState({}, '', url.toString());
+            setSearchParams(tab === 'overview' ? {} : { tab }, { replace: true });
         } catch (e) {}
     };
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

@@ -1212,7 +1212,7 @@ export default function PortalProfile() {
                             <div className="user-stat-box">
                                 <div className="user-stat-label">Total Contributions</div>
                                 <div className="user-stat-value" style={{ color: '#059669' }}>
-                                    ₹{totalDonated.toLocaleString('en-IN')}
+                                    ₹{(totalVerifiedAmount || 0).toLocaleString('en-IN')}
                                 </div>
                             </div>
 

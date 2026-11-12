@@ -1508,7 +1508,7 @@ export default function MainLogin() {
                         </div>
 
                         <div className="compliance-help">
-                            Need assistance? Reach our coordinator at <a href="tel:+919440261288">+91 94402 61288</a> or <a href="mailto:contact@kirancharitabletrust.org">contact@kirancharitabletrust.org</a>
+                            Need assistance? Reach our coordinator at <a href="tel:+917702468889">+91 77024 68889</a> or <a href="mailto:contact@kirancharitabletrust.org">contact@kirancharitabletrust.org</a>
                         </div>
                     </div>
                 </div>

@@ -173,28 +173,36 @@ export default function PortalMembers() {
         }
         const hasAuth = isAuthenticated || !!localStorage.getItem('token') || !!effectiveUser?.email;
 
-        // In user logged-in portal: Replace President / Sri P. Subba Rao with the logged-in user themselves
-        if (hasAuth) {
-            const presIdx = base.findIndex(b => (b.roleKey === 'president' || b.roleLabel === 'President' || (b.name && b.name.toLowerCase().includes('subba rao'))));
-            const activeUserName = effectiveUser?.name || effectiveUser?.fullName || userName || 'SHAIK FAYAZ';
-            const activeUserPhoto = avatarUrl || effectiveUser?.avatar || effectiveUser?.profilePhoto || null;
-            const userCard = {
-                roleKey: 'active_member',
-                roleLabel: 'Active Trust Member',
-                name: activeUserName,
-                city: effectiveUser?.city || 'Guntur',
-                state: effectiveUser?.state || 'AP',
-                photo: activeUserPhoto,
-                isCurrentUser: true,
-                highlight: false
-            };
-            if (presIdx >= 0) {
-                base[presIdx] = userCard;
-            } else {
-                base[0] = userCard;
-            }
-        }
-        return base;
+        // In user logged-in portal:
+        // Row 1: [User Card (Active Trust Member)] [Pallepogu Kiranbabu (Chairperson)]
+        // Row 2: [Konda Ravi Bharath] [Konda Ravi Teja] [Srungarapati Rakesh]
+        const activeUserName = effectiveUser?.name || effectiveUser?.fullName || userName || 'Kiran';
+        const activeUserPhoto = avatarUrl || effectiveUser?.avatar || effectiveUser?.profilePhoto || null;
+        const userCard = {
+            roleKey: 'active_member',
+            roleLabel: 'Active Trust Member',
+            name: activeUserName,
+            city: effectiveUser?.city || 'Guntur',
+            state: effectiveUser?.state || 'AP',
+            photo: activeUserPhoto,
+            isCurrentUser: true,
+            highlight: false
+        };
+
+        const chairCard = base.find(b => (b.name || '').toLowerCase().includes('kiranbabu')) || {
+            roleKey: 'chairperson', roleLabel: 'Chairperson', name: 'Pallepogu Kiranbabu', highlight: true, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/chairman_kiranbabu.jpeg'
+        };
+        const bharathCard = base.find(b => (b.name || '').toLowerCase().includes('bharath')) || {
+            roleKey: 'executive_member', roleLabel: 'Executive Member', name: 'Konda Ravi Bharath', highlight: false, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/executive_ravibharath.png'
+        };
+        const tejaCard = base.find(b => (b.name || '').toLowerCase().includes('teja')) || {
+            roleKey: 'vice_chairperson', roleLabel: 'Vice Chairperson', name: 'Konda Ravi Teja', highlight: false, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/vice_chairman_raviteja.png'
+        };
+        const rakeshCard = base.find(b => (b.name || '').toLowerCase().includes('rakesh')) || {
+            roleKey: 'treasurer', roleLabel: 'Treasurer', name: 'Srungarapati Rakesh', highlight: false, photo: 'https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev/profile_photos/treasurer_rakesh.jpeg'
+        };
+
+        return [userCard, chairCard, bharathCard, tejaCard, rakeshCard];
     }, [boardOfTrustees, isAuthenticated, user, userName, avatarUrl]);
 
     return (
@@ -393,7 +401,7 @@ export default function PortalMembers() {
                 </div>
 
                 {/* 5 Leadership Cards Grid */}
-                <div className="tm-board-grid">
+                <div className="tm-board-grid tm-portal-board">
                     {displayBoard.map((trustee, idx) => {
                         const isChairperson = trustee.highlight || trustee.roleLabel === 'Chairperson';
                         const isCurrUser = Boolean(trustee.isCurrentUser);
