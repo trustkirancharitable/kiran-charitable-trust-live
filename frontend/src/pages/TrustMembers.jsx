@@ -130,30 +130,21 @@ export default function TrustMembers() {
         return filteredMembers.slice(start, start + pageSize);
     }, [filteredMembers, currentPage, pageSize]);
 
-    // Board of 4 Trustees matching exact hierarchy:
-    // Row 1 (Center): Pallepogu Kiranbabu
-    // Row 2: Konda Ravi Bharath, Konda Ravi Teja, Srungarapati Rakesh
+    // Default board of 5 trustees if API is still loading
     const defaultBoardPhotos = {
         'Pallepogu Kiranbabu': ChairmanImg,
-        'Konda Ravi Bharath': ExecutiveImg,
         'Konda Ravi Teja': ViceChairmanImg,
-        'Srungarapati Rakesh': TreasurerImg
+        'Srungarapati Rakesh': TreasurerImg,
+        'Konda Ravi Bharath': ExecutiveImg
     };
 
-    const orderedBoard = [
-        { roleKey: 'chairperson', roleLabel: 'Chairperson', name: 'Pallepogu Kiranbabu', highlight: true, photo: ChairmanImg },
-        { roleKey: 'executive_member', roleLabel: 'Executive Member', name: 'Konda Ravi Bharath', highlight: false, photo: ExecutiveImg },
-        { roleKey: 'vice_chairperson', roleLabel: 'Vice Chairperson', name: 'Konda Ravi Teja', highlight: false, photo: ViceChairmanImg },
-        { roleKey: 'treasurer', roleLabel: 'Treasurer', name: 'Srungarapati Rakesh', highlight: false, photo: TreasurerImg }
-    ];
-
-    const displayBoard = orderedBoard.map(t => {
-        const found = boardOfTrustees.find(b => (b.name || '').toLowerCase().includes(t.name.toLowerCase()));
-        return {
-            ...t,
-            photo: found?.photo || defaultBoardPhotos[t.name] || t.photo
-        };
-    });
+    const displayBoard = (boardOfTrustees.length > 0 ? boardOfTrustees : [
+        { roleLabel: 'President', name: 'Sri P. Subba Rao', highlight: false },
+        { roleLabel: 'Vice Chairperson', name: 'Konda Ravi Teja', highlight: false, photo: ViceChairmanImg },
+        { roleLabel: 'Chairperson', name: 'Pallepogu Kiranbabu', highlight: true, photo: ChairmanImg },
+        { roleLabel: 'Executive Member', name: 'Konda Ravi Bharath', highlight: false, photo: ExecutiveImg },
+        { roleLabel: 'Treasurer', name: 'Srungarapati Rakesh', highlight: false, photo: TreasurerImg }
+    ]).map(t => ({ ...t, photo: t.photo || defaultBoardPhotos[t.name] || null }));
 
     return (
         <div className="tm-template-container">

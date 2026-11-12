@@ -62,28 +62,34 @@
     align-items: stretch;
 }
 
-/* Row 1: Chairperson (Pallepogu Kiranbabu) Centered */
+/* Row 1: President & Vice Chairperson Centered */
 .tm-board-grid > .tm-trustee-card:nth-child(1),
-.tm-board-grid > .tm-trustee-card.tm-role-chairperson,
-.tm-board-grid > .tm-card-chairperson {
-    grid-column: 3 / span 2;
+.tm-board-grid > .tm-trustee-card.tm-role-president {
+    grid-column: 2 / span 2;
     grid-row: 1;
 }
 
-/* Row 2: Konda Ravi Bharath, Konda Ravi Teja, Srungarapati Rakesh */
 .tm-board-grid > .tm-trustee-card:nth-child(2),
-.tm-board-grid > .tm-trustee-card.tm-role-executive-member {
+.tm-board-grid > .tm-trustee-card.tm-role-vice-chairperson {
+    grid-column: 4 / span 2;
+    grid-row: 1;
+}
+
+/* Row 2 (Next Row): Secretary, Chairperson in Center, Treasurer */
+.tm-board-grid > .tm-trustee-card:nth-child(4),
+.tm-board-grid > .tm-trustee-card.tm-role-secretary {
     grid-column: 1 / span 2;
     grid-row: 2;
 }
 
 .tm-board-grid > .tm-trustee-card:nth-child(3),
-.tm-board-grid > .tm-trustee-card.tm-role-vice-chairperson {
+.tm-board-grid > .tm-trustee-card.tm-role-chairperson,
+.tm-board-grid > .tm-card-chairperson {
     grid-column: 3 / span 2;
     grid-row: 2;
 }
 
-.tm-board-grid > .tm-trustee-card:nth-child(4),
+.tm-board-grid > .tm-trustee-card:nth-child(5),
 .tm-board-grid > .tm-trustee-card.tm-role-treasurer {
     grid-column: 5 / span 2;
     grid-row: 2;
@@ -675,41 +681,45 @@ input.tm-search-input {
 }
 
 @media (max-width: 640px) {
-    /* Board of Trustees: Chairman in Center in Row 1 on Mobile */
+    /* Board of Trustees: Chairman in Center in Next Row on Mobile */
     .tm-board-grid {
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 10px !important;
         max-width: 100% !important;
     }
-    /* Chairman prominently in the center in Row 1 */
     .tm-board-grid > .tm-trustee-card:nth-child(1),
+    .tm-board-grid > .tm-trustee-card.tm-role-president {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        width: 100% !important;
+    }
+    .tm-board-grid > .tm-trustee-card:nth-child(2),
+    .tm-board-grid > .tm-trustee-card.tm-role-vice-chairperson {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        width: 100% !important;
+    }
+    /* Chairman prominently in the center in next row (Row 2) */
+    .tm-board-grid > .tm-trustee-card:nth-child(3),
     .tm-board-grid > .tm-trustee-card.tm-role-chairperson,
     .tm-board-grid > .tm-card-chairperson {
         grid-column: 1 / -1 !important;
-        grid-row: 1 !important;
+        grid-row: 2 !important;
         width: 100% !important;
         max-width: 280px !important;
         margin: 0 auto !important;
-    }
-    .tm-board-grid > .tm-trustee-card:nth-child(2),
-    .tm-board-grid > .tm-trustee-card.tm-role-executive-member {
-        grid-column: 1 !important;
-        grid-row: 2 !important;
-        width: 100% !important;
-    }
-    .tm-board-grid > .tm-trustee-card:nth-child(3),
-    .tm-board-grid > .tm-trustee-card.tm-role-vice-chairperson {
-        grid-column: 2 !important;
-        grid-row: 2 !important;
-        width: 100% !important;
     }
     .tm-board-grid > .tm-trustee-card:nth-child(4),
-    .tm-board-grid > .tm-trustee-card.tm-role-treasurer {
-        grid-column: 1 / -1 !important;
+    .tm-board-grid > .tm-trustee-card.tm-role-secretary {
+        grid-column: 1 !important;
         grid-row: 3 !important;
         width: 100% !important;
-        max-width: 280px !important;
-        margin: 0 auto !important;
+    }
+    .tm-board-grid > .tm-trustee-card:nth-child(5),
+    .tm-board-grid > .tm-trustee-card.tm-role-treasurer {
+        grid-column: 2 !important;
+        grid-row: 3 !important;
+        width: 100% !important;
     }
 
 
