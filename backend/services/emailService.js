@@ -67,14 +67,8 @@ async function dispatchEmail({ to, subject, html, text, attachments = [] }) {
         return { success: true, simulated: true, to };
     }
 
+    // Do not attach logo file as an email attachment; templates render official HTTPS logo URL directly
     const emailAttachments = [...attachments];
-    if (fs.existsSync(EMAIL_LOGO_PATH)) {
-        emailAttachments.unshift({
-            filename: 'kct-logo.jpg',
-            path: EMAIL_LOGO_PATH,
-            cid: 'kctlogo'
-        });
-    }
 
     try {
         const info = await mailer.sendMail({
