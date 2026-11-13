@@ -1538,11 +1538,10 @@ export default function PortalProfile() {
                                     border: '1.5px solid #e2e8f0',
                                     borderRadius: 10,
                                     padding: '0 14px',
-                                    flex: 1,
-                                    minWidth: 260,
+                                    flex: '1 1 280px',
                                     height: 42
                                 }}>
-                                    <FaSearch style={{ color: '#94a3b8', fontSize: 14 }} />
+                                    <FaSearch style={{ color: '#94a3b8', fontSize: 14, flexShrink: 0 }} />
                                     <input
                                         type="text"
                                         placeholder="Search by Receipt ID, Purpose or Amount..."
@@ -1561,6 +1560,8 @@ export default function PortalProfile() {
                                     value={paymentDateFilter}
                                     onChange={e => setPaymentDateFilter(e.target.value)}
                                     style={{
+                                        width: 'auto',
+                                        minWidth: 130,
                                         height: 42,
                                         padding: '0 16px',
                                         borderRadius: 10,
@@ -1569,7 +1570,8 @@ export default function PortalProfile() {
                                         fontSize: 13,
                                         fontWeight: 600,
                                         color: '#334155',
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        flexShrink: 0
                                     }}
                                 >
                                     <option value="all">📅 All Dates</option>
@@ -1581,6 +1583,8 @@ export default function PortalProfile() {
                                     value={paymentStatusFilter}
                                     onChange={e => setPaymentStatusFilter(e.target.value)}
                                     style={{
+                                        width: 'auto',
+                                        minWidth: 130,
                                         height: 42,
                                         padding: '0 16px',
                                         borderRadius: 10,
@@ -1589,7 +1593,8 @@ export default function PortalProfile() {
                                         fontSize: 13,
                                         fontWeight: 600,
                                         color: '#334155',
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        flexShrink: 0
                                     }}
                                 >
                                     <option value="all">🔘 All Status</option>
@@ -1602,6 +1607,7 @@ export default function PortalProfile() {
                                     type="button"
                                     onClick={handleExportCSV}
                                     style={{
+                                        width: 'auto',
                                         height: 42,
                                         display: 'inline-flex',
                                         alignItems: 'center',
@@ -1614,7 +1620,9 @@ export default function PortalProfile() {
                                         fontWeight: 700,
                                         color: '#334155',
                                         cursor: 'pointer',
-                                        transition: 'all 0.15s'
+                                        transition: 'all 0.15s',
+                                        flexShrink: 0,
+                                        whiteSpace: 'nowrap'
                                     }}
                                 >
                                     <FaDownload style={{ color: '#64748b' }} /> Export
