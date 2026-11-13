@@ -810,7 +810,7 @@ export default function PortalProfile() {
                                         </div>
                                     </div>
                                 </div>
-                                <div style={{ fontSize: 12, color: '#94a3b8' }}>Active Sustaining AutoPay</div>
+                                <div style={{ fontSize: 12, color: '#94a3b8' }}>Monthly Sustaining Pledge</div>
                             </div>
 
                             {/* Card 3: Receipts */}
@@ -925,28 +925,6 @@ export default function PortalProfile() {
                                 >
                                     <FaUser style={{ color: '#64748b' }} /> Update Profile
                                 </button>
-
-                                <Link
-                                    to="/portal/monthly-donor"
-                                    style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: 8,
-                                        padding: '12px 18px',
-                                        borderRadius: 10,
-                                        background: '#ffffff',
-                                        color: '#1e293b',
-                                        fontSize: 13.5,
-                                        fontWeight: 700,
-                                        border: '1px solid #e2e8f0',
-                                        textDecoration: 'none',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <FaCreditCard style={{ color: '#64748b' }} /> Manage AutoPay
-                                </Link>
 
                                 <button
                                     type="button"

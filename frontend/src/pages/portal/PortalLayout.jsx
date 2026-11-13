@@ -264,16 +264,6 @@ export default function PortalLayout() {
             </Link>
 
             <Link
-              to="/portal/profile?tab=dashboard#autopay"
-              className="portal-sidebar-item"
-            >
-              <div className="portal-sidebar-item-left">
-                <FaSyncAlt className="portal-sidebar-icon" />
-                <span>AutoPay / Subscriptions</span>
-              </div>
-            </Link>
-
-            <Link
               to="/portal/profile?tab=profile"
               className={`portal-sidebar-item ${isProfileRoute && currentTab === 'profile' ? 'active' : ''}`}
             >
@@ -451,13 +441,14 @@ export default function PortalLayout() {
                 {location.pathname === '/portal/members' ? 'Trust Members Directory' :
                  location.pathname === '/portal/donors' ? 'Top Donors Leaderboard' :
                  location.pathname === '/portal/stats' ? 'Trust Impact Dashboard' :
+                 currentTab === 'dashboard' ? 'Member Dashboard & Overview' :
                  currentTab === 'profile' ? 'Profile & Settings' :
                  currentTab === 'payments' ? 'Payment History & Tax Exemption' :
                  currentTab === 'notifications' ? 'Notifications & Updates' :
-                 'Payment History & Tax Exemption'}
+                 'Member Dashboard & Overview'}
               </h1>
               <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b', fontWeight: 500 }}>
-                Track your contributions, manage AutoPay, and download official receipts &amp; 80G certificates.
+                Track your contributions, download official receipts &amp; 80G certificates.
               </p>
             </div>
           </div>
