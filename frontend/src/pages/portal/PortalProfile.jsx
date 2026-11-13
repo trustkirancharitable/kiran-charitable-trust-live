@@ -11,7 +11,8 @@ import {
     FaCalendarAlt, FaRupeeSign, FaHeart, FaIdCard, FaExclamationCircle,
     FaLock, FaCheck, FaTrashAlt, FaCheckDouble, FaUniversity, FaQrcode,
     FaCreditCard, FaCopy, FaTimes, FaExclamationTriangle, FaThLarge, FaBolt,
-    FaChevronDown, FaCoins, FaUsers, FaGraduationCap, FaInfoCircle, FaCog, FaArrowRight
+    FaChevronDown, FaCoins, FaUsers, FaGraduationCap, FaInfoCircle, FaCog, FaArrowRight,
+    FaSearch, FaFilter, FaCube
 } from 'react-icons/fa';
 import KLogo from '../../assets/Klogo.jpeg';
 import { numberToWordsIndian } from '../../utils/numberToWords';
@@ -89,6 +90,9 @@ export default function PortalProfile() {
     const [isSubmittingDonation, setIsSubmittingDonation] = useState(false);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
     const [showPaymentsContribute, setShowPaymentsContribute] = useState(false);
+    const [paymentSearch, setPaymentSearch] = useState('');
+    const [paymentDateFilter, setPaymentDateFilter] = useState('all');
+    const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
 
     // Password Update State
     const [currentPassword, setCurrentPassword] = useState('');
@@ -635,6 +639,59 @@ export default function PortalProfile() {
     const memberSinceDate = trustMember?.createdAt || user?.createdAt || new Date();
     const memberSinceStr = new Date(memberSinceDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
+    const handleExportCSV = () => {
+        if (!donations || donations.length === 0) {
+            toast.info('No contribution records to export.');
+            return;
+        }
+        const headers = ['Receipt ID', 'Date', 'Initiative / Purpose', 'Amount (INR)', 'Payment Status', '80G Eligible'];
+        const rows = filteredDonations.map(d => [
+            `"${d.receiptNumber || d.transactionId || 'KCT-REC'}"`,
+            `"${new Date(d.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}"`,
+            `"${(d.campaignTitle || d.purpose || 'General Trust Social Welfare').replace(/"/g, '""')}"`,
+            Number(d.amount || 0),
+            `"${(d.status || 'completed').toUpperCase()}"`,
+            `"Yes (80G Form 10BE)"`
+        ]);
+        const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `KCT_Official_Contributions_${Date.now()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success('Official contribution records exported successfully.');
+    };
+
+    const filteredDonations = donations.filter(d => {
+        const q = paymentSearch.trim().toLowerCase();
+        const rId = (d.receiptNumber || d.transactionId || '').toLowerCase();
+        const purpose = (d.campaignTitle || d.purpose || '').toLowerCase();
+        const amt = String(d.amount || '');
+        const matchesSearch = !q || rId.includes(q) || purpose.includes(q) || amt.includes(q);
+
+        const sLower = (d.status || '').toLowerCase();
+        const isCompleted = sLower === 'completed' || sLower === 'success';
+        const isPending = sLower === 'pending';
+        const isFailed = !isCompleted && !isPending;
+
+        let matchesStatus = true;
+        if (paymentStatusFilter === 'completed') matchesStatus = isCompleted;
+        else if (paymentStatusFilter === 'pending') matchesStatus = isPending;
+        else if (paymentStatusFilter === 'failed') matchesStatus = isFailed;
+
+        let matchesDate = true;
+        if (paymentDateFilter === 'last30') {
+            const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+            matchesDate = new Date(d.createdAt || Date.now()).getTime() >= thirtyDaysAgo;
+        } else if (paymentDateFilter === '2026') {
+            matchesDate = new Date(d.createdAt || Date.now()).getFullYear() === 2026;
+        }
+
+        return matchesSearch && matchesStatus && matchesDate;
+    });
+
     return (
         <div className="user-console-shell" style={{ paddingTop: '0px', minHeight: 'auto' }}>
             {/* MAIN WORKSPACE CONTENT */}
@@ -703,7 +760,7 @@ export default function PortalProfile() {
                         {/* 4 KPI Metrics Cards */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: 16, marginBottom: 24 }}>
                             {/* Card 1: Total Contributed */}
-                            <div className="user-stat-card" style={{
+                            <div className="pt-stat-card" style={{
                                 background: '#ffffff',
                                 padding: '22px 24px',
                                 borderRadius: 16,
@@ -730,7 +787,7 @@ export default function PortalProfile() {
                             </div>
 
                             {/* Card 2: Monthly Contribution */}
-                            <div className="user-stat-card" style={{
+                            <div className="pt-stat-card" style={{
                                 background: '#ffffff',
                                 padding: '22px 24px',
                                 borderRadius: 16,
@@ -757,7 +814,7 @@ export default function PortalProfile() {
                             </div>
 
                             {/* Card 3: Receipts */}
-                            <div className="user-stat-card" style={{
+                            <div className="pt-stat-card" style={{
                                 background: '#ffffff',
                                 padding: '22px 24px',
                                 borderRadius: 16,
@@ -784,7 +841,7 @@ export default function PortalProfile() {
                             </div>
 
                             {/* Card 4: Member Since */}
-                            <div className="user-stat-card" style={{
+                            <div className="pt-stat-card" style={{
                                 background: '#ffffff',
                                 padding: '22px 24px',
                                 borderRadius: 16,
@@ -946,13 +1003,13 @@ export default function PortalProfile() {
                                     <div className="user-table-wrap">
                                         <table className="user-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
-                                                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaCalendarAlt style={{ marginRight: 6, color: '#94a3b8' }} />Date</th>
-                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}># Receipt #</th>
-                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}>Purpose</th>
-                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaCoins style={{ marginRight: 6, color: '#94a3b8' }} />Amount</th>
-                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaInfoCircle style={{ marginRight: 6, color: '#94a3b8' }} />Status</th>
-                                                    <th style={{ padding: '12px 18px', textAlign: 'left', fontSize: 12, fontWeight: 700, color: '#475569' }}><FaCog style={{ marginRight: 6, color: '#94a3b8' }} />Action</th>
+                                                <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e2e8f0' }}>
+                                                    <th style={{ padding: '14px 18px', textAlign: 'left', fontSize: 12.5, fontWeight: 700, color: '#475569' }}><FaCalendarAlt style={{ marginRight: 6, color: '#94a3b8' }} />Date</th>
+                                                    <th style={{ padding: '14px 18px', textAlign: 'left', fontSize: 12.5, fontWeight: 700, color: '#475569' }}># Receipt #</th>
+                                                    <th style={{ padding: '14px 18px', textAlign: 'left', fontSize: 12.5, fontWeight: 700, color: '#475569' }}><FaCube style={{ marginRight: 6, color: '#94a3b8' }} />Purpose</th>
+                                                    <th style={{ padding: '14px 18px', textAlign: 'left', fontSize: 12.5, fontWeight: 700, color: '#475569' }}><FaCoins style={{ marginRight: 6, color: '#94a3b8' }} />Amount</th>
+                                                    <th style={{ padding: '14px 18px', textAlign: 'left', fontSize: 12.5, fontWeight: 700, color: '#475569' }}><FaInfoCircle style={{ marginRight: 6, color: '#94a3b8' }} />Status</th>
+                                                    <th style={{ padding: '14px 18px', textAlign: 'left', fontSize: 12.5, fontWeight: 700, color: '#475569' }}><FaCog style={{ marginRight: 6, color: '#94a3b8' }} />Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -960,21 +1017,26 @@ export default function PortalProfile() {
                                                     const sLower = (d.status || '').toLowerCase();
                                                     const isSuccess = sLower === 'completed' || sLower === 'success';
                                                     const isPending = sLower === 'pending';
-                                                    const purposeText = d.purpose || 'Trust Sustaining Contribution';
+                                                    const purposeText = d.campaignTitle || d.purpose || 'Trust Sustaining Contribution';
                                                     const isEducation = purposeText.toLowerCase().includes('education') || purposeText.toLowerCase().includes('scholarship');
                                                     const isAutoPay = purposeText.toLowerCase().includes('autopay') || purposeText.toLowerCase().includes('subscription') || purposeText.toLowerCase().includes('monthly');
+                                                    const receiptIdStr = d.receiptNumber || d.transactionId?.substring(0, 18) || `KCT-${idx + 1042}`;
 
                                                     return (
-                                                        <tr key={d._id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                        <tr key={d._id || d.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                                             <td style={{ padding: '14px 18px', fontSize: 12.5, color: '#64748b', whiteSpace: 'nowrap' }}>
                                                                 <FaCalendarAlt style={{ marginRight: 6, color: '#cbd5e1' }} />
-                                                                {new Date(d.createdAt || Date.now()).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                {new Date(d.createdAt || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                             </td>
                                                             <td style={{ padding: '14px 18px', fontWeight: 700, color: '#2563eb', fontFamily: 'monospace', fontSize: 12.5 }}>
-                                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                                                    {d.receiptNumber || `KCT-REC-${idx + 1042}`}
+                                                                <a
+                                                                    href="#receipt"
+                                                                    onClick={(e) => { e.preventDefault(); setSelectedReceipt(d); }}
+                                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: '#2563eb', textDecoration: 'none' }}
+                                                                >
+                                                                    {receiptIdStr}
                                                                     <FaExternalLinkAlt style={{ fontSize: 10, opacity: 0.7 }} />
-                                                                </span>
+                                                                </a>
                                                             </td>
                                                             <td style={{ padding: '14px 18px', fontSize: 13, color: '#1e293b' }}>
                                                                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -985,7 +1047,7 @@ export default function PortalProfile() {
                                                                     ) : (
                                                                         <FaUsers style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
                                                                     )}
-                                                                    <span>{purposeText}</span>
+                                                                    <span style={{ fontWeight: 600 }}>{purposeText}</span>
                                                                 </div>
                                                             </td>
                                                             <td style={{ padding: '14px 18px', fontWeight: 800, fontSize: 14, color: isSuccess ? '#059669' : isPending ? '#d97706' : '#dc2626', whiteSpace: 'nowrap' }}>
@@ -1414,134 +1476,305 @@ export default function PortalProfile() {
                             </div>
                         )}
 
-                        {/* Payments Table */}
-                        <div className="user-card">
-                            <div className="user-card-header">
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, width: '100%' }}>
-                                    <div>
-                                        <h2 className="user-card-title"><FaReceipt style={{ color: '#2563eb' }} /> Contribution History &amp; Official Receipts</h2>
-                                        <p className="user-card-sub">View transaction records and download Form 10BE tax exemption certificates.</p>
+                        {/* Payments Table - Official Contribution History & Receipts */}
+                        <div style={{
+                            background: '#ffffff',
+                            borderRadius: 16,
+                            border: '1px solid #e2e8f0',
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                            padding: '24px',
+                            marginBottom: 20
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                                    <div style={{
+                                        width: 46,
+                                        height: 46,
+                                        borderRadius: 12,
+                                        background: '#eff6ff',
+                                        color: '#3b82f6',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: 22
+                                    }}>
+                                        <FaReceipt />
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPaymentsContribute(prev => !prev)}
-                                        style={{
-                                            padding: '8px 18px',
-                                            background: '#059669',
-                                            color: '#ffffff',
-                                            borderRadius: 8,
-                                            border: 'none',
-                                            fontWeight: 800,
-                                            fontSize: 13,
-                                            cursor: 'pointer',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: 6
-                                        }}
-                                    >
-                                        <FaHeart /> {showPaymentsContribute ? 'Hide Contribution Form' : 'Make a Contribution'}
-                                    </button>
+                                    <div>
+                                        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#0f172a' }}>Contribution History &amp; Official Receipts</h2>
+                                        <p style={{ margin: '3px 0 0', fontSize: 13.5, color: '#64748b' }}>View all your contributions, download official receipts, and 80G tax exemption certificates.</p>
+                                    </div>
                                 </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPaymentsContribute(prev => !prev)}
+                                    style={{
+                                        padding: '10px 20px',
+                                        background: '#4f46e5',
+                                        color: '#ffffff',
+                                        borderRadius: 10,
+                                        border: 'none',
+                                        fontWeight: 700,
+                                        fontSize: 13.5,
+                                        cursor: 'pointer',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                        boxShadow: '0 4px 14px rgba(79, 70, 229, 0.25)',
+                                        transition: 'all 0.15s ease'
+                                    }}
+                                >
+                                    <FaHeart /> {showPaymentsContribute ? 'Hide Form' : 'Make a Contribution'}
+                                </button>
                             </div>
 
-                            <div className="user-card-body" style={{ padding: 0 }}>
+                            {/* Toolbar: Search, Date Filter, Status Filter, Export */}
+                            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 10,
+                                    background: '#ffffff',
+                                    border: '1.5px solid #e2e8f0',
+                                    borderRadius: 10,
+                                    padding: '0 14px',
+                                    flex: 1,
+                                    minWidth: 260,
+                                    height: 42
+                                }}>
+                                    <FaSearch style={{ color: '#94a3b8', fontSize: 14 }} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search by Receipt ID, Purpose or Amount..."
+                                        value={paymentSearch}
+                                        onChange={e => setPaymentSearch(e.target.value)}
+                                        style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: 13.5, color: '#0f172a' }}
+                                    />
+                                    {paymentSearch && (
+                                        <button type="button" onClick={() => setPaymentSearch('')} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 2 }}>
+                                            <FaTimes style={{ fontSize: 12 }} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <select
+                                    value={paymentDateFilter}
+                                    onChange={e => setPaymentDateFilter(e.target.value)}
+                                    style={{
+                                        height: 42,
+                                        padding: '0 16px',
+                                        borderRadius: 10,
+                                        border: '1.5px solid #e2e8f0',
+                                        background: '#ffffff',
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: '#334155',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option value="all">📅 All Dates</option>
+                                    <option value="last30">Last 30 Days</option>
+                                    <option value="2026">Year 2026</option>
+                                </select>
+
+                                <select
+                                    value={paymentStatusFilter}
+                                    onChange={e => setPaymentStatusFilter(e.target.value)}
+                                    style={{
+                                        height: 42,
+                                        padding: '0 16px',
+                                        borderRadius: 10,
+                                        border: '1.5px solid #e2e8f0',
+                                        background: '#ffffff',
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: '#334155',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <option value="all">🔘 All Status</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+
+                                <button
+                                    type="button"
+                                    onClick={handleExportCSV}
+                                    style={{
+                                        height: 42,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                        padding: '0 18px',
+                                        borderRadius: 10,
+                                        border: '1.5px solid #e2e8f0',
+                                        background: '#ffffff',
+                                        fontSize: 13,
+                                        fontWeight: 700,
+                                        color: '#334155',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s'
+                                    }}
+                                >
+                                    <FaDownload style={{ color: '#64748b' }} /> Export
+                                </button>
+                            </div>
+
+                            <div style={{ padding: 0 }}>
                                 <div className="user-table-wrap">
                                     <table className="user-table">
                                         <thead>
-                                            <tr>
-                                                <th>Receipt ID</th>
-                                                <th>Date</th>
-                                                <th>Initiative / Purpose</th>
-                                                <th>Amount (INR)</th>
-                                                <th>Payment Status</th>
-                                                <th style={{ textAlign: 'right' }}>Tax Exemption (80G)</th>
+                                            <tr style={{ background: '#eef2ff', borderBottom: '1.5px solid #e0e7ff' }}>
+                                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#334155' }}>Receipt ID</th>
+                                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#334155' }}>Date</th>
+                                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#334155' }}>Initiative / Purpose</th>
+                                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#334155' }}>Amount (INR)</th>
+                                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#334155' }}>Payment Status</th>
+                                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#334155', textAlign: 'center' }}>Tax Exemption (80G)</th>
+                                                <th style={{ padding: '14px 18px', fontSize: 13, fontWeight: 700, color: '#334155', textAlign: 'center' }}>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {donations.length === 0 ? (
+                                            {filteredDonations.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
+                                                    <td colSpan={7} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
                                                         <FaReceipt style={{ fontSize: 28, color: '#cbd5e1', marginBottom: 10, display: 'block', margin: '0 auto 10px' }} />
-                                                        No payment records found under this account yet.
+                                                        No matching contribution records found.
                                                         <div style={{ marginTop: 12 }}>
                                                             <button 
                                                                 type="button"
                                                                 onClick={() => setShowPaymentsContribute(true)} 
-                                                                className="user-btn-primary" 
-                                                                style={{ display: 'inline-flex', padding: '8px 18px', border: 'none', cursor: 'pointer', alignItems: 'center', gap: 6 }}
+                                                                style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: 6,
+                                                                    padding: '8px 18px',
+                                                                    borderRadius: 8,
+                                                                    background: '#4f46e5',
+                                                                    color: '#ffffff',
+                                                                    border: 'none',
+                                                                    fontWeight: 700,
+                                                                    fontSize: 13,
+                                                                    cursor: 'pointer'
+                                                                }}
                                                             >
-                                                                <FaHeart /> Make First Contribution
+                                                                <FaHeart /> Make Contribution
                                                             </button>
                                                         </div>
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                donations.map(d => (
-                                                    <tr key={d._id || d.id || d.transactionId}>
-                                                        <td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#1e293b' }}>
-                                                            {d.receiptNumber || d.transactionId?.substring(0, 14) || 'KCT-REC'}
-                                                        </td>
-                                                        <td>
-                                                            {new Date(d.createdAt || Date.now()).toLocaleDateString('en-IN', {
-                                                                day: '2-digit',
-                                                                month: 'short',
-                                                                year: 'numeric'
-                                                            })}
-                                                        </td>
-                                                        <td style={{ fontWeight: 600 }}>
-                                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                                                                {((d.campaignTitle || d.purpose || '').toLowerCase().includes('education') || (d.campaignTitle || d.purpose || '').toLowerCase().includes('scholarship')) ? (
-                                                                    <FaGraduationCap style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
-                                                                ) : ((d.campaignTitle || d.purpose || '').toLowerCase().includes('autopay') || (d.campaignTitle || d.purpose || '').toLowerCase().includes('subscription') || (d.campaignTitle || d.purpose || '').toLowerCase().includes('monthly')) ? (
-                                                                    <FaCalendarAlt style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                filteredDonations.map((d, idx) => {
+                                                    const sLower = (d.status || '').toLowerCase();
+                                                    const isSuccess = sLower === 'completed' || sLower === 'success';
+                                                    const isPending = sLower === 'pending';
+                                                    const purposeText = d.campaignTitle || d.purpose || 'General Trust Social Welfare & Education';
+                                                    const isEducation = purposeText.toLowerCase().includes('education') || purposeText.toLowerCase().includes('scholarship');
+                                                    const isAutoPay = purposeText.toLowerCase().includes('autopay') || purposeText.toLowerCase().includes('subscription') || purposeText.toLowerCase().includes('monthly');
+                                                    const receiptIdStr = d.receiptNumber || d.transactionId?.substring(0, 18) || `KCT-${idx + 1042}`;
+
+                                                    return (
+                                                        <tr key={d._id || d.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                            <td style={{ padding: '15px 18px' }}>
+                                                                <span style={{
+                                                                    display: 'inline-block',
+                                                                    background: '#eff6ff',
+                                                                    color: '#1d4ed8',
+                                                                    padding: '6px 12px',
+                                                                    borderRadius: 8,
+                                                                    fontWeight: 700,
+                                                                    fontSize: 12.5,
+                                                                    fontFamily: 'monospace'
+                                                                }}>
+                                                                    {receiptIdStr}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '15px 18px', fontSize: 13, color: '#475569', whiteSpace: 'nowrap' }}>
+                                                                <FaCalendarAlt style={{ marginRight: 6, color: '#94a3b8' }} />
+                                                                {new Date(d.createdAt || Date.now()).toLocaleDateString('en-GB', {
+                                                                    day: '2-digit',
+                                                                    month: 'short',
+                                                                    year: 'numeric'
+                                                                })}
+                                                            </td>
+                                                            <td style={{ padding: '15px 18px', fontSize: 13, color: '#1e293b' }}>
+                                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                                                    {isEducation ? (
+                                                                        <FaGraduationCap style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                    ) : isAutoPay ? (
+                                                                        <FaCalendarAlt style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                    ) : (
+                                                                        <FaUsers style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                    )}
+                                                                    <span style={{ fontWeight: 600 }}>{purposeText}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td style={{ padding: '15px 18px', fontWeight: 800, color: '#059669', fontSize: 14, whiteSpace: 'nowrap' }}>
+                                                                ₹{Number(d.amount || 0).toLocaleString('en-IN')}
+                                                            </td>
+                                                            <td style={{ padding: '15px 18px' }}>
+                                                                {isSuccess ? (
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 8, background: '#dcfce7', color: '#16a34a', fontSize: 12, fontWeight: 700 }}>
+                                                                        ✓ Completed
+                                                                    </span>
+                                                                ) : isPending ? (
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 8, background: '#fef3c7', color: '#d97706', fontSize: 12, fontWeight: 700 }}>
+                                                                        ⏳ Pending
+                                                                    </span>
                                                                 ) : (
-                                                                    <FaUsers style={{ color: '#7c3aed', flexShrink: 0, fontSize: 15 }} />
+                                                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 8, background: '#fee2e2', color: '#ef4444', fontSize: 12, fontWeight: 700 }}>
+                                                                        ✕ Failed
+                                                                    </span>
                                                                 )}
-                                                                <span>{d.campaignTitle || d.purpose || 'General Trust Welfare & Education'}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ fontWeight: 800, color: '#059669', fontSize: 14 }}>
-                                                            ₹{Number(d.amount || 0).toLocaleString('en-IN')}
-                                                        </td>
-                                                        <td>
-                                                            {(() => {
-                                                                const s = (d.status || '').toLowerCase();
-                                                                if (s === 'completed' || s === 'success') {
-                                                                    return (
-                                                                        <span className="user-badge user-badge-success">
-                                                                            <FaCheckCircle style={{ fontSize: 10 }} /> COMPLETED
-                                                                        </span>
-                                                                    );
-                                                                } else if (s === 'pending') {
-                                                                    return (
-                                                                        <span className="user-badge" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
-                                                                            ⏳ PENDING
-                                                                        </span>
-                                                                    );
-                                                                } else {
-                                                                    return (
-                                                                        <span className="user-badge" style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca' }}>
-                                                                            ❌ FAILED
-                                                                        </span>
-                                                                    );
-                                                                }
-                                                            })()}
-                                                        </td>
-                                                        <td style={{ textAlign: 'right' }}>
-                                                            {((d.status || '').toLowerCase() === 'completed' || (d.status || '').toLowerCase() === 'success') ? (
-                                                                <button
-                                                                    className="user-btn-secondary"
-                                                                    onClick={() => setSelectedReceipt(d)}
-                                                                    style={{ padding: '5px 12px', fontSize: 11.5 }}
-                                                                >
-                                                                    <FaPrint /> Print 80G Form
-                                                                </button>
-                                                            ) : (
-                                                                <span style={{ fontSize: 12, color: '#94a3b8' }}>—</span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))
+                                                            </td>
+                                                            <td style={{ padding: '15px 18px', textAlign: 'center', color: '#94a3b8' }}>
+                                                                —
+                                                            </td>
+                                                            <td style={{ padding: '15px 18px', textAlign: 'center' }}>
+                                                                {isSuccess ? (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setSelectedReceipt(d)}
+                                                                        style={{
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: 6,
+                                                                            padding: '6px 14px',
+                                                                            borderRadius: 8,
+                                                                            background: '#ffffff',
+                                                                            border: '1.5px solid #cbd5e1',
+                                                                            color: '#334155',
+                                                                            fontSize: 12,
+                                                                            fontWeight: 700,
+                                                                            cursor: 'pointer',
+                                                                            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                                                                            whiteSpace: 'nowrap'
+                                                                        }}
+                                                                    >
+                                                                        <FaDownload style={{ fontSize: 11, color: '#64748b' }} /> Print 80G Form
+                                                                    </button>
+                                                                ) : (
+                                                                    <button
+                                                                        type="button"
+                                                                        style={{
+                                                                            padding: '6px 12px',
+                                                                            borderRadius: 8,
+                                                                            background: '#ffffff',
+                                                                            border: '1px solid #e2e8f0',
+                                                                            color: '#64748b',
+                                                                            fontSize: 12,
+                                                                            fontWeight: 800,
+                                                                            cursor: 'pointer'
+                                                                        }}
+                                                                    >
+                                                                        •••
+                                                                    </button>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
                                             )}
                                         </tbody>
                                     </table>

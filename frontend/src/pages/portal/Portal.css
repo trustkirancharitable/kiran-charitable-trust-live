@@ -2378,9 +2378,9 @@
   background: transparent;
   border: none;
   outline: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  color: #94a3b8;
+  padding: 11px 16px;
+  border-radius: 10px;
+  color: #cbd5e1;
   font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
@@ -2395,10 +2395,10 @@
 }
 
 .portal-sidebar-item.active {
-  background: linear-gradient(135deg, #1e40af, #2563eb);
+  background: #2563eb;
   color: #ffffff !important;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
 }
 
 .portal-sidebar-item-left {

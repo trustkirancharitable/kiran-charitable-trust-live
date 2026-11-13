@@ -23,7 +23,8 @@ import {
   FaArrowLeft,
   FaCheckCircle,
   FaSignInAlt,
-  FaUserPlus
+  FaUserPlus,
+  FaChevronDown
 } from 'react-icons/fa';
 import KLogo from '../../assets/Klogo.jpeg';
 import './Portal.css';
@@ -445,15 +446,20 @@ export default function PortalLayout() {
               {sidebarOpen ? <FaTimes /> : <FaBars />}
             </button>
 
-            <h1 className="portal-topbar-title">
-              {location.pathname === '/portal/members' ? 'Trust Members Directory' :
-               location.pathname === '/portal/donors' ? 'Top Donors Leaderboard' :
-               location.pathname === '/portal/stats' ? 'Trust Impact Dashboard' :
-               currentTab === 'profile' ? 'Profile & Settings' :
-               currentTab === 'payments' ? 'Payment History & Tax Exemption' :
-               currentTab === 'notifications' ? 'Notifications & Updates' :
-               'Member Console & Dashboard'}
-            </h1>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <h1 className="portal-topbar-title" style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+                {location.pathname === '/portal/members' ? 'Trust Members Directory' :
+                 location.pathname === '/portal/donors' ? 'Top Donors Leaderboard' :
+                 location.pathname === '/portal/stats' ? 'Trust Impact Dashboard' :
+                 currentTab === 'profile' ? 'Profile & Settings' :
+                 currentTab === 'payments' ? 'Payment History & Tax Exemption' :
+                 currentTab === 'notifications' ? 'Notifications & Updates' :
+                 'Payment History & Tax Exemption'}
+              </h1>
+              <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b', fontWeight: 500 }}>
+                Track your contributions, manage AutoPay, and download official receipts &amp; 80G certificates.
+              </p>
+            </div>
           </div>
 
           <div className="portal-topbar-right">
@@ -538,8 +544,9 @@ export default function PortalLayout() {
                     {userInitial}
                   </div>
                 )}
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   {userName.split(' ')[0]}
+                  <FaChevronDown style={{ fontSize: 9, color: '#64748B' }} />
                 </span>
               </div>
             ) : (
