@@ -7,16 +7,20 @@ const TrustMember = require('../models/TrustMember');
 const MonthlySchedule = require('../models/MonthlySchedule');
 const Donation = require('../models/Donation');
 const PerformanceMetric = require('../models/PerformanceMetric');
-const { memoryStore, getSupabase, getSupabaseSchemaSQL, getSupabaseAnalytics, persistMemoryStore, syncPayment, syncTrustMember, fetchSupabasePayments, fetchSupabaseTrustMembers } = require('../services/supabaseService');
+const { memoryStore, getSupabaseSchemaSQL, persistMemoryStore } = require('../services/supabaseService');
 const { 
     sendMonthlyReminderEmail, 
     sendOtpEmail, 
+    sendVolunteerWelcomeEmail,
+    sendTrustMemberWelcomeEmail,
     sendPaymentSuccessEmail, 
     sendPaymentPendingEmail, 
     sendPaymentFailureEmail,
     send30DayRenewalReminderEmail,
     send30DayImpactUpdateEmail,
-    sendCustomDonorAnnouncementEmail
+    sendCustomDonorAnnouncementEmail,
+    renderTemplate,
+    getMockDataForTemplate
 } = require('../services/emailService');
 const { autoRankDonors, getCachedLeaderboard } = require('../services/rankingService');
 const { 
@@ -26,8 +30,6 @@ const {
     getSchedulerStatus 
 } = require('../services/schedulerService');
 const { requireAdmin } = require('../middleware/authMiddleware');
-const upload = require('../services/uploadService');
-const { uploadPhotoToR2 } = require('../services/cloudflareR2Service');
 
 // GET /api/admin/supabase-sql — Returns Supabase setup SQL
 router.get('/supabase-sql', (req, res) => {
@@ -35,22 +37,6 @@ router.get('/supabase-sql', (req, res) => {
         success: true,
         sql: getSupabaseSchemaSQL()
     });
-});
-
-// GET /api/admin/supabase-analytics — Aggregated Supabase & Cloud DB Analytics
-router.get('/supabase-analytics', async (req, res) => {
-    try {
-        const analytics = await getSupabaseAnalytics();
-        res.json({
-            success: true,
-            analytics
-        });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            message: err.message || 'Failed to retrieve Supabase analytics'
-        });
-    }
 });
 
 // GET /api/admin/dashboard-stats — Financial & Registration Dashboard
@@ -105,30 +91,6 @@ router.get('/dashboard-stats', async (req, res) => {
                     userEmailSet.add(em);
                     totalUsers++;
                     const cDate = new Date(u.created_at || u.createdAt || Date.now());
-                    if (cDate >= todayStart) todayUsersCount++;
-                    if (cDate >= monthStart) monthUsersCount++;
-                }
-            }
-        }
-        for (const tm of (memoryStore.trust_members || [])) {
-            if (tm.email && !tm.isDeleted && tm.approvalStatus !== 'deleted') {
-                const em = tm.email.toLowerCase().trim();
-                if (!userEmailSet.has(em)) {
-                    userEmailSet.add(em);
-                    totalUsers++;
-                    const cDate = new Date(tm.createdAt || Date.now());
-                    if (cDate >= todayStart) todayUsersCount++;
-                    if (cDate >= monthStart) monthUsersCount++;
-                }
-            }
-        }
-        for (const pay of (memoryStore.payments || [])) {
-            if (pay.email && !pay.isDeleted) {
-                const em = pay.email.toLowerCase().trim();
-                if (!userEmailSet.has(em)) {
-                    userEmailSet.add(em);
-                    totalUsers++;
-                    const cDate = new Date(pay.createdAt || pay.created_at || Date.now());
                     if (cDate >= todayStart) todayUsersCount++;
                     if (cDate >= monthStart) monthUsersCount++;
                 }
@@ -395,86 +357,6 @@ router.get('/developer-metrics', async (req, res) => {
     }
 });
 
-// GET /api/admin/system-logs - Live real-time system & error logs for Grafana monitoring
-router.get('/system-logs', async (req, res) => {
-    try {
-        const now = new Date();
-        const logs = [
-            {
-                id: 'log-1',
-                timestamp: new Date(now.getTime() - 2000).toISOString(),
-                level: 'SUCCESS',
-                source: 'VERCEL_EDGE',
-                message: 'Vercel Edge Network routing healthy - Cache HIT ratio 99.2% on /portal/members',
-                meta: { region: 'bom1', status: 200, latency: '18ms' }
-            },
-            {
-                id: 'log-2',
-                timestamp: new Date(now.getTime() - 5000).toISOString(),
-                level: 'INFO',
-                source: 'SUPABASE_DB',
-                message: 'PostgreSQL connection pool healthy: 7 verified trust members synchronized',
-                meta: { latency: '14ms', activePool: 5 }
-            },
-            {
-                id: 'log-3',
-                timestamp: new Date(now.getTime() - 12000).toISOString(),
-                level: 'SUCCESS',
-                source: 'MONGODB_ATLAS',
-                message: 'MongoDB Atlas primary replica cluster0-shard-00-01 connected and in sync',
-                meta: { ping: '22ms' }
-            },
-            {
-                id: 'log-4',
-                timestamp: new Date(now.getTime() - 28000).toISOString(),
-                level: 'INFO',
-                source: 'API_SERVERLESS',
-                message: 'GET /api/trust-members/public-list served with live Supabase ingestion',
-                meta: { executionDuration: '32ms', memoryUsed: '38MB' }
-            },
-            {
-                id: 'log-5',
-                timestamp: new Date(now.getTime() - 45000).toISOString(),
-                level: 'SUCCESS',
-                source: 'SABPAISA_GATEWAY',
-                message: 'SabPaisa PG 3.0 webhook endpoint operational (Client Code: KIRA99)',
-                meta: { gatewayStatus: 'ONLINE' }
-            },
-            {
-                id: 'log-6',
-                timestamp: new Date(now.getTime() - 72000).toISOString(),
-                level: 'INFO',
-                source: 'AUTO_ENGINE',
-                message: 'Auto-ranking donor engine evaluated 309 records. Top Donor: Kiran Babu (₹12,00,000)',
-                meta: { cycle: 'cron_5m' }
-            },
-            {
-                id: 'log-7',
-                timestamp: new Date(now.getTime() - 110000).toISOString(),
-                level: 'INFO',
-                source: 'AUTH_SERVICE',
-                message: 'Secure JWT session active for administrator & verified trust members',
-                meta: { algorithm: 'HS256' }
-            }
-        ];
-
-        return res.json({
-            success: true,
-            vercel: {
-                status: 'READY',
-                deployment: 'kiran-charitable-trust-copy.vercel.app',
-                environment: 'production',
-                region: 'bom1 (Mumbai, India)',
-                edgeCacheHitRate: '98.8%',
-                errorRate: '0.00%'
-            },
-            logs
-        });
-    } catch (err) {
-        return res.status(500).json({ success: false, message: 'Failed to retrieve system logs' });
-    }
-});
-
 // POST /api/admin/dev-action/recalculate-rankings — Force Auto-Ranking from Developer Panel
 router.post('/dev-action/recalculate-rankings', async (req, res) => {
     try {
@@ -521,320 +403,172 @@ router.post('/dev-action/test-db', async (req, res) => {
     }
 });
 
-// POST /api/admin/dev-action/test-email — Diagnostic SMTP Test
+// POST /api/admin/dev-action/test-email — Diagnostic SMTP Test & Multi-Template Dispatcher
 router.post('/dev-action/test-email', async (req, res) => {
     try {
-        const targetEmail = req.body.email || process.env.EMAIL_USER || 'trustkirancharitable@gmail.com';
-        const testOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        const dispatchResult = await sendOtpEmail(targetEmail, testOtp);
+        const targetEmail = req.body.email || process.env.EMAIL_USER || 'contact@kirancharitabletrust.org';
+        const templateId = String(req.body.templateId || '1').toLowerCase();
+        const previewOnly = Boolean(req.body.previewOnly);
+        const customData = req.body.data || {};
+        const mockData = getMockDataForTemplate(templateId, { email: targetEmail, ...customData });
+
+        // Map template IDs to dispatch functions and filenames
+        const templateMap = {
+            '1': { file: '01_otp_verification.html', name: 'OTP Verification', fn: () => sendOtpEmail(targetEmail, mockData.otp, mockData.full_name) },
+            '01': { file: '01_otp_verification.html', name: 'OTP Verification', fn: () => sendOtpEmail(targetEmail, mockData.otp, mockData.full_name) },
+            'otp': { file: '01_otp_verification.html', name: 'OTP Verification', fn: () => sendOtpEmail(targetEmail, mockData.otp, mockData.full_name) },
+
+            '2': { file: '02_volunteer_welcome.html', name: 'Volunteer Welcome', fn: () => sendVolunteerWelcomeEmail({ name: mockData.full_name, email: targetEmail, uniqueId: mockData.volunteer_id, phone: mockData.phone, membershipFee: '100' }) },
+            '02': { file: '02_volunteer_welcome.html', name: 'Volunteer Welcome', fn: () => sendVolunteerWelcomeEmail({ name: mockData.full_name, email: targetEmail, uniqueId: mockData.volunteer_id, phone: mockData.phone, membershipFee: '100' }) },
+            'volunteer': { file: '02_volunteer_welcome.html', name: 'Volunteer Welcome', fn: () => sendVolunteerWelcomeEmail({ name: mockData.full_name, email: targetEmail, uniqueId: mockData.volunteer_id, phone: mockData.phone, membershipFee: '100' }) },
+
+            '3': { file: '03_trust_member_welcome.html', name: 'Trust Member Welcome', fn: () => sendTrustMemberWelcomeEmail({ name: mockData.full_name, email: targetEmail, memberId: mockData.member_id, idCardNo: mockData.id_card_number }) },
+            '03': { file: '03_trust_member_welcome.html', name: 'Trust Member Welcome', fn: () => sendTrustMemberWelcomeEmail({ name: mockData.full_name, email: targetEmail, memberId: mockData.member_id, idCardNo: mockData.id_card_number }) },
+            'member': { file: '03_trust_member_welcome.html', name: 'Trust Member Welcome', fn: () => sendTrustMemberWelcomeEmail({ name: mockData.full_name, email: targetEmail, memberId: mockData.member_id, idCardNo: mockData.id_card_number }) },
+
+            '4': { file: '04_payment_success_80g_receipt.html', name: 'Successful Donation 80G Receipt', fn: () => sendPaymentSuccessEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, receiptNumber: mockData.receipt_number, transactionId: mockData.transaction_id, purpose: mockData.purpose }) },
+            '04': { file: '04_payment_success_80g_receipt.html', name: 'Successful Donation 80G Receipt', fn: () => sendPaymentSuccessEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, receiptNumber: mockData.receipt_number, transactionId: mockData.transaction_id, purpose: mockData.purpose }) },
+            'payment_success': { file: '04_payment_success_80g_receipt.html', name: 'Successful Donation 80G Receipt', fn: () => sendPaymentSuccessEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, receiptNumber: mockData.receipt_number, transactionId: mockData.transaction_id, purpose: mockData.purpose }) },
+
+            '5': { file: '05_payment_failure.html', name: 'Payment Failed Notice', fn: () => sendPaymentFailureEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, reason: mockData.failure_reason, transactionId: mockData.transaction_id }) },
+            '05': { file: '05_payment_failure.html', name: 'Payment Failed Notice', fn: () => sendPaymentFailureEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, reason: mockData.failure_reason, transactionId: mockData.transaction_id }) },
+            'payment_failure': { file: '05_payment_failure.html', name: 'Payment Failed Notice', fn: () => sendPaymentFailureEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, reason: mockData.failure_reason, transactionId: mockData.transaction_id }) },
+
+            '6': { file: '06_payment_pending.html', name: 'Payment Pending Notice', fn: () => sendPaymentPendingEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, transactionId: mockData.transaction_id, purpose: mockData.purpose }) },
+            '06': { file: '06_payment_pending.html', name: 'Payment Pending Notice', fn: () => sendPaymentPendingEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, transactionId: mockData.transaction_id, purpose: mockData.purpose }) },
+            'payment_pending': { file: '06_payment_pending.html', name: 'Payment Pending Notice', fn: () => sendPaymentPendingEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, transactionId: mockData.transaction_id, purpose: mockData.purpose }) },
+
+            '7': { file: '07_monthly_reminder.html', name: 'Monthly AutoPay Reminder', fn: () => sendMonthlyReminderEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, dueDate: new Date(), subscriptionId: mockData.subscription_id, autopayStatus: mockData.autopay_status }) },
+            '07': { file: '07_monthly_reminder.html', name: 'Monthly AutoPay Reminder', fn: () => sendMonthlyReminderEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, dueDate: new Date(), subscriptionId: mockData.subscription_id, autopayStatus: mockData.autopay_status }) },
+            'monthly_reminder': { file: '07_monthly_reminder.html', name: 'Monthly AutoPay Reminder', fn: () => sendMonthlyReminderEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, dueDate: new Date(), subscriptionId: mockData.subscription_id, autopayStatus: mockData.autopay_status }) },
+
+            '8': { file: '08_30day_renewal_reminder.html', name: '30-Day Renewal Reminder', fn: () => send30DayRenewalReminderEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, dueDate: new Date(), memberId: mockData.member_id }) },
+            '08': { file: '08_30day_renewal_reminder.html', name: '30-Day Renewal Reminder', fn: () => send30DayRenewalReminderEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, dueDate: new Date(), memberId: mockData.member_id }) },
+            'renewal': { file: '08_30day_renewal_reminder.html', name: '30-Day Renewal Reminder', fn: () => send30DayRenewalReminderEmail({ name: mockData.full_name, email: targetEmail, amount: mockData.amount, dueDate: new Date(), memberId: mockData.member_id }) },
+
+            '9': { file: '09_30day_impact_update.html', name: '30-Day Impact Update', fn: () => send30DayImpactUpdateEmail({ name: mockData.full_name, email: targetEmail, educationImpact: mockData.education_impact_update, nutritionImpact: mockData.nutrition_impact_update, communityImpact: mockData.community_impact_update, studentsSupported: mockData.students_supported, mealsDistributed: mockData.meals_distributed, activitiesCompleted: mockData.activities_completed, volunteersInvolved: mockData.volunteers_involved }) },
+            '09': { file: '09_30day_impact_update.html', name: '30-Day Impact Update', fn: () => send30DayImpactUpdateEmail({ name: mockData.full_name, email: targetEmail, educationImpact: mockData.education_impact_update, nutritionImpact: mockData.nutrition_impact_update, communityImpact: mockData.community_impact_update, studentsSupported: mockData.students_supported, mealsDistributed: mockData.meals_distributed, activitiesCompleted: mockData.activities_completed, volunteersInvolved: mockData.volunteers_involved }) },
+            'impact': { file: '09_30day_impact_update.html', name: '30-Day Impact Update', fn: () => send30DayImpactUpdateEmail({ name: mockData.full_name, email: targetEmail, educationImpact: mockData.education_impact_update, nutritionImpact: mockData.nutrition_impact_update, communityImpact: mockData.community_impact_update, studentsSupported: mockData.students_supported, mealsDistributed: mockData.meals_distributed, activitiesCompleted: mockData.activities_completed, volunteersInvolved: mockData.volunteers_involved }) },
+
+            '10': { file: '10_custom_donor_announcement.html', name: 'Custom Donor Announcement', fn: () => sendCustomDonorAnnouncementEmail({ name: mockData.full_name, email: targetEmail, title: mockData.announcement_title, description: mockData.announcement_description, programName: mockData.program_name, eventDate: mockData.event_date, eventTime: mockData.event_time, eventLocation: mockData.event_location, purpose: mockData.initiative_purpose }) },
+            'custom': { file: '10_custom_donor_announcement.html', name: 'Custom Donor Announcement', fn: () => sendCustomDonorAnnouncementEmail({ name: mockData.full_name, email: targetEmail, title: mockData.announcement_title, description: mockData.announcement_description, programName: mockData.program_name, eventDate: mockData.event_date, eventTime: mockData.event_time, eventLocation: mockData.event_location, purpose: mockData.initiative_purpose }) }
+        };
+
+        // If previewOnly is requested, render and return HTML without sending SMTP
+        if (previewOnly) {
+            const entry = templateMap[templateId] || templateMap['1'];
+            const renderedHtml = renderTemplate(entry.file, mockData);
+            return res.json({
+                success: true,
+                previewOnly: true,
+                templateName: entry.name,
+                fileName: entry.file,
+                html: renderedHtml,
+                data: mockData
+            });
+        }
+
+        // If 'all' is requested, sequentially dispatch all 10 templates
+        if (templateId === 'all') {
+            const distinctKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+            const results = [];
+            for (const key of distinctKeys) {
+                const entry = templateMap[key];
+                try {
+                    const result = await entry.fn();
+                    results.push({ id: key, name: entry.name, success: !!result.success, result });
+                } catch (err) {
+                    results.push({ id: key, name: entry.name, success: false, error: err.message });
+                }
+            }
+            return res.json({
+                success: results.every(r => r.success),
+                targetEmail,
+                totalDispatched: results.length,
+                results
+            });
+        }
+
+        const selected = templateMap[templateId] || templateMap['1'];
+        const dispatchResult = await selected.fn();
 
         return res.json({
             success: !!dispatchResult.success,
+            templateName: selected.name,
+            targetEmail,
             dispatchResult,
             message: dispatchResult.success
-                ? `Diagnostic test email dispatched to ${targetEmail}`
-                : `SMTP dispatch notice: ${dispatchResult.error || 'Check server logs'}`,
-            code: testOtp
+                ? `Diagnostic test email ("${selected.name}") dispatched to ${targetEmail}`
+                : `SMTP dispatch notice: ${dispatchResult.error || 'Check server logs'}`
         });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Email diagnostic failed: ' + err.message });
     }
 });
 
-// GET /api/admin/payments — Payments and Transaction History (Normalized & Descending)
+// GET /api/admin/payments — Payments and Transaction History
 router.get('/payments', async (req, res) => {
     try {
-        const { status, type, limit = 200, page = 1 } = req.query;
+        const { status, limit = 50, page = 1 } = req.query;
         let payments = [];
         let total = 0;
 
-        const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-
-        // 1. Ingest directly from Supabase (Live Primary Database)
-        try {
-            const sbPayments = await fetchSupabasePayments();
-            if (sbPayments && sbPayments.length > 0) {
-                sbPayments.forEach(p => {
-                    payments.push({
-                        _id: p.id,
-                        id: p.id,
-                        transactionId: p.transaction_id || p.client_txn_id,
-                        clientTxnId: p.client_txn_id || p.transaction_id,
-                        receiptNumber: p.receipt_number,
-                        fullName: p.full_name,
-                        full_name: p.full_name,
-                        email: p.email,
-                        mobile: p.mobile,
-                        phone: p.mobile,
-                        amount: Number(p.amount) || 0,
-                        donorCategory: p.donor_category,
-                        donor_category: p.donor_category,
-                        purpose: p.purpose,
-                        paymentMethod: p.payment_method,
-                        payment_method: p.payment_method,
-                        status: (p.status || 'completed').toLowerCase(),
-                        failureReason: p.failure_reason,
-                        failure_reason: p.failure_reason,
-                        isAnonymous: Boolean(p.is_anonymous),
-                        profilePhoto: p.profile_photo || '',
-                        createdAt: p.created_at,
-                        created_at: p.created_at,
-                        date: p.created_at
-                    });
-                });
-            }
-        } catch (sbErr) {
-            console.warn('Supabase admin payments fetch notice:', sbErr.message);
-        }
-
-        // 2. Ingest from MongoDB (Dual Live Database)
         try {
             if (mongoose.connection.readyState === 1) {
-                // Auto-expire pending payments older than 5 minutes in DB and notify donors via email
-                try {
-                    const expiredDonations = await Donation.find({
-                        status: { $regex: /^pending$/i },
-                        createdAt: { $lte: new Date(fiveMinutesAgo) },
-                        failureNotificationSent: { $ne: true }
-                    }).lean();
-
-                    for (const exp of expiredDonations) {
-                        if (exp.email) {
-                            const isMonthly = (exp.donorCategory || '').includes('monthly') || (exp.purpose || '').toLowerCase().includes('monthly');
-                            const retryUrl = isMonthly
-                                ? 'https://kiran-charitable-trust-copy.vercel.app/portal/profile?tab=payments'
-                                : 'https://kiran-charitable-trust-copy.vercel.app/donate';
-                            sendPaymentFailureEmail({
-                                name: exp.fullName,
-                                email: exp.email,
-                                amount: exp.amount,
-                                reason: 'Payment session timed out (5-minute window expired)',
-                                transactionId: exp.transactionId || exp.clientTxnId,
-                                retryUrl
-                            }).catch(() => {});
-                        }
-                    }
-
-                    await Donation.updateMany(
-                        { 
-                            status: { $regex: /^pending$/i }, 
-                            createdAt: { $lte: new Date(fiveMinutesAgo) } 
-                        },
-                        { 
-                            $set: { 
-                                status: 'failed', 
-                                failureReason: 'Payment session timed out (5-minute window expired)',
-                                failureNotificationSent: true
-                            } 
-                        }
-                    );
-                } catch (sweepErr) {
-                    console.warn('Expired payment sweep notice:', sweepErr.message);
-                }
-
-                const filter = status && status !== 'all' ? { status } : {};
-                const mongoDonations = await Donation.find(filter).sort({ createdAt: -1 }).maxTimeMS(2000).lean();
-
-                if (payments.length > 0) {
-                    const existingKeys = new Set(payments.map(p => p.receiptNumber || p.transactionId || p.clientTxnId));
-                    for (const md of mongoDonations) {
-                        const key = md.receiptNumber || md.transactionId || md.clientTxnId;
-                        if (key && !existingKeys.has(key)) {
-                            existingKeys.add(key);
-                            payments.push(md);
-                        }
-                    }
-                } else {
-                    payments = mongoDonations;
-                }
+                const filter = status ? { status } : {};
+                const skip = (Number(page) - 1) * Number(limit);
+                payments = await Donation.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).maxTimeMS(1000);
+                total = await Donation.countDocuments(filter).maxTimeMS(1000);
             }
         } catch (e) {
             console.warn('DB payments fetch notice:', e.message);
         }
 
-        // 3. Fallback to memoryStore ONLY if both live databases returned no records
-        const combined = [...payments];
-        if (combined.length === 0) {
-            const storePayments = memoryStore.payments || [];
-            for (const sp of storePayments) {
-                combined.push(sp);
-            }
+        if (payments.length === 0 && memoryStore.payments) {
+            const filtered = status ? memoryStore.payments.filter(p => p.status === status) : memoryStore.payments;
+            const skip = (Number(page) - 1) * Number(limit);
+            payments = filtered.slice(skip, skip + Number(limit));
+            total = filtered.length;
         }
-
-        // Sort descending by date (NEWEST TRANSACTIONS ALWAYS AT TOP)
-        combined.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
-
-        // Normalize every record with both camelCase & snake_case
-        const normalized = combined.map(p => {
-            let rawStatus = (p.status || 'PENDING').toLowerCase();
-            const createdTime = new Date(p.createdAt || p.created_at || Date.now()).getTime();
-            let failureReason = p.failureReason || p.failure_reason || '';
-
-            // Check 5-minute timeout window
-            if (rawStatus === 'pending' && createdTime < fiveMinutesAgo) {
-                rawStatus = 'failed';
-                failureReason = 'Payment session timed out (5-minute window expired)';
-            }
-
-            // Determine explicit Payment Type:
-            // 1) Trust Member Registration
-            // 2) Monthly Contribution
-            // 3) One-Time Donation
-            const donorCat = (p.donorCategory || p.donor_category || '').toLowerCase();
-            const purposeStr = (p.purpose || '').toLowerCase();
-            let paymentType = 'One-Time Donation';
-            let paymentTypeCode = 'donation';
-
-            if (
-                donorCat.includes('member') || 
-                donorCat.includes('trust_member') || 
-                purposeStr.includes('trust member') || 
-                purposeStr.includes('member registration') || 
-                purposeStr.includes('membership')
-            ) {
-                paymentType = 'Trust Member Registration';
-                paymentTypeCode = 'member_registration';
-            } else if (
-                donorCat.includes('monthly') || 
-                donorCat.includes('pledge') || 
-                donorCat.includes('subscription') || 
-                purposeStr.includes('monthly') || 
-                purposeStr.includes('sustaining') || 
-                purposeStr.includes('autopay')
-            ) {
-                paymentType = 'Monthly Contribution';
-                paymentTypeCode = 'monthly_contribution';
-            } else {
-                paymentType = 'One-Time Donation';
-                paymentTypeCode = 'donation';
-            }
-
-            return {
-                ...p,
-                _id: p._id || p.id || p.client_txn_id || p.clientTxnId || ('pay_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
-                fullName: p.fullName || p.full_name || p.name || 'Valued Philanthropist',
-                full_name: p.full_name || p.fullName || p.name || 'Valued Philanthropist',
-                email: p.email || '',
-                mobile: p.mobile || p.phone || '',
-                phone: p.phone || p.mobile || '',
-                amount: Number(p.amount) || 0,
-                purpose: p.purpose || 'General Donation',
-                paymentType,
-                paymentTypeCode,
-                donorCategory: p.donorCategory || p.donor_category || donorCat || 'general',
-                donor_category: p.donor_category || p.donorCategory || donorCat || 'general',
-                paymentMethod: p.paymentMethod || p.payment_method || 'SabPaisa PG',
-                payment_method: p.payment_method || p.paymentMethod || 'SabPaisa PG',
-                transactionId: p.transactionId || p.transaction_id || p.clientTxnId || p.client_txn_id || '',
-                transaction_id: p.transaction_id || p.transactionId || p.client_txn_id || p.clientTxnId || '',
-                clientTxnId: p.clientTxnId || p.client_txn_id || p.transactionId || p.transaction_id || '',
-                client_txn_id: p.client_txn_id || p.clientTxnId || p.transaction_id || p.transactionId || '',
-                receiptNumber: p.receiptNumber || p.receipt_number || '',
-                receipt_number: p.receipt_number || p.receiptNumber || '',
-                status: rawStatus,
-                failureReason,
-                createdAt: p.createdAt || p.created_at || new Date().toISOString(),
-                created_at: p.created_at || p.createdAt || new Date().toISOString()
-            };
-        });
-
-        // Filter by status if requested
-        let filtered = normalized;
-        if (status && status !== 'all') {
-            filtered = filtered.filter(p => p.status === status.toLowerCase() || (status === 'success' && p.status === 'completed'));
-        }
-        if (type && type !== 'all') {
-            filtered = filtered.filter(p => p.paymentTypeCode === type.toLowerCase());
-        }
-
-        total = filtered.length;
-        const pageNum = Math.max(1, Number(page));
-        const limitNum = Math.max(1, Number(limit));
-        const skip = (pageNum - 1) * limitNum;
-        const paginated = filtered.slice(skip, skip + limitNum);
 
         return res.json({
             success: true,
             total,
-            page: pageNum,
-            payments: paginated
+            page: Number(page),
+            payments
         });
     } catch (err) {
         return res.status(500).json({ success: false, message: 'Failed to fetch payments' });
     }
 });
 
-
-// POST /api/admin/upload-photo — Upload member photo directly to Cloudflare R2
-router.post('/upload-photo', requireAdmin, upload.single('photo'), async (req, res) => {
-    try {
-        const file = req.file;
-        if (!file) {
-            return res.status(400).json({ success: false, message: 'No image file provided' });
-        }
-        let photoUrl = '';
-        try {
-            photoUrl = await uploadPhotoToR2(file.buffer, file.originalname, file.mimetype, 'profile_photos');
-        } catch (r2Err) {
-            console.warn('R2 upload notice, fallback to data URI:', r2Err.message);
-            photoUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-        }
-        return res.json({
-            success: true,
-            photoUrl,
-            url: photoUrl,
-            message: 'Photo uploaded successfully'
-        });
-    } catch (err) {
-        console.error('Admin photo upload error:', err);
-        return res.status(500).json({ success: false, message: 'Photo upload failed: ' + err.message });
-    }
-});
-
-// GET /api/admin/trust-members — Manage Trust Members (with live Supabase cloud database)
+// GET /api/admin/trust-members — Manage Trust Members (with trash & suspension metadata)
 router.get('/trust-members', async (req, res) => {
     try {
         let members = [];
-
-        // 1. Ingest live from Supabase (Primary Cloud Database)
         try {
-            const sbMembers = await fetchSupabaseTrustMembers();
-            if (sbMembers && sbMembers.length > 0) {
-                members = sbMembers.map(m => ({
-                    _id: m.id,
-                    id: m.id,
-                    memberId: m.member_id,
-                    name: m.name,
-                    email: m.email,
-                    phone: m.phone,
-                    address: m.address,
-                    aadharNumber: m.aadhar_number,
-                    panNumber: m.pan_number,
-                    role: m.role || 'Member',
-                    profilePhoto: m.profile_photo,
-                    subscriptionTier: m.subscription_tier,
-                    donationAmount: Number(m.donation_amount) || 0,
-                    totalDonated: Number(m.total_donated) || 0,
-                    donationCount: Number(m.donation_count) || 1,
-                    approvalStatus: m.approval_status || 'active',
-                    isDeleted: Boolean(m.is_deleted),
-                    createdAt: m.created_at
-                }));
-            }
-        } catch (sbErr) {
-            console.warn('Supabase members fetch notice:', sbErr.message);
-        }
+            if (mongoose.connection.readyState === 1) {
+                // Auto-cleanup: remove members in trash beyond 30 days
+                await TrustMember.deleteMany({
+                    isDeleted: true,
+                    scheduledPermanentDeleteAt: { $lte: new Date() }
+                }).catch(() => {});
 
-        // 2. Also check MongoDB if available
-        if (members.length === 0 && mongoose.connection.readyState === 1) {
-            try {
                 members = await TrustMember.find().sort({ isDeleted: 1, createdAt: -1 }).maxTimeMS(1000);
-            } catch (e) {}
+            }
+        } catch (e) {
+            members = memoryStore.trust_members || [];
         }
 
-        // Fallback to memory store ONLY if live databases returned 0
-        if (members.length === 0 && memoryStore.trust_members && memoryStore.trust_members.length > 0) {
-            members = [...memoryStore.trust_members];
+        // Add memory store fallback members if not in DB
+        if (memoryStore.trust_members && memoryStore.trust_members.length > 0) {
+            const existingEmails = new Set(members.map(m => m.email?.toLowerCase()));
+            for (const mem of memoryStore.trust_members) {
+                if (!existingEmails.has(mem.email?.toLowerCase())) {
+                    members.push(mem);
+                    existingEmails.add(mem.email?.toLowerCase());
+                }
+            }
         }
 
         // Also check profiles for role === 'trust_member'
@@ -1016,7 +750,7 @@ router.post('/trust-members', async (req, res) => {
     }
 });
 
-// PUT /api/admin/trust-members/:id — Edit existing trust member details (Live Supabase + MongoDB)
+// PUT /api/admin/trust-members/:id — Edit existing trust member details
 router.put('/trust-members/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -1027,63 +761,9 @@ router.put('/trust-members/:id', async (req, res) => {
             totalDonated, address, aadharNumber, panNumber, profilePhoto, approvalStatus
         } = req.body;
 
-        const normalizedEmail = (email || '').toLowerCase().trim();
+        let member = await findTrustMemberFlexible(id);
+        const normalizedEmail = (email || member?.email || '').toLowerCase().trim();
 
-        // 1. Direct Live Update in Supabase (Cloud DB)
-        const sb = getSupabase();
-        let sbUpdatedData = null;
-        if (sb) {
-            try {
-                const sbPayload = {};
-                if (name !== undefined) sbPayload.name = name;
-                if (normalizedEmail) sbPayload.email = normalizedEmail;
-                if (phone !== undefined) sbPayload.phone = phone;
-                if (address !== undefined) sbPayload.address = address;
-                if (role !== undefined) sbPayload.role = role;
-                if (subscriptionTier !== undefined) sbPayload.subscription_tier = subscriptionTier;
-                if (donationAmount !== undefined) sbPayload.donation_amount = Number(donationAmount);
-                if (totalDonated !== undefined) sbPayload.total_donated = Number(totalDonated);
-                if (aadharNumber !== undefined) sbPayload.aadhar_number = aadharNumber;
-                if (panNumber !== undefined) sbPayload.pan_number = panNumber;
-                if (profilePhoto !== undefined) sbPayload.profile_photo = profilePhoto;
-                if (approvalStatus !== undefined) sbPayload.approval_status = approvalStatus;
-
-                const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(strId);
-                let query = sb.from('trust_members').update(sbPayload);
-                if (isUUID) {
-                    query = query.or(`id.eq.${strId},member_id.eq.${strId},email.eq.${lowerId}`);
-                } else {
-                    query = query.or(`member_id.eq.${strId},email.eq.${lowerId}`);
-                }
-                let { data: updated, error: uErr } = await query.select();
-
-                if ((!updated || updated.length === 0) && normalizedEmail) {
-                    const { data: updatedByEmail } = await sb.from('trust_members')
-                        .update(sbPayload)
-                        .eq('email', normalizedEmail)
-                        .select();
-                    if (updatedByEmail && updatedByEmail.length > 0) {
-                        sbUpdatedData = updatedByEmail[0];
-                    }
-                } else if (updated && updated.length > 0) {
-                    sbUpdatedData = updated[0];
-                }
-
-                // Synchronously sync to profiles table in Supabase so portal sees updated data instantly
-                if (normalizedEmail) {
-                    const profilePayload = {};
-                    if (name) profilePayload.name = name;
-                    if (phone) profilePayload.phone = phone;
-                    if (address) profilePayload.address = address;
-                    if (profilePhoto) profilePayload.avatar_url = profilePhoto;
-                    await sb.from('profiles').update(profilePayload).eq('email', normalizedEmail);
-                }
-            } catch (sbEx) {
-                console.warn('Supabase member update error:', sbEx.message);
-            }
-        }
-
-        // 2. Direct Update in MongoDB
         if (mongoose.connection && mongoose.connection.readyState === 1) {
             try {
                 const query = mongoose.Types.ObjectId.isValid(strId)
@@ -1110,7 +790,7 @@ router.put('/trust-members/:id', async (req, res) => {
             }
         }
 
-        // 3. Update memoryStore
+        // Update in memoryStore
         if (memoryStore.trust_members) {
             const memIdx = memoryStore.trust_members.findIndex(m =>
                 m.memberId === strId || m.email?.toLowerCase() === lowerId || m._id === strId || m.id === strId
@@ -1137,11 +817,10 @@ router.put('/trust-members/:id', async (req, res) => {
 
         return res.json({
             success: true,
-            message: `Trust member ${name || strId} updated successfully.`,
-            member: sbUpdatedData || req.body
+            message: `Trust member details updated successfully.`
         });
     } catch (err) {
-        return res.status(500).json({ success: false, message: 'Failed to update member: ' + err.message });
+        return res.status(500).json({ success: false, message: 'Failed to update member details: ' + err.message });
     }
 });
 
@@ -1741,88 +1420,6 @@ router.put('/payments/:id/status', async (req, res) => {
     }
 });
 
-// POST /api/admin/payments/:id/check-gateway — Query SabPaisa PG 3.0 API live and sync payment status
-router.post('/payments/:id/check-gateway', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const DEFAULT_CLIENT_CODE = process.env.SABPAISA_CLIENT_CODE || 'KIRA99';
-        const DEFAULT_API_KEY = process.env.SABPAISA_API_KEY || 'N2c3SjY2U1ZqVW1MUDlUOHg2dkJkdz09';
-        const DEFAULT_BASE_URL = process.env.SABPAISA_BASE_URL || 'https://merchant-api.sabpaisa.in';
-
-        // Find transaction
-        let donation = null;
-        if (mongoose.connection.readyState === 1) {
-            donation = await Donation.findOne({
-                $or: [
-                    mongoose.Types.ObjectId.isValid(id) ? { _id: id } : null,
-                    { transactionId: id },
-                    { receiptNumber: id }
-                ].filter(Boolean)
-            });
-        }
-        if (!donation) {
-            donation = (memoryStore.payments || []).find(p => p._id === id || p.transactionId === id || p.clientTxnId === id);
-        }
-
-        const merchantTxnId = donation ? (donation.transactionId || donation.clientTxnId || id) : id;
-
-        // Query SabPaisa Live Gateway
-        const enquiryRes = await fetch(`${DEFAULT_BASE_URL}/api/v2/payments/enquiry`, {
-            method: 'POST',
-            headers: {
-                'X-Api-Key': DEFAULT_API_KEY,
-                'X-Merchant-Id': DEFAULT_CLIENT_CODE,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                clientCode: DEFAULT_CLIENT_CODE,
-                merchantId: DEFAULT_CLIENT_CODE,
-                merchantTxnId
-            })
-        });
-
-        const enquiryData = await enquiryRes.json().catch(() => ({}));
-        const rawStatus = (enquiryData.status || enquiryData.statusCode || enquiryData.paymentStatus || '').toUpperCase();
-
-        let updatedStatus = null;
-        if (rawStatus === 'SUCCESS' || rawStatus === 'COMPLETED' || rawStatus === '0000') {
-            updatedStatus = 'completed';
-        } else if (rawStatus === 'FAILED' || rawStatus === 'FAILURE' || rawStatus === 'DECLINED') {
-            updatedStatus = 'failed';
-        }
-
-        if (updatedStatus && donation) {
-            donation.status = updatedStatus;
-            donation.gatewayStatus = rawStatus;
-            if (updatedStatus === 'completed' && donation.email) {
-                sendPaymentSuccessEmail({
-                    name: donation.fullName || 'Valued Donor',
-                    email: donation.email,
-                    mobile: donation.mobile,
-                    address: donation.address,
-                    amount: donation.amount,
-                    receiptNumber: donation.receiptNumber || `KCT-${Date.now()}`,
-                    transactionId: donation.sabpaisaTxnId || donation.transactionId,
-                    clientTxnId: donation.transactionId,
-                    purpose: donation.purpose
-                }).catch(e => console.warn('Receipt dispatch notice:', e.message));
-            }
-            persistMemoryStore();
-            autoRankDonors().catch(() => {});
-        }
-
-        return res.json({
-            success: true,
-            gatewayStatus: rawStatus || 'NOT_FOUND_ON_GATEWAY',
-            syncedStatus: updatedStatus || donation?.status || 'pending',
-            details: enquiryData,
-            donation
-        });
-    } catch (err) {
-        return res.status(500).json({ success: false, message: 'Gateway enquiry check failed: ' + err.message });
-    }
-});
-
 // POST /api/admin/donations (and /api/admin/payments) — Add/Record a new donation manually
 router.post(['/donations', '/payments'], async (req, res) => {
     try {
@@ -1890,15 +1487,6 @@ router.post(['/donations', '/payments'], async (req, res) => {
         if (!memoryStore.payments) memoryStore.payments = [];
         memoryStore.payments.unshift(memObj);
         persistMemoryStore();
-
-        // Guaranteed Dual DB Sync: Sync new donation to Supabase
-        try {
-            await syncPayment(memObj);
-            console.log('✅ [Dual DB] New donation synced to Supabase:', receiptNo);
-        } catch (sbErr) {
-            console.warn('Supabase create donation warning:', sbErr.message);
-        }
-
         autoRankDonors().catch(err => console.warn('Ranking sync notice:', err.message));
 
         return res.json({
@@ -1916,7 +1504,6 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
     try {
         const { id } = req.params;
         const strId = String(id).trim();
-        const decodedId = decodeURIComponent(strId);
         const {
             fullName, email, mobile, amount, purpose, paymentMethod,
             paymentMode, transactionId, panNumber, pan, address, status, receiptNumber,
@@ -1929,17 +1516,7 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
             try {
                 const query = mongoose.Types.ObjectId.isValid(strId)
                     ? { _id: strId }
-                    : { 
-                        $or: [
-                            { transactionId: strId }, 
-                            { clientTxnId: strId }, 
-                            { receiptNumber: strId },
-                            { transactionId: decodedId },
-                            { receiptNumber: decodedId },
-                            ...(transactionId ? [{ transactionId }, { clientTxnId: transactionId }] : []),
-                            ...(receiptNumber ? [{ receiptNumber }] : [])
-                        ] 
-                    };
+                    : { $or: [{ transactionId: strId }, { clientTxnId: strId }, { receiptNumber: strId }] };
 
                 const updateFields = {};
                 if (fullName !== undefined) updateFields.fullName = fullName;
@@ -1965,16 +1542,9 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
         }
 
         // Update in memoryStore
-        let donIdx = -1;
         if (memoryStore.payments) {
-            donIdx = memoryStore.payments.findIndex(p =>
-                p._id === strId || p._id === decodedId ||
-                p.id === strId || p.id === decodedId ||
-                p.transactionId === strId || p.transactionId === decodedId ||
-                p.clientTxnId === strId || p.clientTxnId === decodedId ||
-                p.receiptNumber === strId || p.receiptNumber === decodedId ||
-                (transactionId && (p.transactionId === transactionId || p.clientTxnId === transactionId)) ||
-                (receiptNumber && p.receiptNumber === receiptNumber)
+            const donIdx = memoryStore.payments.findIndex(p =>
+                p._id === strId || p.id === strId || p.transactionId === strId || p.clientTxnId === strId || p.receiptNumber === strId
             );
             if (donIdx >= 0) {
                 memoryStore.payments[donIdx] = {
@@ -1993,101 +1563,10 @@ router.put(['/donations/:id', '/payments/:id/edit'], async (req, res) => {
                     ...(receiptNumber !== undefined && { receiptNumber }),
                     ...(updateDate && !isNaN(updateDate.getTime()) && { createdAt: updateDate, date: updateDate })
                 };
-            } else {
-                donIdx = 0;
-                memoryStore.payments.unshift({
-                    _id: strId.startsWith('don_') ? strId : `don_${Date.now()}`,
-                    fullName: fullName || 'Anonymous Donor',
-                    email: email || '',
-                    mobile: mobile || '',
-                    amount: Number(amount) || 0,
-                    purpose: purpose || 'General Philanthropy',
-                    paymentMethod: paymentMethod || 'Online Payment',
-                    paymentMode: paymentMode || paymentMethod || 'online',
-                    transactionId: transactionId || strId,
-                    clientTxnId: transactionId || strId,
-                    receiptNumber: receiptNumber || `KCT-80G-${Date.now().toString().slice(-6)}`,
-                    panNumber: panNumber || '',
-                    address: address || '',
-                    status: status || 'completed',
-                    createdAt: updateDate || new Date()
-                });
             }
         }
         persistMemoryStore();
-
-        // Guaranteed Dual DB Sync: Sync donation update to Supabase
-        const updatedDonation = (memoryStore.payments && donIdx >= 0) ? memoryStore.payments[donIdx] : {
-            fullName, email, mobile, amount: Number(amount) || 0,
-            purpose, paymentMethod, status, receiptNumber,
-            transactionId: transactionId || strId,
-            clientTxnId: transactionId || strId
-        };
-
-        if (updatedDonation) {
-            try {
-                await syncPayment(updatedDonation);
-                console.log('✅ [Dual DB] Payment synced to Supabase:', updatedDonation.receiptNumber || updatedDonation.clientTxnId);
-            } catch (sbErr) {
-                console.warn('Supabase donation update notice:', sbErr.message);
-            }
-        }
-
-        // Direct update in Supabase payments table
-        const sbClient = getSupabase();
-        if (sbClient) {
-            try {
-                const targetReceipt = receiptNumber || (updatedDonation && updatedDonation.receiptNumber);
-                const targetTxn = transactionId || strId || (updatedDonation && updatedDonation.transactionId);
-                const sbUpdate = {};
-                if (fullName !== undefined) sbUpdate.full_name = fullName;
-                if (email !== undefined) sbUpdate.email = email;
-                if (mobile !== undefined) sbUpdate.mobile = mobile;
-                if (amount !== undefined) sbUpdate.amount = Number(amount);
-                if (purpose !== undefined) sbUpdate.purpose = purpose;
-                if (paymentMethod !== undefined) sbUpdate.payment_method = paymentMethod;
-                if (status !== undefined) sbUpdate.status = (status || 'COMPLETED').toUpperCase();
-                if (targetReceipt) sbUpdate.receipt_number = targetReceipt;
-                sbUpdate.updated_at = new Date().toISOString();
-
-                if (targetReceipt) {
-                    await sbClient.from('payments').update(sbUpdate).eq('receipt_number', targetReceipt);
-                } else if (targetTxn) {
-                    await sbClient.from('payments').update(sbUpdate).or(`transaction_id.eq.${targetTxn},client_txn_id.eq.${targetTxn}`);
-                }
-                console.log('✅ [Dual DB] Direct update in Supabase payments:', targetReceipt || targetTxn);
-            } catch (sbDirectErr) {
-                console.warn('Supabase direct update notice:', sbDirectErr.message);
-            }
-        }
-
-        // Also ensure MongoDB is updated
-        if (mongoose.connection && mongoose.connection.readyState === 1) {
-            try {
-                const targetReceipt = receiptNumber || (updatedDonation && updatedDonation.receiptNumber);
-                const targetTxn = transactionId || strId || (updatedDonation && updatedDonation.transactionId);
-                const mongoUpdate = {};
-                if (fullName !== undefined) mongoUpdate.fullName = fullName;
-                if (email !== undefined) mongoUpdate.email = email;
-                if (mobile !== undefined) mongoUpdate.mobile = mobile;
-                if (amount !== undefined) mongoUpdate.amount = Number(amount);
-                if (purpose !== undefined) mongoUpdate.purpose = purpose;
-                if (paymentMethod !== undefined) mongoUpdate.paymentMethod = paymentMethod;
-                if (status !== undefined) mongoUpdate.status = status;
-                if (targetReceipt) mongoUpdate.receiptNumber = targetReceipt;
-                if (targetTxn) mongoUpdate.transactionId = targetTxn;
-
-                await Donation.findOneAndUpdate(
-                    { $or: [{ receiptNumber: targetReceipt }, { transactionId: targetTxn }, { clientTxnId: targetTxn }].filter(Boolean) },
-                    { $set: mongoUpdate }
-                );
-                console.log('✅ [Dual DB] Payment synced to MongoDB:', targetReceipt || targetTxn);
-            } catch (mongoErr) {
-                console.warn('MongoDB donation update notice:', mongoErr.message);
-            }
-        }
-
-        await autoRankDonors().catch(err => console.warn('Ranking sync notice:', err.message));
+        autoRankDonors().catch(err => console.warn('Ranking sync notice:', err.message));
 
         return res.json({
             success: true,
@@ -2173,51 +1652,7 @@ router.get('/users', async (req, res) => {
             users = await User.find(query, '-password').sort({ isDeleted: -1, createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
             total = await User.countDocuments(query);
         } else {
-            let rawUsers = (memoryStore.profiles && memoryStore.profiles.length > 0) ? [...memoryStore.profiles] : (memoryStore.users ? [...memoryStore.users] : []);
-            const seenEmails = new Set(rawUsers.map(u => (u.email || '').toLowerCase().trim()));
-
-            // Ingest verified Trust Members as registered users with appropriate roles
-            if (memoryStore.trust_members && memoryStore.trust_members.length > 0) {
-                for (const tm of memoryStore.trust_members) {
-                    const em = (tm.email || '').toLowerCase().trim();
-                    if (em && !seenEmails.has(em)) {
-                        seenEmails.add(em);
-                        rawUsers.push({
-                            _id: tm._id || ('usr_tm_' + tm.memberId),
-                            id: tm._id || ('usr_tm_' + tm.memberId),
-                            name: tm.name,
-                            email: tm.email,
-                            phone: tm.phone || '',
-                            role: (tm.role && tm.role.toLowerCase().includes('chairman')) ? 'admin' : 'trust_member',
-                            status: tm.approvalStatus === 'active' ? 'active' : (tm.approvalStatus || 'active'),
-                            isDeleted: Boolean(tm.isDeleted),
-                            subscriptionTier: tm.subscriptionTier || 'Trust Member',
-                            createdAt: tm.createdAt || new Date().toISOString()
-                        });
-                    }
-                }
-            }
-
-            // Ingest unique donors from payment records as registered users (role: 'donor')
-            if (memoryStore.payments && memoryStore.payments.length > 0) {
-                for (const p of memoryStore.payments) {
-                    const em = (p.email || '').toLowerCase().trim();
-                    if (em && !seenEmails.has(em)) {
-                        seenEmails.add(em);
-                        rawUsers.push({
-                            _id: p._id || ('usr_don_' + Math.random().toString(36).slice(2, 9)),
-                            id: p._id || ('usr_don_' + Math.random().toString(36).slice(2, 9)),
-                            name: p.fullName || p.full_name || 'Donor',
-                            email: p.email,
-                            phone: p.mobile || p.phone || '',
-                            role: 'donor',
-                            status: 'active',
-                            isDeleted: false,
-                            createdAt: p.createdAt || p.created_at || new Date().toISOString()
-                        });
-                    }
-                }
-            }
+            const rawUsers = (memoryStore.profiles && memoryStore.profiles.length > 0) ? memoryStore.profiles : (memoryStore.users || []);
             let filtered = rawUsers;
             if (role && role !== 'all') {
                 filtered = filtered.filter(u => u.role === role);

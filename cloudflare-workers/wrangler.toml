@@ -1,0 +1,16 @@
+name = "kiran-trust-edge-worker"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+account_id = "b0d2ee1b8e6fd8162c62ff84d1386fa8"
+
+# Cloudflare R2 Bucket Binding
+[[r2_buckets]]
+binding = "TRUST_STORAGE"
+bucket_name = "trustholdersimages"
+
+# Environment Variables
+[vars]
+ENVIRONMENT = "production"
+ORIGIN_FRONTEND = "https://kiran-trust-frontend-live.vercel.app"
+ORIGIN_BACKEND = "https://kiran-trust-backend-live.vercel.app"
+R2_PUBLIC_DOMAIN = "https://pub-970bc89c732845808ebd2b74e9d1e0fd.r2.dev"
